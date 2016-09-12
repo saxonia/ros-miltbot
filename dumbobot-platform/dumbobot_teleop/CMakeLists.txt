@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -129,6 +130,7 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(dumbobot_teleop_node src/dumbobot_teleop_node.cpp)
+add_executable(dumbobot_teleop_joy_node src/teleop_joy.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -138,6 +140,7 @@ include_directories(
 # target_link_libraries(dumbobot_teleop_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(dumbobot_teleop_joy_node &{catkin_LIBRARIES})
 
 #############
 ## Install ##
