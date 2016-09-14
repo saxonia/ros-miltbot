@@ -1,0 +1,13 @@
+<launch>
+    <include file="$(find dumbobot_base)/launch/config/hardware_controller.launch"/>
+
+    <!--<include file="$(find dumbobot_base)/launch/config/hokuyo.launch"/>-->
+
+    <include file="$(find dumbobot_base)/launch/config/tf_static_transform.launch"/>
+
+    <!--<include file="$(find dumbobot_base)/launch/config/laser_filters.launch"/>-->
+
+    <include file="$(find dumbobot_base)/launch/config/velocity_smoother.launch"/>
+
+    <include file="$(find dumbobot_base)/launch/config/encoder.launch"/>
+</launch>

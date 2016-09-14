@@ -1,0 +1,10 @@
+<launch>
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser_broadcaster" args="0.165 0.0 0.375 0 0 0 1 base_link laser 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_kinect" args="0.245 0.0 0.810 0 0 0 1 base_link camera_link 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_leftWheel" args="-0.1 0.2 0.0 0 0 0 1 base_link leftWheel 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_rightWheel" args="-0.1, -0.2, 0.0 0 0 0 1 base_link rightWheel 100" />
+    
+</launch>
