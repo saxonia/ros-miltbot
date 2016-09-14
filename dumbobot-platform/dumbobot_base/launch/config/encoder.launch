@@ -1,0 +1,5 @@
+<launch>
+    <!--- Encoder + transformation Node -->
+    <node pkg="ros_dumbobot_odomtf" type="ros_dumbobot_odomtf_node" name="ros_dumbobot_odomtf_node" output="screen">
+    </node>
+</launch>

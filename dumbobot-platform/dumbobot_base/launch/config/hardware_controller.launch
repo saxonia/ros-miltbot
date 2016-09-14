@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="dumbobot_base" type="dumbobot_base_hardware_node" name="dumbobot_base_hardware_node" output="screen">
+    </node>
+</launch>
