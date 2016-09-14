@@ -7,7 +7,6 @@ class JoyDumbobot
 {
 public:
     JoyDumbobot();
-    ~JoyDumbobot();
 
 private:
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
@@ -19,16 +18,17 @@ private:
     std::string twist_pub_topic_name_,joystick_sub_topic_name_, auto_stop_pub_topic_name_;
     int linear_, angular_, deadman_, cancel_;
     double l_scale_, a_scale_;
+    bool trigger_button;
 
 };
 
 JoyDumbobot::JoyDumbobot():
-    twist_pub_topic_name_("/dumbobot-platform/cmd_vel"),
+    twist_pub_topic_name_("/ros_dumbobot/cmd_vel"),
     joystick_sub_topic_name_("joy"),
-    auto_stop_pub_topic_name_("move_base/cancel"),
+    auto_stop_pub_topic_name_("/dumbobot/move_base/cancel"),
     linear_(1),
-    angular_(2),
-    deadman_(3),
+    angular_(3),
+    deadman_(2),
     cancel_(4)
 {
     //param ("NAME" , VAR , VAR );
@@ -39,14 +39,16 @@ JoyDumbobot::JoyDumbobot():
     nh_.param("scale_linear", l_scale_, l_scale_);
     nh_.param("twist_pub_topic", twist_pub_topic_name_);
     nh_.param("joystick_sub_topic", joystick_sub_topic_name_);
+    nh_.param("auto_stop_pub_topic", auto_stop_pub_topic_name_);
 
     //Publisher and Subscriber
     twist_pub_  = nh_.advertise<geometry_msgs::Twist>(twist_pub_topic_name_, 1);
-    joy_sub_    = nh_.subscribe<sensor_msgs::Joy>(joystick_sub_topic_name_, 10, &TeleopDumbo::joyCallback, this);
+    joy_sub_    = nh_.subscribe<sensor_msgs::Joy>(joystick_sub_topic_name_, 10, &JoyDumbobot::joyCallback, this);
 
     //Navigation Stopper
     auto_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>(auto_stop_pub_topic_name_, 1);
 
+    trigger_button = false;
 }
 
 void JoyDumbobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
@@ -69,19 +71,24 @@ void JoyDumbobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     if (deadman_triggered == -1)
     {
         twist_pub_.publish(twist);
+        trigger_button = false;
     }
-    else if(deadman_triggered != -1 && goal_cancel_button == -1)
+    else if(deadman_triggered != -1 && !trigger_button)
     {
         //Publish 0,0,0 (stop)
         twist_pub_.publish(*new geometry_msgs::Twist());
         //Publish Goal Cancel Message
         auto_stop_pub_.publish(*new actionlib_msgs::GoalID());
+        trigger_button = true;
     }
 }
+
 
 int main(int argc,char** argv)
 {
     ros::init(argc, argv, "dumbobot_teleop_joy_node");
     JoyDumbobot joy_dumbobot;
     ros::spin();
+
+    return 0;
 }
