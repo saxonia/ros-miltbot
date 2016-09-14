@@ -1,0 +1,3 @@
+<launch>
+    <include file="$(find yocs_velocity_smoother)/launch/standalone.launch"/>
+</launch>
