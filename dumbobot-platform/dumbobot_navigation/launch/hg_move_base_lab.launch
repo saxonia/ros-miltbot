@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!-- Launch File For Move_base Automatic Navigation System -->
+<launch>
+  <!-- Run the map server For LOCALIZATION-->
+ <node ns="dumbobot" name="map_server" pkg="map_server" type="map_server" args="/home/sax/map_dumbobot/build4_f20.yaml"/> 
+
+  <!--- Run AMCL -->
+  <include ns="dumbobot" file="$(find dumbobot_navigation)/launch/hg_amcl_dumbo.launch" /> 
+
+  <!--- Run move_base to Automatically control our robot -->
+  <node ns="dumbobot" pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
+    <!-- Map CMD_VEL to /ros_dumbobot/raw_cmd_vel TO VELOCITY SMOOTHER -->
+      <remap from="cmd_vel" to="raw_cmd_vel" />
+    <!-- Load the Move_Base Configuration Parameters -->
+      <rosparam file="$(find dumbobot_navigation)/config/hg_config/hg_move_base_param.yaml" command="load" />
+    <!-- Global Costmap Common Params -->
+      <rosparam file="$(find dumbobot_navigation)/config/hg_config/hg_costmap_common_param.yaml" command="load" ns="global_costmap" />
+    <!-- Local Costmap Common Params -->
+      <rosparam file="$(find dumbobot_navigation)/config/hg_config/hg_costmap_common_param.yaml" command="load" ns="local_costmap" />
+    <!-- Local Costmap Specific Params -->
+      <rosparam file="$(find dumbobot_navigation)/config/hg_config/hg_local_costmap_param.yaml" command="load" />
+    <!-- Global Costmap Specific Params -->
+      <rosparam file="$(find dumbobot_navigation)/config/hg_config/hg_global_costmap_param.yaml" command="load" />
+      <rosparam file="$(find dumbobot_navigation)/config/hg_config/hg_base_local_planner_param.yaml" command="load" />
+    
+  </node>
+</launch>
