@@ -12,8 +12,8 @@
     <param name="button_deadman_switch" value="2" type="int"/>
     <param name="scale_linear" value="0.60" type="double"/>
     <param name="scale_angular" value="1.78" type="double"/>
-    <!--<param name="twist_pub_topic" value="/dumbobot/cmd_vel" type="string"/>-->
-    <param name="twist_pub_topic" value="/ros_dumbobot/cmd_vel" type="string"/>
+    <param name="twist_pub_topic" value="/dumbobot/cmd_vel" type="string"/>
+    <!--<param name="twist_pub_topic" value="/ros_dumbobot/cmd_vel" type="string"/>-->
     <param name="joystick_sub_topic" value="joy" type="string"/>
     <param name="auto_stop_pub_topic" value="/dumbobot/move_base/cancel" type="string"/>
 

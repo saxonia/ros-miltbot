@@ -15,7 +15,7 @@ private:
     ros::Publisher twist_pub_, auto_stop_pub_;
     ros::Subscriber joy_sub_;
 
-    std::string twist_pub_topic_name_,joystick_sub_topic_name_, auto_stop_pub_topic_name_;
+    std::string twist_pub_topic_name_,joy_sub_topic_name_, auto_stop_pub_topic_name_;
     int linear_, angular_, deadman_, cancel_;
     double l_scale_, a_scale_;
     bool trigger_button;
@@ -23,8 +23,8 @@ private:
 };
 
 JoyDumbobot::JoyDumbobot():
-    twist_pub_topic_name_("/ros_dumbobot/cmd_vel"),
-    joystick_sub_topic_name_("joy"),
+    twist_pub_topic_name_("/dumbobot/cmd_vel"),
+    joy_sub_topic_name_("joy"),
     auto_stop_pub_topic_name_("/dumbobot/move_base/cancel"),
     linear_(1),
     angular_(3),
@@ -38,12 +38,12 @@ JoyDumbobot::JoyDumbobot():
     nh_.param("scale_angular", a_scale_, a_scale_);
     nh_.param("scale_linear", l_scale_, l_scale_);
     nh_.param("twist_pub_topic", twist_pub_topic_name_);
-    nh_.param("joystick_sub_topic", joystick_sub_topic_name_);
+    nh_.param("joy_sub_topic", joy_sub_topic_name_);
     nh_.param("auto_stop_pub_topic", auto_stop_pub_topic_name_);
 
     //Publisher and Subscriber
     twist_pub_  = nh_.advertise<geometry_msgs::Twist>(twist_pub_topic_name_, 1);
-    joy_sub_    = nh_.subscribe<sensor_msgs::Joy>(joystick_sub_topic_name_, 10, &JoyDumbobot::joyCallback, this);
+    joy_sub_    = nh_.subscribe<sensor_msgs::Joy>(joy_sub_topic_name_, 10, &JoyDumbobot::joyCallback, this);
 
     //Navigation Stopper
     auto_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>(auto_stop_pub_topic_name_, 1);
