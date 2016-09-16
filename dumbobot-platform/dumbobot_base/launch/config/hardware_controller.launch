@@ -1,4 +1,8 @@
 <launch>
-    <node pkg="dumbobot_base" type="dumbobot_base_hardware_node" name="dumbobot_base_hardware_node" output="screen">
+    <node ns="dumbobot" pkg="dumbobot_base" type="dumbobot_base_hardware_node" name="dumbobot_base_hardware_node" output="screen">
+        <param name="cmd_vel_sub_topic" value="/dumbobot/cmd_vel" type="string"/>
+        <param name="wheel_encoder_pub_topic" value="/dumbobot/wheel_encoder" type="string"/>
+        <param name="port" value="/dev/ttyACM0" type="string"/>
+        <param name="baud" value="9600" type="int"/>
     </node>
 </launch>
