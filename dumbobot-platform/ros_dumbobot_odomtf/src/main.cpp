@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "odometry_publisher");
   ros::NodeHandle n;
-  ros::Subscriber sub = n.subscribe("/ros_dumbobot/wheel_encoder", 10, WheelCallback);
+  ros::Subscriber sub = n.subscribe("/dumbobot/wheel_encoder", 10, WheelCallback);
   ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 100);   //50
   tf::TransformBroadcaster odom_broadcaster;
 
