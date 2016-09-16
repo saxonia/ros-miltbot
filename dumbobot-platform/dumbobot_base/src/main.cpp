@@ -33,6 +33,8 @@ double              vl,vr;
 int                 left_dir , right_dir , encoder_request_button;
 double              linear_x,angular_z;
 bool                stop_published =false;
+std::string cmd_vel_sub_topic_name, wheel_encoder_pub_topic_name;
+
 dumbo::Controller   *controller;
 
 ros::Time current_time_encoder, last_time_encoder;
@@ -213,15 +215,21 @@ void control_loop_cmd_vel(){
   // Serial Setting
     std::string port = "/dev/ttyACM0";
     int32_t baud = 9600;
+    cmd_vel_sub_topic_name = "/cmd_vel";
+    wheel_encoder_pub_topic_name = "/wheel_encoder";
+
+    //Parameter Getter
     nh.param<std::string>("port", port, port);
     nh.param<int32_t>("baud", baud, baud);
+    nh.param<std::string>("cmd_vel_sub_topic",cmd_vel_sub_topic_name,cmd_vel_sub_topic_name);
+    nh.param<std::string>("wheel_encoder_pub_topic",wheel_encoder_pub_topic_name,wheel_encoder_pub_topic_name);
     ROS_INFO("DUMBOBOT connecting to port %s", port.c_str());
 
   // Subscribe to Joystick Command
-    ros::Subscriber sub = nh.subscribe("/ros_dumbobot/cmd_vel", 1, cmd_velCallback);
+    ros::Subscriber sub = nh.subscribe(cmd_vel_sub_topic_name, 1, cmd_velCallback);
 
   // Publish the Encoder Data
-    ros::Publisher wheel_encoder_pub = nh.advertise<geometry_msgs::Vector3>("/ros_dumbobot/wheel_encoder", 100);
+    ros::Publisher wheel_encoder_pub = nh.advertise<geometry_msgs::Vector3>(wheel_encoder_pub_topic_name, 100);
 
   // Interface to ATMEGA128 and Motor Controller
     controller = new dumbo::Controller(port.c_str(),baud);
