@@ -4,6 +4,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <std_srvs/Empty.h>
+#include <std_msgs/String.h>
 
 #include <tf/transform_listener.h>
 
@@ -14,6 +15,11 @@
 // #include <termios.h>
 // #include <ctime>
 
+
+//Publisher 
+ros::Publisher state_pub;
+ros::Subscriber state_sub;
+std_msgs::String msg;
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -46,18 +52,8 @@ move_base_msgs::MoveBaseGoal  endPoint;
 move_base_msgs::MoveBaseGoal  currentPosition;
 
 //State Machine Enumeration
-  class robotState{
-    public:
-      enum state{
-      IDLE = 0,
-      GOING = 1,
-      WAITING = 2,
-      BACKTOBASE = 3,
-      SINGLERUN = 4,
-      EXECUTESEQ = 5
-    };
-  };
   int robot_state;
+  std::string robotState;
 
 
 // Convert String To Int
@@ -73,8 +69,8 @@ void markCurrentLocation(){
     ros::Time now = ros::Time::now();
     try {
       ROS_INFO("WAITING FOR TRANSFORM FRAME");
-        listener.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(10.0) );
-        listener.lookupTransform("map", "base_link", ros::Time(0), transform);
+        listener.waitForTransform("map", "base_footprint", ros::Time(0), ros::Duration(10.0) );
+        listener.lookupTransform("map", "base_footprint", ros::Time(0), transform);
     } catch (tf::TransformException ex) {
         ROS_ERROR("%s",ex.what());
     }
@@ -112,10 +108,14 @@ void read_waypoint_constant()
 
 /// CALLBACKS Function
 
+// STATE CALLBACK
+void stateCallback(const std_msgs::String::ConstPtr& msg) {
+    robotState = msg->data;
+}
+
 // TIMER CALLBACK
 void timerCallback(const ros::TimerEvent &event){
-
-	  //Clear Costmap
+	//Clear Costmap
   	client.call(clearer);
   	//This Timer is finish , request to create it again;
     requestToCreateTimer = true;
@@ -129,8 +129,16 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
     //Navigation completed
     if(state.state_ == actionlib::SimpleClientGoalState::SUCCEEDED){
     	//Clear Costmap
-  			client.call(clearer);
+  		client.call(clearer);
         ROS_INFO("The goal was reached!");
+        if(robotState == "GOING") {
+            msg.data = "WAITING";
+            // ----------------------------------- Not Implemented Now ------------------------ //
+            // waitfordelivery();
+        }
+        else if(robotState == "BACKTOBASE") {
+            msg.data = "IDLE";  
+        }
     }
     //Navigation failed
     if(state.state_ == actionlib::SimpleClientGoalState::ABORTED){
@@ -143,7 +151,13 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 
 void goalActiveCallback(){
     ROS_INFO("Goal active! Now !!");
-    robot_state = robotState::GOING;
+    if(robotState == "IDLE") {
+        msg.data = "GOING";
+    }
+    else if(robotState == "WAITING") {
+        msg.data = "BACKTOBASE";
+    } 
+    
 }
 
 
@@ -165,9 +179,6 @@ int main(int argc, char** argv)
     
     // Point The iterator to the beginning of the sequence
     target = targets.begin();
-
-    // Initialize ROBOT :)
-    robot_state = robotState::IDLE;
 
     // Marking Current Location (For First Time Usage)
     markCurrentLocation();
@@ -196,11 +207,17 @@ int main(int argc, char** argv)
     // Subscriber to Get Current position 
     ros::NodeHandle n;
 
+    // Subsribe Robot State Topic
+    state_sub = n.subscribe("state",100,stateCallback);
+    state_pub = n.advertise<std_msgs::String>("state_req",10);
+
     // Subscribe to Map Clearing Service 
     client = n.serviceClient<std_srvs::Empty>("/move_base_node/clear_costmaps");
 
     // Ask User For Input
     userInput();
+
+    finish = false;
 
     // Loop for Setting Goal and Navigate ! 
     requestToSetNewGoal = true;
@@ -208,42 +225,43 @@ int main(int argc, char** argv)
     // Start the Navigation Waypoint Loop
     while(ros::ok() && !finish ){
 
-      // The Next Goal ! 
-      if(requestToSetNewGoal){
+        // The Next Goal ! 
+        if(requestToSetNewGoal){
 
-          // Do this Target until its end
-          requestToSetNewGoal = false;
+            // Do this Target until its end
+            requestToSetNewGoal = false;
 
-          // Move base Goal
-          move_base_msgs::MoveBaseGoal goal;
-        
-          // Send a goal to the robot
-          goal.target_pose.header.frame_id = "/map";
-          goal.target_pose.header.stamp = ros::Time::now();
-        
-          // Set the goal
-          goal.target_pose.pose.position.x    = target->target_pose.pose.position.x;
-          goal.target_pose.pose.position.y    = target->target_pose.pose.position.y;
-          goal.target_pose.pose.orientation.x = target->target_pose.pose.orientation.x;
-          goal.target_pose.pose.orientation.y = target->target_pose.pose.orientation.y;
-          goal.target_pose.pose.orientation.z = target->target_pose.pose.orientation.z;
-          goal.target_pose.pose.orientation.w = target->target_pose.pose.orientation.w;
-          std::cout << "[AGENT] MARKED NEW TARGET ! " << std::endl;
-          // Send Goal to Navigation Stack
-          ac.sendGoal(goal, 
-                      boost::bind(&goalDoneCallback_state, _1, _2), 
-                      boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
-      }
+            // Move base Goal
+            move_base_msgs::MoveBaseGoal goal;
+          
+            // Send a goal to the robot
+            goal.target_pose.header.frame_id = "/map";
+            goal.target_pose.header.stamp = ros::Time::now();
+          
+            // Set the goal
+            goal.target_pose.pose.position.x    = target->target_pose.pose.position.x;
+            goal.target_pose.pose.position.y    = target->target_pose.pose.position.y;
+            goal.target_pose.pose.orientation.x = target->target_pose.pose.orientation.x;
+            goal.target_pose.pose.orientation.y = target->target_pose.pose.orientation.y;
+            goal.target_pose.pose.orientation.z = target->target_pose.pose.orientation.z;
+            goal.target_pose.pose.orientation.w = target->target_pose.pose.orientation.w;
+            std::cout << "[AGENT] MARKED NEW TARGET ! " << std::endl;
+            // Send Goal to Navigation Stack
+            ac.sendGoal(goal, 
+                        boost::bind(&goalDoneCallback_state, _1, _2), 
+                        boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
+            state_pub.publish(msg);
+        }
 
-      //Check if the timer should be create.
-      if(requestToCreateTimer){
-        timer = n.createTimer(ros::Duration(10), timerCallback);
-        requestToCreateTimer = false;  //We Don't want to create timer anymore
-      }
-
-      // Spinning the loop and Callback
-      ros::spinOnce();
-      r.sleep();
+        //Check if the timer should be create.
+        if(requestToCreateTimer){
+            timer = n.createTimer(ros::Duration(10), timerCallback);
+            requestToCreateTimer = false;  //We Don't want to create timer anymore
+        }
+ 
+        // Spinning the loop and Callback
+        ros::spinOnce();
+        r.sleep();
     }
 
     ROS_INFO("Exiting Waypoint Navigation");

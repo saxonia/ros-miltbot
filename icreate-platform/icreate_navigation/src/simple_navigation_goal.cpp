@@ -122,8 +122,8 @@ void markCurrentLocation(){
     tf::StampedTransform transform;
     ros::Time now = ros::Time::now();
     try {
-        listener.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(10.0) );
-        listener.lookupTransform("map", "base_link", ros::Time(0), transform);
+        listener.waitForTransform("map", "base_footprint", ros::Time(0), ros::Duration(10.0) );
+        listener.lookupTransform("map", "base_footprint", ros::Time(0), transform);
     } catch (tf::TransformException ex) {
         ROS_ERROR("%s",ex.what());
     }
