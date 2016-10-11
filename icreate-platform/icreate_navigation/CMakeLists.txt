@@ -5,7 +5,9 @@ project(icreate_navigation)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+    std_msgs
     roscpp
+    # genmsg
     tf
     # move_base_msgs
     actionlib
@@ -133,17 +135,21 @@ include_directories(
 # add_executable(icreate_navigation_node src/icreate_navigation_node.cpp)
 add_executable(simple_navigation_goal src/simple_navigation_goal.cpp)
 add_executable(two_point_navigation src/two_point_navigation.cpp)
+add_executable(two_point_navigation_pubsub src/two_point_navigation_pubsub.cpp)
 
-target_link_libraries(simple_navigation_goal ${catkin_LIBRARIES})
-target_link_libraries(two_point_navigation ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(icreate_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(two_point_navigation_pubsub std_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(icreate_navigation_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(simple_navigation_goal ${catkin_LIBRARIES})
+target_link_libraries(two_point_navigation ${catkin_LIBRARIES})
+target_link_libraries(two_point_navigation_pubsub ${catkin_LIBRARIES})
 
 #############
 ## Install ##
