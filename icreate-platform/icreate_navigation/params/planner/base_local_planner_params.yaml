@@ -33,4 +33,4 @@ TrajectoryPlannerROS:
   #The number of samples to use when exploring the x velocity space
   vx_samples: 3
   #The number of samples to use when exploring the theta velocity space
-vtheta_samples: 20
+  vtheta_samples: 20
