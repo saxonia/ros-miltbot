@@ -15,6 +15,7 @@
     <rosparam file="$(find icreate_navigation)/params/costmap/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find icreate_navigation)/params/costmap/global_costmap_params.yaml" command="load" />
 
+    <rosparam file="$(find icreate_navigation)/params/planner/dwa_local_planner_params.yaml" command="load" />
     <rosparam file="$(find icreate_navigation)/params/planner/base_local_planner_params.yaml" command="load" />
     <rosparam file="$(find icreate_navigation)/params/move_base_params.yaml" command="load" />
 
@@ -35,7 +36,7 @@
     <remap from="cmd_vel" to="navigation_raw_cmd_vel"/>
 
     <!-- odometry and laser_scan topics mapping -->
-    <!--<remap from="odom" to="$(arg odom_topic)"/>-->
-    <!--<remap from="scan" to="$(arg laser_topic)"/>-->
+    <remap from="odom" to="$(arg odom_topic)"/>
+    <remap from="scan" to="$(arg laser_topic)"/>
   </node>
 </launch>
