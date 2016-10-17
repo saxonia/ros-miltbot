@@ -118,13 +118,14 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-    ${catkin_INCLUDE_DIRS}
+    include ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(icreate_navigation
 #   src/${PROJECT_NAME}/icreate_navigation.cpp
 # )
+add_library(robot src/robot.cpp src/navigation.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -136,7 +137,7 @@ include_directories(
 add_executable(simple_navigation_goal src/simple_navigation_goal.cpp)
 add_executable(two_point_navigation src/two_point_navigation.cpp)
 add_executable(two_point_navigation_pubsub src/two_point_navigation_pubsub.cpp)
-
+# add_executable(robot src/navigation_publisher.cpp src/robot.cpp src/navigation.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -147,10 +148,11 @@ add_executable(two_point_navigation_pubsub src/two_point_navigation_pubsub.cpp)
 # target_link_libraries(icreate_navigation_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(robot ${catkin_LIBRARIES})
 target_link_libraries(simple_navigation_goal ${catkin_LIBRARIES})
 target_link_libraries(two_point_navigation ${catkin_LIBRARIES})
-target_link_libraries(two_point_navigation_pubsub ${catkin_LIBRARIES})
-
+target_link_libraries(two_point_navigation_pubsub ${catkin_LIBRARIES} robot)
+# target_link_libraries(robot ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
