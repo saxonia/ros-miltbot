@@ -15,11 +15,17 @@
 // #include <termios.h>
 // #include <ctime>
 
+#include "robot.h"
+#include "navigation.h"
+
+//Class
+icreate::Robot robot;
+icreate::Navigation navigation;
 
 //Publisher 
 ros::Publisher state_pub;
 ros::Subscriber state_sub;
-std_msgs::String msg;
+std_msgs::String state_msg;
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -52,58 +58,14 @@ move_base_msgs::MoveBaseGoal  endPoint;
 move_base_msgs::MoveBaseGoal  currentPosition;
 
 //State Machine Enumeration
-  int robot_state;
-  std::string robotState;
+std::string robotState;
 
 
-// Convert String To Int
-int toint(std::string s) //The conversion function
-{
-    return atoi(s.c_str());
-}
-
-void markCurrentLocation(){
-
-    tf::TransformListener listener;  
-    tf::StampedTransform transform;
-    ros::Time now = ros::Time::now();
-    try {
-      ROS_INFO("WAITING FOR TRANSFORM FRAME");
-        listener.waitForTransform("map", "base_footprint", ros::Time(0), ros::Duration(10.0) );
-        listener.lookupTransform("map", "base_footprint", ros::Time(0), transform);
-    } catch (tf::TransformException ex) {
-        ROS_ERROR("%s",ex.what());
-    }
-
-    startPoint.target_pose.pose.position.x    = transform.getOrigin().x();
-    startPoint.target_pose.pose.position.y    = transform.getOrigin().y();
-    startPoint.target_pose.pose.orientation.x = transform.getRotation().x();
-    startPoint.target_pose.pose.orientation.y = transform.getRotation().y();
-    startPoint.target_pose.pose.orientation.z = transform.getRotation().z();
-    startPoint.target_pose.pose.orientation.w = transform.getRotation().w();
-
-    std::cout << "RETURNING POINT MARKED : ";
-    std::cout << startPoint.target_pose.pose.position.x <<","<<startPoint.target_pose.pose.position.y  <<std::endl;
-}
-
-// 
 void userInput(){
     std::cout << "Press Any Key To Start Navigation" << std::endl;
     if((int) getchar() != 0) {
       return;
     }
-}
-
-void read_waypoint_constant()
-{
-    move_base_msgs::MoveBaseGoal newPoint;
-    newPoint.target_pose.pose.position.x    = -6.326;
-    newPoint.target_pose.pose.position.y    = -0.674;
-    newPoint.target_pose.pose.orientation.x = 0.000;
-    newPoint.target_pose.pose.orientation.y = 0.000;
-    newPoint.target_pose.pose.orientation.z = -2.870;
-    newPoint.target_pose.pose.orientation.w = 0.958;
-    targets.push_back(newPoint);
 }
 
 /// CALLBACKS Function
@@ -130,15 +92,7 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
     if(state.state_ == actionlib::SimpleClientGoalState::SUCCEEDED){
     	//Clear Costmap
   		client.call(clearer);
-        ROS_INFO("The goal was reached!");
-        if(robotState == "GOING") {
-            msg.data = "WAITING";
-            // ----------------------------------- Not Implemented Now ------------------------ //
-            // waitfordelivery();
-        }
-        else if(robotState == "BACKTOBASE") {
-            msg.data = "IDLE";  
-        }
+        state_msg.data = navigation.doneRobotGoal(robotState, finish);
     }
     //Navigation failed
     if(state.state_ == actionlib::SimpleClientGoalState::ABORTED){
@@ -150,19 +104,11 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 }
 
 void goalActiveCallback(){
-    ROS_INFO("Goal active! Now !!");
-    if(robotState == "IDLE") {
-        msg.data = "GOING";
-    }
-    else if(robotState == "WAITING") {
-        msg.data = "BACKTOBASE";
-    } 
-    
+    state_msg.data = navigation.activeRobotGoal(robotState);
 }
 
-
 void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
-    ROS_INFO("Getting feedback! How cool is that?");
+    navigation.getFeedbackRobotGoal();
 }
 
 int main(int argc, char** argv)
@@ -171,26 +117,20 @@ int main(int argc, char** argv)
 
     // Tell the action client that we want to spin a thread by default
     MoveBaseClient ac("move_base", true);
-
-    // Read waypoint from constant
-    read_waypoint_constant();
+    
+    navigation.read_waypoint_constant();
 
     ROS_INFO("Successfully Load waypoints !");
-    
-    // Point The iterator to the beginning of the sequence
-    target = targets.begin();
 
-    // Marking Current Location (For First Time Usage)
-    markCurrentLocation();
+    if(!robot.setCurrentPosition()) {
+        return -1;
+    }
 
     // Request To Create timer
     requestToCreateTimer = true;
 
     // Callback polling Rate 
     ros::Rate r(30);
-
-    // Flag For Marking Base Location (Request Current Location Flag)
-    requestToMarkLocation = false;
 
     // Wait for the action server to come up
     int tries = 0;
@@ -231,26 +171,13 @@ int main(int argc, char** argv)
             // Do this Target until its end
             requestToSetNewGoal = false;
 
-            // Move base Goal
-            move_base_msgs::MoveBaseGoal goal;
-          
-            // Send a goal to the robot
-            goal.target_pose.header.frame_id = "/map";
-            goal.target_pose.header.stamp = ros::Time::now();
-          
-            // Set the goal
-            goal.target_pose.pose.position.x    = target->target_pose.pose.position.x;
-            goal.target_pose.pose.position.y    = target->target_pose.pose.position.y;
-            goal.target_pose.pose.orientation.x = target->target_pose.pose.orientation.x;
-            goal.target_pose.pose.orientation.y = target->target_pose.pose.orientation.y;
-            goal.target_pose.pose.orientation.z = target->target_pose.pose.orientation.z;
-            goal.target_pose.pose.orientation.w = target->target_pose.pose.orientation.w;
-            std::cout << "[AGENT] MARKED NEW TARGET ! " << std::endl;
+            navigation.setRobotGoal("/map");
+            
             // Send Goal to Navigation Stack
-            ac.sendGoal(goal, 
+            ac.sendGoal(navigation.getRobotGoal(), 
                         boost::bind(&goalDoneCallback_state, _1, _2), 
                         boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
-            state_pub.publish(msg);
+            state_pub.publish(state_msg);
         }
 
         //Check if the timer should be create.
