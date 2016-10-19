@@ -1,11 +1,14 @@
 global_costmap:
+#    Coordinate frame and tf parameters
    global_frame: map
    robot_base_frame: base_footprint
+   transform_tolerance: 1.5
+#    Rate parameters
    update_frequency: 1.0
    publish_frequency: 0.5
+#    Map management parameters
    static_map: true
    rolling_window: false
-   transform_tolerance: 1.5
    plugins:
      - {name: static_layer,            type: "costmap_2d::StaticLayer"}
      - {name: obstacle_layer,          type: "costmap_2d::VoxelLayer"}
