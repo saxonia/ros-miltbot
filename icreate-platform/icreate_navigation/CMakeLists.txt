@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     # genmsg
     tf
-    # move_base_msgs
+    move_base_msgs
     actionlib
     roslib
 )
@@ -137,7 +137,7 @@ add_library(robot src/robot.cpp src/navigation.cpp)
 add_executable(simple_navigation_goal src/simple_navigation_goal.cpp)
 add_executable(two_point_navigation src/two_point_navigation.cpp)
 add_executable(two_point_navigation_pubsub src/two_point_navigation_pubsub.cpp)
-# add_executable(robot src/navigation_publisher.cpp src/robot.cpp src/navigation.cpp)
+add_executable(waypoint_navigation src/waypoint_navigation.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -152,7 +152,7 @@ target_link_libraries(robot ${catkin_LIBRARIES})
 target_link_libraries(simple_navigation_goal ${catkin_LIBRARIES})
 target_link_libraries(two_point_navigation ${catkin_LIBRARIES})
 target_link_libraries(two_point_navigation_pubsub ${catkin_LIBRARIES} robot)
-# target_link_libraries(robot ${catkin_LIBRARIES})
+target_link_libraries(waypoint_navigation ${catkin_LIBRARIES} robot)
 #############
 ## Install ##
 #############
