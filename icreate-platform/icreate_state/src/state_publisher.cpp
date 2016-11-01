@@ -15,7 +15,9 @@ class robotState {
             GOING = 1,
             WAITING = 2,
             BACKTOBASE = 3,
-            SENDSUPPLIES = 4
+            SENDSUPPLIES = 4,
+            SINGLERUN = 5,
+            EXECUTESEQ = 6
         };
         std::string state_req;
 
@@ -52,6 +54,7 @@ robotState::robotState():
 void robotState::stateCallback(const std_msgs::String::ConstPtr& msg) {
     setState(msg->data.c_str());
     ROS_INFO("robot state request: %s",msg->data.c_str());
+    ROS_INFO("robot state : %s",convertToStateName(state).c_str());
 }
 
 std::string robotState::convertToStateName(int state) {
@@ -71,6 +74,12 @@ std::string robotState::convertToStateName(int state) {
             break;
         case 4:
             stateName = "SENDSUPPLIES";
+            break;
+        case 5:
+            stateName = "SINGLERUN";
+            break;
+        case 6:
+            stateName = "EXECUTESEQ";
             break;
     }
     return stateName;
@@ -97,6 +106,12 @@ void robotState::setState(std::string s) {
     else if(s == "SENDSUPPLIES") {
         state = 4;
     }
+    else if(s == "SINGLERUN") {
+        state = 5;
+    }
+    else if(s == "EXECUTESEQ") {
+        state = 6;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -108,29 +123,12 @@ int main(int argc, char** argv) {
 
     ros::Rate loop_rate(10);
 
-    // robotState.state = robotState::IDLE;
-
-    // robotState.state_req = "";
-
     while(ros::ok()) {
         std_msgs::String msg;
-
-        // if(robotState.state == robotState::IDLE) {
-        //     robotState.state = robotState::GOING;
-        // }
-        // else if(robotState.state == robotState::GOING) {
-        //     robotState.state = robotState::SENDSUPPLIES;
-        // }
-        // else if(robotState.state == robotState::SENDSUPPLIES) {
-        //     robotState.state = robotState::BACKTOBASE;
-        // }
-        // else if(robotState.state == robotState::BACKTOBASE) {
-        //     robotState.state = robotState::IDLE;
-        // }
         ros::spinOnce();
 
         msg.data = robotState.convertToStateName(robotState.getState());
-        ROS_INFO("robot state: %s", msg.data.c_str());
+        // ROS_INFO("robot state: %s", msg.data.c_str());
         
         robotState.state_pub_.publish(msg);
         loop_rate.sleep();
