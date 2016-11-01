@@ -73,8 +73,8 @@ void markCurrentLocation(){
     ros::Time now = ros::Time::now();
     try {
       ROS_INFO("WAITING FOR TRANSFORM FRAME");
-        listener.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(10.0) );
-        listener.lookupTransform("map", "base_link", ros::Time(0), transform);
+        listener.waitForTransform("map", "base_footprint", ros::Time(0), ros::Duration(10.0) );
+        listener.lookupTransform("map", "base_footprint", ros::Time(0), transform);
     } catch (tf::TransformException ex) {
         ROS_ERROR("%s",ex.what());
     }
@@ -101,12 +101,12 @@ void userInput(){
 void read_waypoint_constant()
 {
     move_base_msgs::MoveBaseGoal newPoint;
-    newPoint.target_pose.pose.position.x    = -6.326;
-    newPoint.target_pose.pose.position.y    = -0.674;
+    newPoint.target_pose.pose.position.x    = 7.687;
+    newPoint.target_pose.pose.position.y    = 14.260;
     newPoint.target_pose.pose.orientation.x = 0.000;
     newPoint.target_pose.pose.orientation.y = 0.000;
-    newPoint.target_pose.pose.orientation.z = -2.870;
-    newPoint.target_pose.pose.orientation.w = 0.958;
+    newPoint.target_pose.pose.orientation.z = 0.552;
+    newPoint.target_pose.pose.orientation.w = 0.834;
     targets.push_back(newPoint);
 }
 
@@ -136,7 +136,7 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
     if(state.state_ == actionlib::SimpleClientGoalState::ABORTED){
       ROS_WARN("Failed to reach the goal...");
     }
-
+    finish = true;
     std::cout << "Goal Finished Or Cancelled by Joy" << std::endl;
 
 }
@@ -153,10 +153,10 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "simple_navigation_goal");
+    ros::init(argc, argv, "two_point_navigation");
 
     // Tell the action client that we want to spin a thread by default
-    MoveBaseClient ac("move_base", true);
+    MoveBaseClient ac("/icreate/move_base", true);
 
     // Read waypoint from constant
     read_waypoint_constant();
@@ -197,7 +197,7 @@ int main(int argc, char** argv)
     ros::NodeHandle n;
 
     // Subscribe to Map Clearing Service 
-    client = n.serviceClient<std_srvs::Empty>("/move_base_node/clear_costmaps");
+    client = n.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
 
     // Ask User For Input
     userInput();

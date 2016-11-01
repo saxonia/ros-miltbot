@@ -393,12 +393,12 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
           requestToSetNewGoal = true;
 
     }else if(robot_state == robotState::BACKTOBASE){
-    	std::cout <<std::endl <<std::endl;
+      std::cout <<std::endl <<std::endl;
     	std::cout << "[AGENT] REACH THE BASE , YAY ! " <<std::endl;
-        // IT IS JUST BACK FROM HELL - RELAX, MAN
-          robot_state = robotState::IDLE;
-        // Ask User For the Next Target
-           userInput();
+      // IT IS JUST BACK FROM HELL - RELAX, MAN
+      robot_state = robotState::IDLE;
+      // Ask User For the Next Target
+      userInput();
 
     }else if(robot_state == robotState::SINGLERUN){
     	std::cout <<std::endl <<std::endl;
@@ -430,12 +430,12 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 		  	robot_state = robotState::IDLE;
 		  	finish = true;
 		  }
-		// Set The Next Sequence
-           *target = targets[sequence[targetId]];
-          robot_state = robotState::EXECUTESEQ;
-          requestToSetNewGoal = true;
-        //[LOGGER] NextTarget
-          endIndex = sequence[targetId];
+		  // Set The Next Sequence
+      *target = targets[sequence[targetId]];
+      robot_state = robotState::EXECUTESEQ;
+      requestToSetNewGoal = true;
+      //[LOGGER] NextTarget
+      endIndex = sequence[targetId];
     }
 }
 
@@ -453,7 +453,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "simple_navigation_goal");
 
     // Tell the action client that we want to spin a thread by default
-    MoveBaseClient ac("move_base", true);
+    MoveBaseClient ac("/icreate/move_base", true);
 
     // Read waypoint from file to vector
     // read_poi_from("/waypoints/waypoint.csv"); 
