@@ -1,4 +1,4 @@
-max_obstacle_height: 0.60  # assume something like an arm is mounted on top of the robot
+# max_obstacle_height: 0.60  # assume something like an arm is mounted on top of the robot
 
 # Obstacle Cost Shaping (http://wiki.ros.org/costmap_2d/hydro/inflation)
 robot_radius: 0.3  # distance a circular robot should be clear of the obstacle (hanaman: 0.30)
@@ -16,7 +16,7 @@ obstacle_layer:
   origin_z:             0.0
   z_resolution:         0.2
   z_voxels:             10
-  unknown_threshold:    15
+  unknown_threshold:    10
   mark_threshold:       0
   combination_method:   1
   track_unknown_space:  true    #true needed for disabling global path planning through unknown space
@@ -25,7 +25,7 @@ obstacle_layer:
   publish_voxel_map: true
   observation_sources:  scan #bump
   scan:
-    topic: scan
+    topic: /icreate/scan
     sensors_frame: /laser
     expected_update_rate: 0.4
     data_type: LaserScan
@@ -51,3 +51,10 @@ inflation_layer:
 
 static_layer:
   enabled: true
+  unknown_cost_value: -1     #The value for which a cost should be considered unknown when reading in a map from the map server.
+  lethal_cost_threshold: 100 #The threshold value at which to consider a cost lethal when reading in a map from the map server.
+  map_topic: /icreate/map    #The topic that the costmap subscribes to for the static map.
+  first_map_only: false #Only subscribe to the first message on the map topic, ignoring all subsequent messages
+  subscribe_to_updates: false #In addition to map_topic, also subscribe to map_topic + "_updates"
+  track_unknown_space: true #If true, unknown values in the map messages are translated directly to the layer. Otherwise, unknown values in the map message are translated as FREE_SPACE in the layer.
+  
