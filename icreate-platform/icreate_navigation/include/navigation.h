@@ -2,6 +2,7 @@
 #include <ros/package.h>
 #include <actionlib/client/simple_action_client.h>
 #include <move_base_msgs/MoveBaseAction.h>
+#include <std_srvs/Empty.h>
 
 #include <fstream>
 
@@ -34,21 +35,35 @@ class Navigation {
 
         void getFeedbackRobotGoal();
 
-        void read_waypoint_constant();
+        void readWaypointConstant();
 
-        void read_waypoint_file(std::string filename);
+        void readWaypointFile(std::string filename);
 
         void displayWaypoints();
 
         void getUserInput();
+
+        void setNavigationMode(int mode);
+
+        int getNavigationMode();
+
+        void setTimer(int duration);
         
 
     private:
+        void  timerCallback(const ros::TimerEvent &event);
         // Convert String To Int
         int toint(std::string s); //The conversion function
 
 
     public:
+        enum navigation_mode_list {
+            GOSPECIFIC = 0,
+            DELIVERBACKTOCURRENT = 1,
+            DELIVERBACKTOBASE = 2,
+            EXECUTEQ = 3
+        };
+
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
 
@@ -56,15 +71,26 @@ class Navigation {
         std::vector<move_base_msgs::MoveBaseGoal>::iterator target;
         std::vector<std::string> target_name;
 
-        MoveBaseClient* ac();
+        //Costmap Clearing Service Client (/move_base_node/clear_costmaps)
+        ros::ServiceClient client;
+        std_srvs::Empty clearer;
+
+        MoveBaseClient ac;
+
+        //Timer
+        ros::Timer timer;
+        bool requestToCreateTimer;
 
         // Navigation Mode
         // 0 : Go to Specific Point
         // 1 : Delivery and Come Back to This Place
         // 2 : Execute The Memorized Sequence
-        int navigation_mode;
 
     private:
+        //NodeHandle
+        // ros::NodeHandle nh_;
+
+        int navigation_mode;
         // move_base_msgs::MoveBaseAction action;
         int selected_point;
 };

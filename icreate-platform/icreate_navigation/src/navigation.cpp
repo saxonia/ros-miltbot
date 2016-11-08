@@ -3,8 +3,10 @@
 namespace icreate {
 
 Navigation::Navigation() {
-    // Navigation::ac("move_base", true);
+    this->ac("move_base", true);
     navigation_mode = -1;
+    // client = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+    // requestToCreateTimer = true;
 }
 
 Navigation::~Navigation() {
@@ -12,7 +14,8 @@ Navigation::~Navigation() {
 }
 
 void Navigation::setRobotTarget(move_base_msgs::MoveBaseGoal goal) {
-    *target = goal;
+    targets.push_back(goal);
+    target = targets.end() - 1;
 }
 
 void Navigation::setRobotTarget(int selected_point) {
@@ -73,15 +76,16 @@ std::string Navigation::doneRobotGoal(std::string robot_state, int &mode) {
 
 std::string Navigation::failRobotGoal(std::string robot_state, bool &finish) {
     std::string state_msg;
-     if(robot_state == "GOING") {
+    //  if(robot_state == "GOING") {
 
-     }
-     else if(robot_state == "SINGLERUN") {
+    //  }
+    //  else if(robot_state == "SINGLERUN") {
 
-     }
-     else if(robot_state == "EXECUTESEQ") {
+    //  }
+    //  else if(robot_state == "EXECUTESEQ") {
+    //  }
          
-     }
+    state_msg = "IDLE";
     return state_msg;
 }
 
@@ -110,7 +114,7 @@ void Navigation::getFeedbackRobotGoal() {
     ROS_INFO("Getting feedback! How cool is that?");
 }
 
-void Navigation::read_waypoint_constant() {
+void Navigation::readWaypointConstant() {
     move_base_msgs::MoveBaseGoal newPoint;
     newPoint.target_pose.pose.position.x    = 7.687;
     newPoint.target_pose.pose.position.y    = 14.260;
@@ -123,7 +127,7 @@ void Navigation::read_waypoint_constant() {
     target = targets.begin();    
 }
 
-void Navigation::read_waypoint_file(std::string filename) {
+void Navigation::readWaypointFile(std::string filename) {
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath("icreate_navigation")+ filename;
     std::ifstream inFile(path.c_str());
@@ -173,6 +177,7 @@ void Navigation::read_waypoint_file(std::string filename) {
 
     //Prompt End of Process
     std::cout << "[POINT_READER] Point of Interest in imported" << std::endl;
+    ROS_INFO("Successfully Load waypoints !");
 }
 
 // Display Waypoints
@@ -186,6 +191,25 @@ void Navigation::getUserInput() {
 
 }
 
+void Navigation::setNavigationMode(int mode) {
+    navigation_mode = mode;
+}
+
+int Navigation::getNavigationMode() {
+    return navigation_mode;
+}
+
+void Navigation::setTimer(int duration) {
+    ROS_INFO("Loop Create Timer");
+	requestToCreateTimer = false;
+    // timer = nh_.createTimer(ros::Duration(duration), &Navigation::timerCallback, this);
+}
+
+void Navigation::timerCallback(const ros::TimerEvent &event) {
+    ROS_INFO("[TimerCallback] clear costmap");
+	//Clear Costmap
+  	client.call(clearer);
+}
 
 // Convert String To Int
 int Navigation::toint(std::string s) { //The conversion function 

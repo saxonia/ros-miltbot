@@ -3,7 +3,11 @@
 namespace icreate {
 
 Robot::Robot(void) {
-
+    // Subsribe Robot State Topic
+    ROS_INFO("Create Robot Class");
+    // state_sub = nh_.subscribe("/icreate/state",100,&Robot::stateCallback, this);
+    // state_req_pub = nh_.advertise<std_msgs::String>("/icreate/state_req",10);
+    // requestToSendStateReq = false;
 }
 
 Robot::~Robot(void) {
@@ -50,6 +54,18 @@ bool Robot::setEndPosition(move_base_msgs::MoveBaseGoal goal) {
             << endPosition.target_pose.pose.position.y << " at Time: " << now <<std::endl;
 
     return true;
+}
+
+void Robot::sendStateRequest() {
+    ROS_INFO("Loop Send State Request");
+	requestToSendStateReq = false;
+	state_req_pub.publish(state_req_msg);
+}
+
+// STATE CALLBACK
+void Robot::stateCallback(const std_msgs::String::ConstPtr& msg) {
+    current_state = msg->data;
+	ROS_INFO("Robot state: %s",current_state.c_str());
 }
 
 }

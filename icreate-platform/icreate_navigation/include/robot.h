@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <move_base_msgs/MoveBaseAction.h>
+#include <std_msgs/String.h>
 
 #include <tf/transform_listener.h>
  
@@ -17,12 +18,29 @@ class Robot {
 
         bool setEndPosition(move_base_msgs::MoveBaseGoal goal);
 
+        void sendStateRequest();    
+
     private:
+        void stateCallback(const std_msgs::String::ConstPtr& msg);
 
     public:
         move_base_msgs::MoveBaseGoal    startPosition;
         move_base_msgs::MoveBaseGoal    endPosition;
         move_base_msgs::MoveBaseGoal    currentPosition;
+
+        //Publisher & Subscriber
+        ros::Publisher state_req_pub;
+        ros::Subscriber state_sub;
+        std_msgs::String state_req_msg;
+
+        std::string current_state;
+
+        // Request Flags
+        bool requestToSendStateReq;
+
+    private:
+        //NodeHandle
+        // ros::NodeHandle nh_;
 };
 
 }
