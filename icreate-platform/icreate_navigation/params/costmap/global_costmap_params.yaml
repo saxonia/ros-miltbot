@@ -2,7 +2,7 @@ global_costmap:
 #    Coordinate frame and tf parameters
    global_frame: map
    robot_base_frame: base_footprint
-   transform_tolerance: 1.5
+   transform_tolerance: 1.2
 #    Rate parameters
    update_frequency: 1.0
    publish_frequency: 0.5
