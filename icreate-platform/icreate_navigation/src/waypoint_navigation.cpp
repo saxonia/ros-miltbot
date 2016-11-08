@@ -46,14 +46,14 @@ bool isDoneGoal;
 bool finish;
 
 //State Machine Enumeration
-std::string robotState;
+std::string robot_state;
 std::string state_req;
 
 //Sequence for execution
 int targetId;
 //int sequence[13] = {5,1,2,5,1,2,5,1,2,5,1,2,5};
-int SEQUENCE_LENGTH = 2;
-int sequence[24] ={0,1,2,3};
+int SEQUENCE_LENGTH = 4;
+int sequence[24] ={0,3,5,0};
 
 //// System Function
 
@@ -62,7 +62,7 @@ void userInput(){
     while(true) {
         // Display Waypoint 
         navigation.displayWaypoints();
-		navigation.navigation_mode = -1;
+		navigation.setNavigationMode(-1);
 
         // Ask for ID and wait user input
 	    std::cout << "[AGENT] Input Target Waypoints ID : " ;
@@ -74,15 +74,18 @@ void userInput(){
 		    std::cout << "[AGENT] Select Mode" <<std::endl;
 		    std::cout << "[ 0 ] Go to Specific Point." <<std::endl;
 		    std::cout << "[ 1 ] Delivery and Come Back to This Place." <<std::endl;
-		    std::cout << "[ 2 ] Execute The Memorized Sequence" <<std::endl;
+		    std::cout << "[ 2 ] Delivery and Come Back to Base Station" <<std::endl;
+			std::cout << "[ 3 ] Execute The Memorized Sequence" <<std::endl;
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
-		    std::cout << "Select Mode[0,1,2] : " ; 
-		    std::cin 	>> navigation.navigation_mode; 
-		    std::cout << "You Selected : " << navigation.navigation_mode <<std::endl;
+		    std::cout << "Select Mode[0,1,2] : " ;
+			int input; 
+		    std::cin  >> input;
+			navigation.setNavigationMode(input); 
+		    std::cout << "You Selected : " << navigation.getNavigationMode() <<std::endl;
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
 
             // Do Action depends on the Mode selected
-		    switch(navigation.navigation_mode){
+		    switch(navigation.getNavigationMode()){
 		    	//MODE : Go to Specific Point
 			    	case 0:
                         //Set the Robot State 
@@ -94,8 +97,20 @@ void userInput(){
 						requestToSendStateReq = true;
 						finish = false;
 			    	    return;
-		    	//MODE : Delivery and Come back
-			    	case 1:
+		    	//MODE : Delivery and Come back to this place
+			    	case 1 :
+			    		//Remember This Location as startPoint
+			    		robot.setCurrentPosition();
+			    		//Set the Robot State 
+                        state_req = "GOING";
+			    		//Set the endPoint to go
+			      		navigation.setRobotTarget(selected_point);
+						robot.setEndPosition(navigation.getRobotTarget());
+			      		requestToSetNewGoal = true;
+						requestToSendStateReq = true;
+			    		return;
+				//MODE : Delivery and Come back to base
+			    	case 2:
 			    		//Remember This Location as startPoint
 			    		robot.setCurrentPosition();
 			    		//Set the Robot State 
@@ -107,7 +122,7 @@ void userInput(){
 						requestToSendStateReq = true;
 			    		return;
 			  	//MODE : Execute the Sequence
-					case 2:
+					case 3:
 						//Set the Robot State 
 						state_req = "EXECUTESEQ";
 			    		//Set Target to Next Sequence 
@@ -129,7 +144,7 @@ void userInput(){
 		      	default:
 		      		state_req = "IDLE";
 		      		std::cout << "[AGENT]You Selected NOTHING" <<std::endl;
-		      		navigation.navigation_mode = -1;
+		      		navigation.setNavigationMode(-1);
 					requestToSetNewGoal = false;
 					requestToSendStateReq = false;
 					return;
@@ -157,8 +172,8 @@ void waitfordelivery() {
   	//Wait For User Input Within Specific Timeout
   	while(true){
   	  thisTime = ros::Time::now();
-  	  if(thisTime - startTime > waitingDuration)break;
-  	  keyin = getchar();
+  	//   if(thisTime - startTime > waitingDuration)break;
+  	  std::cin >> keyin;
   	  if((int)keyin != 0){
   	    flag = 1;
   	    break;
@@ -210,8 +225,14 @@ void nextStep() {
 
 			// After Delivering = Set Back to the First place
 			state_req = "BACKTOBASE";
+			if(navigation.getNavigationMode() == 1) {
+				navigation.setRobotTarget(robot.startPosition);
+			}
+			else if(navigation.getNavigationMode() == 2) {
+				navigation.setRobotTarget(0);
+			}
+			
 			robot.setCurrentPosition();
-          	navigation.setRobotTarget(robot.startPosition);
 			robot.setEndPosition(navigation.getRobotTarget());
           	std::cout << "[AGENT] GOING BACK TO : ";
           	std::cout << robot.startPosition.target_pose.pose.position.x <<","<<robot.startPosition.target_pose.pose.position.y  <<std::endl;
@@ -242,13 +263,27 @@ void nextStep() {
 	}
 }
 
+bool waitMoveBaseServer(MoveBaseClient &ac) {
+	int tries = 0;
+    while(!ac.waitForServer(ros::Duration(5.0))){
+      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
+      tries++;
+      if(tries == 3){
+        ROS_INFO("Failed to Start Waypoint Node");
+        return false;
+      }
+    }
+    ROS_INFO("Navigation Waypoint Node Initialized !");
+	return true;
+}
+
 
 /// CALLBACKS Function
 
 // STATE CALLBACK
 void stateCallback(const std_msgs::String::ConstPtr& msg) {
-    robotState = msg->data;
-	ROS_INFO("Robot state: %s",robotState.c_str());
+    robot_state = msg->data;
+	ROS_INFO("Robot state: %s",robot_state.c_str());
 }
 
 // TIMER CALLBACK
@@ -267,13 +302,23 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
     //Navigation completed
     if(state.state_ == actionlib::SimpleClientGoalState::SUCCEEDED){
     	//Clear Costmap
+		ROS_INFO("SUCCEEDED");
   		client.call(clearer);
-        state_req_msg.data = navigation.doneRobotGoal(robotState, input_mode);
+        state_req_msg.data = navigation.doneRobotGoal(robot_state, input_mode);
     }
+
+	if(state.state_ == actionlib::SimpleClientGoalState::REJECTED) {
+		ROS_INFO("REJECTED");
+	}
+
+	if(state.state_ == actionlib::SimpleClientGoalState::LOST) {
+		ROS_INFO("LOST");
+	}
+
     //Navigation failed
     if(state.state_ == actionlib::SimpleClientGoalState::ABORTED){
       	ROS_WARN("Failed to reach the goal...");
-		// state_req_msg.data = navigation.failRobotGoal();
+		state_req_msg.data = navigation.failRobotGoal(robot_state, finish);
 		input_mode = 3;
     }
 
@@ -283,12 +328,12 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 }
 
 void goalActiveCallback(){
-    state_req_msg.data = navigation.activeRobotGoal(robotState, state_req);
+    state_req_msg.data = navigation.activeRobotGoal(robot_state, state_req);
 	requestToSendStateReq = true;
 }
 
 void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
-    navigation.getFeedbackRobotGoal();
+    // navigation.getFeedbackRobotGoal();
 }
 
 int main(int argc, char** argv) {
@@ -297,35 +342,19 @@ int main(int argc, char** argv) {
 
     MoveBaseClient ac("/icreate/move_base", true);
 
-    navigation.read_waypoint_file("/waypoint/build4_f20.csv");
-
-    ROS_INFO("Successfully Load waypoints !");
-
-    // if(!robot.setCurrentPosition()) {
-    //     return -1;
-    // }
-	robot.setCurrentPosition();
-
-    // Point The iterator to the beginning of the sequence
-    navigation.target = navigation.targets.begin();
-
-    // Request To Create timer
-    requestToCreateTimer = true;
-
-    // Callback polling Rate 
+	// Callback polling Rate 
     ros::Rate r(30);
 
-    // Wait for the action server to come up
-    int tries = 0;
-    while(!ac.waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
-      tries++;
-      if(tries == 3){
-        ROS_INFO("Failed to Start Waypoint Node");
+    navigation.readWaypointFile("/waypoint/build4_f20.csv");
+
+    if(!robot.setCurrentPosition()) {
         return -1;
-      }
     }
-    ROS_INFO("Navigation Waypoint Node Initialized !");
+	// robot.setCurrentPosition();
+
+    // Wait for the action server to come up
+    if(!waitMoveBaseServer(ac))
+		return -1;
 
     // Subscriber to Get Current position 
     ros::NodeHandle nh;
@@ -339,9 +368,14 @@ int main(int argc, char** argv) {
 
 	targetId = 0;
 
+	// Point The iterator to the beginning of the sequence
+    navigation.target = navigation.targets.begin();
+	
+	// Request To Create timer
+    requestToCreateTimer = true;
+
 	requestToSendStateReq = false;
 	isDoneGoal = false;
-	// Loop for Setting Goal and Navigate ! 
     requestToSetNewGoal = false;
 
     // Ask User For Input
@@ -356,9 +390,11 @@ int main(int argc, char** argv) {
 		if(requestToSendStateReq) {
 			ROS_INFO("Loop Send State Request");
 			requestToSendStateReq = false;
-
 			state_req_pub.publish(state_req_msg);
 		}
+		// if(robot.requestToSendStateReq) {
+		// 	robot.sendStateRequest();
+		// }
 
 		if(isDoneGoal) {
 			ROS_INFO("Loop Done Goal");
@@ -377,10 +413,13 @@ int main(int argc, char** argv) {
 		}
 
 		if(requestToCreateTimer) {
-			ROS_INFO("Loop Create Timer");
+			// ROS_INFO("Loop Create Timer");
 			requestToCreateTimer = false;
 			timer = nh.createTimer(ros::Duration(10), timerCallback);
 		}
+		// if(navigation.requestToCreateTimer) {
+		// 	navigation.setTimer(10);
+		// }
 
 		ros::spinOnce();
 		r.sleep();

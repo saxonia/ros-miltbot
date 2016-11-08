@@ -285,7 +285,7 @@ void userInput(){
 }
 
 // Reading Point Of Interest
-void read_waypoint_file(std::string filename){
+void readWaypointFile(std::string filename){
 
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath("simple_navigation_goals")+ filename;
@@ -340,7 +340,7 @@ void read_waypoint_file(std::string filename){
    std::cout << "[POINT_READER] Point of Interest in imported" << std::endl;
 }
 
-void read_waypoint_constant()
+void readWaypointConstant()
 {
     move_base_msgs::MoveBaseGoal newPoint;
     newPoint.target_pose.pose.position.x    = -6.326;
@@ -459,7 +459,7 @@ int main(int argc, char** argv)
     // read_poi_from("/waypoints/waypoint.csv"); 
 
     // Read waypoint from constant
-    read_waypoint_constant();
+    readWaypointConstant();
 
     ROS_INFO("Successfully Load waypoints !");
     

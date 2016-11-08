@@ -98,7 +98,7 @@ void userInput(){
     }
 }
 
-void read_waypoint_constant()
+void readWaypointConstant()
 {
     move_base_msgs::MoveBaseGoal newPoint;
     newPoint.target_pose.pose.position.x    = 7.687;
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     MoveBaseClient ac("/icreate/move_base", true);
 
     // Read waypoint from constant
-    read_waypoint_constant();
+    readWaypointConstant();
 
     ROS_INFO("Successfully Load waypoints !");
     

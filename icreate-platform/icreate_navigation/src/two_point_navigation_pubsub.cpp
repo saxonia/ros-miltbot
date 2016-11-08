@@ -48,7 +48,7 @@ std::string robotState;
 std::string state_req;
 
 void userInput(){
-    std::cout << "Press Any Key To Start Navigation" << std::endl;
+    std::cout << "Press Any Key To Start Navigation Or ESC To Exit" << std::endl;
     if((int) getchar() != 0) {
       return;
     }
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
     // Tell the action client that we want to spin a thread by default
     MoveBaseClient ac("/icreate/move_base", true);
     
-    navigation.read_waypoint_constant();
+    navigation.readWaypointConstant();
 
     ROS_INFO("Successfully Load waypoints !");
 
