@@ -5,9 +5,9 @@ namespace icreate {
 Robot::Robot(void) {
     // Subsribe Robot State Topic
     ROS_INFO("Create Robot Class");
-    // state_sub = nh_.subscribe("/icreate/state",100,&Robot::stateCallback, this);
-    // state_req_pub = nh_.advertise<std_msgs::String>("/icreate/state_req",10);
-    // requestToSendStateReq = false;
+    state_sub = nh_.subscribe("/icreate/state",100,&Robot::stateCallback, this);
+    state_req_pub = nh_.advertise<std_msgs::String>("/icreate/state_req",10);
+    requestToSendStateReq = false;
 }
 
 Robot::~Robot(void) {
@@ -64,8 +64,11 @@ void Robot::sendStateRequest() {
 
 // STATE CALLBACK
 void Robot::stateCallback(const std_msgs::String::ConstPtr& msg) {
-    current_state = msg->data;
-	ROS_INFO("Robot state: %s",current_state.c_str());
+    if(strcmp(this->current_state.c_str(), msg->data.c_str()) != 0){
+        this->current_state = msg->data;
+        ROS_INFO("Robot state: %s",current_state.c_str());
+    }
+	
 }
 
 }

@@ -5,6 +5,9 @@
 #include <std_srvs/Empty.h>
 
 #include <fstream>
+#include <vector>
+
+#include "robot.h"
 
     
 
@@ -27,7 +30,7 @@ class Navigation {
 
         move_base_msgs::MoveBaseGoal getRobotGoal();
 
-        std::string doneRobotGoal(std::string robot_state, int &mode);
+        std::string doneRobotGoal(std::string robot_state);
 
         std::string failRobotGoal(std::string robot_state, bool &finish);
 
@@ -37,11 +40,19 @@ class Navigation {
 
         void readWaypointConstant();
 
+        void readLiftFile(std::string filename);
+
         void readWaypointFile(std::string filename);
 
         void displayWaypoints();
 
-        void getUserInput();
+        void getWaitForDelivery();
+
+        int getWaitForNextPoint(int wait_time);
+
+        void getUserInput(Robot &robot);
+
+        void getNextStep(Robot &robot);
 
         void setNavigationMode(int mode);
 
@@ -64,18 +75,30 @@ class Navigation {
             EXECUTEQ = 3
         };
 
+        enum inputMode {
+            inputUser = 0,
+            waitParcel = 1,
+            waitQueue = 2,
+            failGoal = 3
+            
+        };
+
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
 
         std::vector<move_base_msgs::MoveBaseGoal> targets;
+        std::vector<move_base_msgs::MoveBaseGoal> lifts;
         std::vector<move_base_msgs::MoveBaseGoal>::iterator target;
+        std::vector<move_base_msgs::MoveBaseGoal>::iterator lift;
         std::vector<std::string> target_name;
+        std::vector<std::string> lift_name;
 
         //Costmap Clearing Service Client (/move_base_node/clear_costmaps)
         ros::ServiceClient client;
         std_srvs::Empty clearer;
 
-        MoveBaseClient ac;
+        // MoveBaseClient ac;
+        bool requestToSetNewGoal;
 
         //Timer
         ros::Timer timer;
@@ -88,11 +111,17 @@ class Navigation {
 
     private:
         //NodeHandle
-        // ros::NodeHandle nh_;
+        ros::NodeHandle nh_;
 
         int navigation_mode;
         // move_base_msgs::MoveBaseAction action;
         int selected_point;
+
+        const static int SEQUENCE_LENGTH = 4;
+        std::vector<int> sequence;
+        //Sequence for execution
+        int targetId;
+        int input_mode;
 };
 
 }

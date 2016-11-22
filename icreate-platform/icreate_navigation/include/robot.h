@@ -40,7 +40,7 @@ class Robot {
 
     private:
         //NodeHandle
-        // ros::NodeHandle nh_;
+        ros::NodeHandle nh_;
 };
 
 }
