@@ -14,11 +14,11 @@
 namespace icreate {
     typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-class Navigation {
+class SingleNavigation {
     public:
-        Navigation();
+        SingleNavigation();
 
-        ~Navigation();
+        ~SingleNavigation();
 
         void setRobotTarget(move_base_msgs::MoveBaseGoal goal);
 
@@ -42,7 +42,7 @@ class Navigation {
 
         void readLiftFile(std::string filename);
 
-        void readWaypointFile(std::string filename);
+        void readWaypointFile(std::string filename, std::string fileType);
 
         void displayWaypoints();
 
@@ -83,12 +83,19 @@ class Navigation {
             
         };
 
+        struct moveBaseGoal {
+            std::string name;
+            move_base_msgs::MoveBaseGoal goal;
+        };
+
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
 
-        std::vector<move_base_msgs::MoveBaseGoal> targets;
+        std::vector<moveBaseGoal> targets;
+        // std::vector<move_base_msgs::MoveBaseGoal> targets;
         std::vector<move_base_msgs::MoveBaseGoal> lifts;
-        std::vector<move_base_msgs::MoveBaseGoal>::iterator target;
+        std::vector<moveBaseGoal>::iterator target;
+        // std::vector<move_base_msgs::MoveBaseGoal>::iterator target;
         std::vector<move_base_msgs::MoveBaseGoal>::iterator lift;
         std::vector<std::string> target_name;
         std::vector<std::string> lift_name;
@@ -104,6 +111,8 @@ class Navigation {
         ros::Timer timer;
         bool requestToCreateTimer;
 
+        std::vector<int> sequence;
+
         // Navigation Mode
         // 0 : Go to Specific Point
         // 1 : Delivery and Come Back to This Place
@@ -118,7 +127,7 @@ class Navigation {
         int selected_point;
 
         const static int SEQUENCE_LENGTH = 4;
-        std::vector<int> sequence;
+        
         //Sequence for execution
         int targetId;
         int input_mode;

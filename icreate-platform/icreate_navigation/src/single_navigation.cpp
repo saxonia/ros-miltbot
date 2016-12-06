@@ -1,8 +1,8 @@
-#include "navigation.h"
+#include "single_navigation.h"
 
 namespace icreate {
 
-Navigation::Navigation(): sequence(24){
+SingleNavigation::SingleNavigation(): sequence(24){
     // this->ac("move_base", true);
     navigation_mode = -1;
     client = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
@@ -18,27 +18,30 @@ Navigation::Navigation(): sequence(24){
     
 }
 
-Navigation::~Navigation() {
+SingleNavigation::~SingleNavigation() {
 
 }
 
-void Navigation::setRobotTarget(move_base_msgs::MoveBaseGoal goal) {
-    targets.push_back(goal);
-    target = targets.end() - 1;
+void SingleNavigation::setRobotTarget(move_base_msgs::MoveBaseGoal goal) {
+    // moveBaseGoal mbg;
+    // mbg.
+    // targets.push_back();
+    // // targets.push_back(goal);
+    // target = targets.end() - 1;
 }
 
-void Navigation::setRobotTarget(int selected_point) {
-    Navigation::selected_point = selected_point;
+void SingleNavigation::setRobotTarget(int selected_point) {
+    SingleNavigation::selected_point = selected_point;
     target = targets.begin() + selected_point;
     ROS_INFO("set Robot Target: %s", this->target_name[selected_point].c_str());
 }
 
-move_base_msgs::MoveBaseGoal Navigation::getRobotTarget() {
+move_base_msgs::MoveBaseGoal SingleNavigation::getRobotTarget() {
     ROS_INFO("get Robot Target: %s",this->target_name[selected_point].c_str());
     return targets[selected_point];
 }
 
-void Navigation::setRobotGoal(std::string frame_id) {
+void SingleNavigation::setRobotGoal(std::string frame_id) {
     //frame_id = "/map"
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
@@ -53,11 +56,11 @@ void Navigation::setRobotGoal(std::string frame_id) {
 
 }
 
-move_base_msgs::MoveBaseGoal Navigation::getRobotGoal() {
+move_base_msgs::MoveBaseGoal SingleNavigation::getRobotGoal() {
     return goal;
 }
 
-std::string Navigation::doneRobotGoal(std::string robot_state) {
+std::string SingleNavigation::doneRobotGoal(std::string robot_state) {
     client.call(clearer);
     std::string state_msg; 
     if(robot_state == "GOING") {
@@ -86,7 +89,7 @@ std::string Navigation::doneRobotGoal(std::string robot_state) {
     return state_msg;
 }
 
-std::string Navigation::failRobotGoal(std::string robot_state, bool &finish) {
+std::string SingleNavigation::failRobotGoal(std::string robot_state, bool &finish) {
     std::string state_msg;
     //  if(robot_state == "GOING") {
 
@@ -102,7 +105,7 @@ std::string Navigation::failRobotGoal(std::string robot_state, bool &finish) {
     return state_msg;
 }
 
-std::string Navigation::activeRobotGoal(std::string robot_state, std::string state_req) {
+std::string SingleNavigation::activeRobotGoal(std::string robot_state, std::string state_req) {
     std::string msg;
     ROS_INFO("Goal active! Now !!");
     if(robot_state == "IDLE" && state_req == "SINGLERUN") {
@@ -123,11 +126,11 @@ std::string Navigation::activeRobotGoal(std::string robot_state, std::string sta
     return msg;
 }
 
-void Navigation::getFeedbackRobotGoal() {
+void SingleNavigation::getFeedbackRobotGoal() {
     ROS_INFO("Getting feedback! How cool is that?");
 }
 
-void Navigation::readWaypointConstant() {
+void SingleNavigation::readWaypointConstant() {
     move_base_msgs::MoveBaseGoal newPoint;
     newPoint.target_pose.pose.position.x    = 7.687;
     newPoint.target_pose.pose.position.y    = 14.260;
@@ -140,7 +143,7 @@ void Navigation::readWaypointConstant() {
     target = targets.begin();    
 }
 
-void Navigation::readLiftFile(std::string filename) {
+void SingleNavigation::readLiftFile(std::string filename) {
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath("icreate_navigation")+ filename;
     std::ifstream inFile(path.c_str());
@@ -193,7 +196,11 @@ void Navigation::readLiftFile(std::string filename) {
     ROS_INFO("Successfully Load waypoints !");
 }
 
-void Navigation::readWaypointFile(std::string filename) {
+void SingleNavigation::readWaypointFile(std::string filename, std::string fileType) {
+    std::vector<moveBaseGoal> point_list;
+    if(strcmp(fileType,"target") == 0) {
+        point_list = &targets;
+    }
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath("icreate_navigation")+ filename;
     std::ifstream inFile(path.c_str());
@@ -247,13 +254,13 @@ void Navigation::readWaypointFile(std::string filename) {
 }
 
 // Display Waypoints
-void Navigation::displayWaypoints() {
+void SingleNavigation::displayWaypoints() {
     for(int i = 0 ; i < target_name.size() ; i++) {
       std::cout <<"["<<i<<"] " << target_name[i] << " " << targets[i].target_pose.pose.position.x <<std::endl; 
     }
 }
 
-void Navigation::getWaitForDelivery() {
+void SingleNavigation::getWaitForDelivery() {
     //ฟังก์ชันสำหรับจัดการพัสดุ รับรหัสพัสดุ บอกตำแหน่งจุดหมายที่จะส่ง 
 
 	// Wait Time 
@@ -280,7 +287,7 @@ void Navigation::getWaitForDelivery() {
 	}
 }
 
-int Navigation::getWaitForNextPoint(int wait_time) {
+int SingleNavigation::getWaitForNextPoint(int wait_time) {
     ros::Duration waitingDuration(wait_time);
     ros::Time startTime = ros::Time::now();
     ros::Time thisTime = ros::Time::now();
@@ -306,7 +313,7 @@ int Navigation::getWaitForNextPoint(int wait_time) {
     return flag;
 }
 
-void Navigation::getUserInput(Robot &robot) {
+void SingleNavigation::getUserInput(Robot &robot) {
     int selected_point = -1;
     while(true) {
         this->displayWaypoints();
@@ -401,7 +408,7 @@ void Navigation::getUserInput(Robot &robot) {
     }
 }
 
-void Navigation::getNextStep(Robot &robot) {
+void SingleNavigation::getNextStep(Robot &robot) {
     ROS_INFO("Input Mode: %d",this->input_mode);
 	switch(input_mode) {
 		case inputUser :
@@ -453,28 +460,28 @@ void Navigation::getNextStep(Robot &robot) {
 	}
 }
 
-void Navigation::setNavigationMode(int mode) {
+void SingleNavigation::setNavigationMode(int mode) {
     navigation_mode = mode;
 }
 
-int Navigation::getNavigationMode() {
+int SingleNavigation::getNavigationMode() {
     return navigation_mode;
 }
 
-void Navigation::setTimer(int duration) {
+void SingleNavigation::setTimer(int duration) {
     ROS_INFO("Loop Create Timer");
 	requestToCreateTimer = false;
-    timer = nh_.createTimer(ros::Duration(duration), &Navigation::timerCallback, this);
+    timer = nh_.createTimer(ros::Duration(duration), &SingleNavigation::timerCallback, this);
 }
 
-void Navigation::timerCallback(const ros::TimerEvent &event) {
+void SingleNavigation::timerCallback(const ros::TimerEvent &event) {
     ROS_INFO("[TimerCallback] clear costmap");
 	//Clear Costmap
   	client.call(clearer);
 }
 
 // Convert String To Int
-int Navigation::toint(std::string s) { //The conversion function 
+int SingleNavigation::toint(std::string s) { //The conversion function 
     return atoi(s.c_str());
 }
 

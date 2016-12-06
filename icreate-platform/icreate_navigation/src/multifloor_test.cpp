@@ -7,7 +7,7 @@
 // #include "robot.h"
 #include <iostream>
 #include <string>
-#include "navigation.h"
+#include "single_navigation.h"
 
 
 
@@ -39,14 +39,14 @@ bool isNextStep;
 bool isFrontLiftToLift;
 int doneGoalNumber;
 
-void setLiftPosition(icreate::Navigation &navigation, int liftNumber) {
+void setLiftPosition(icreate::SingleNavigation &navigation, int liftNumber) {
     navigation.lift = navigation.lifts.begin() + liftNumber;
     navigation.target = navigation.lift;
     ROS_INFO("set Robot Lift: %s", navigation.lift_name[liftNumber].c_str());
     requestToSetNewGoal = true;
 }
 
-bool userInput(icreate::Robot &robot,icreate::Navigation &navigation) {
+bool userInput(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
     std::cout << "Press Any Key To Start Navigation Or ESC To Exit" << std::endl;
     std::string key;
     std::cin >> key;
@@ -73,7 +73,7 @@ bool userInput(icreate::Robot &robot,icreate::Navigation &navigation) {
     // I'm not sure about ascii code == 0 what it is.
 }
 
-void nextStep(icreate::Robot &robot,icreate::Navigation &navigation) {
+void nextStep(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
     std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
 	std::cout << "[AGENT] Select UP OR DOWN";
     std::string value;
@@ -95,7 +95,7 @@ void nextStep(icreate::Robot &robot,icreate::Navigation &navigation) {
     robot.requestToSendStateReq = true;
 }
 
-void setFrontLiftToLift(icreate::Robot &robot,icreate::Navigation &navigation) {
+void setFrontLiftToLift(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
 
 }
 
@@ -141,7 +141,7 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
     // navigation.getFeedbackRobotGoal();
 }
 
-void aaa(icreate::Navigation &navigation, icreate::Robot &robot) {
+void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 	ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
 	robot.state_req_msg.data = navigation.doneRobotGoal(robot.current_state);
 }
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 
     // Class
     icreate::Robot robot;
-    icreate::Navigation navigation;
+    icreate::SingleNavigation navigation;
 
     MoveBaseClient ac("/icreate/move_base", true);
 

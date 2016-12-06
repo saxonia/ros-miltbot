@@ -125,7 +125,7 @@ include_directories(
 # add_library(icreate_navigation
 #   src/${PROJECT_NAME}/icreate_navigation.cpp
 # )
-add_library(robot src/robot.cpp src/navigation.cpp)
+add_library(robot src/robot.cpp src/single_navigation.cpp src/multi_navigation.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -203,3 +203,5 @@ target_link_libraries(multifloor_test ${catkin_LIBRARIES} robot)
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_definitions(-std=c++11)

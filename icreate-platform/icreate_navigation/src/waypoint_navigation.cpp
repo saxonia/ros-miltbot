@@ -3,7 +3,7 @@
 #include <std_srvs/Empty.h>
 
 // #include "robot.h"
-#include "navigation.h"
+#include "single_navigation.h"
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -31,6 +31,101 @@ bool waitMoveBaseServer(MoveBaseClient &ac) {
     ROS_INFO("Navigation Waypoint Node Initialized !");
 	return true;
 }
+
+// void getUserInput(icreate::SingleNavigation &single_navigation, icreate::Robot &robot) {
+// 	int selected_point = -1;
+//     while(true) {
+//         single_navigation.displayWaypoints();
+//         single_navigation.setNavigationMode(-1);
+
+//         // Ask for ID and wait user input
+// 	    std::cout << "[AGENT] Input Target Waypoints ID : " ;
+// 	    std::cin >> selected_point;
+
+//         if(selected_point > -1 && selected_point < single_navigation.targets.size()){ 
+//             // Select Mode for Transportation 
+// 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
+// 		    std::cout << "[AGENT] Select Mode" <<std::endl;
+// 		    std::cout << "[ 0 ] Go to Specific Point." <<std::endl;
+// 		    std::cout << "[ 1 ] Delivery and Come Back to This Place." <<std::endl;
+// 		    std::cout << "[ 2 ] Delivery and Come Back to Base Station" <<std::endl;
+// 			std::cout << "[ 3 ] Execute The Memorized Sequence" <<std::endl;
+// 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
+// 		    std::cout << "Select Mode[0,1,2] : " ;
+// 			int input; 
+// 		    std::cin  >> input;
+// 			single_navigation.setNavigationMode(input); 
+// 		    std::cout << "You Selected : " << single_navigation.getNavigationMode() <<std::endl;
+// 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
+
+//             // Do Action depends on the Mode selected
+// 		    switch(single_navigation.getNavigationMode()){
+// 		    	//MODE : Go to Specific Point
+// 			    	case 0:
+//                         //Set the Robot State 
+//                         robot.state_req_msg.data = "SINGLERUN";
+// 			    		//Set New Goal
+// 			    		single_navigation.setRobotTarget(selected_point);
+// 						robot.setEndPosition(single_navigation.getRobotTarget());
+// 			    		single_navigation.requestToSetNewGoal = true;
+// 						robot.requestToSendStateReq = true;
+// 						// finish = false;
+// 			    	    return;
+// 		    	//MODE : Delivery and Come back to this place
+// 			    	case 1 :
+// 			    		//Remember This Location as startPoint
+// 			    		robot.setCurrentPosition();
+// 			    		//Set the Robot State 
+//                         robot.state_req_msg.data = "GOING";
+// 			    		//Set the endPoint to go
+// 			      		single_navigation.setRobotTarget(selected_point);
+// 						robot.setEndPosition(single_navigation.getRobotTarget());
+// 			      		single_navigation.requestToSetNewGoal = true;
+// 						robot.requestToSendStateReq = true;
+// 			    		return;
+// 				//MODE : Delivery and Come back to base
+// 			    	case 2:
+// 			    		//Remember This Location as startPoint
+// 			    		robot.setCurrentPosition();
+// 			    		//Set the Robot State 
+//                         robot.state_req_msg.data = "GOING";
+// 			    		//Set the endPoint to go
+// 			      		single_navigation.setRobotTarget(selected_point);
+// 						robot.setEndPosition(single_navigation.getRobotTarget());
+// 			      		single_navigation.requestToSetNewGoal = true;
+// 						robot.requestToSendStateReq = true;
+// 			    		return;
+// 			  	//MODE : Execute the Sequence
+// 					case 3:
+// 						//Set the Robot State 
+// 						robot.state_req_msg.data = "EXECUTESEQ";
+// 			    		//Set Target to Next Sequence 
+// 						single_navigation.setRobotTarget(single_navigation.sequence[single_navigation.targetId]);
+// 						robot.setEndPosition(single_navigation.getRobotTarget());
+// 			    		//Set the new Goal
+// 			    		single_navigation.requestToSetNewGoal = true;
+// 						robot.requestToSendStateReq = true;
+// 			      		return;
+// 			    //MODE : EXIT
+// 					case 99:
+// 						//Set the Robot State 
+// 			      		robot.state_req_msg.data = "IDLE";
+// 						single_navigation.requestToSetNewGoal = false;
+// 						robot.requestToSendStateReq = false;
+// 			      		// finish = true;
+// 			      		return;
+// 			    //Not Specified : Do Nothing ^_^
+// 		      	default:
+// 		      		robot.state_req_msg.data = "IDLE";
+// 		      		std::cout << "[AGENT]You Selected NOTHING" <<std::endl;
+// 		      		single_navigation.setNavigationMode(-1);
+// 					single_navigation.requestToSetNewGoal = false;
+// 					robot.requestToSendStateReq = false;
+// 					return;
+// 		    }//Mode Select
+//         }   
+//     }
+// }
 
 
 /// CALLBACKS Function
@@ -67,21 +162,21 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 	isDoneGoal = true;
 }
 
-void goalActiveCallback(icreate::Navigation &navigation, icreate::Robot &robot){
+void goalActiveCallback(icreate::SingleNavigation &navigation, icreate::Robot &robot){
     robot.state_req_msg.data = navigation.activeRobotGoal(robot.current_state, state_req);
 	robot.requestToSendStateReq = true;
 }
 
-void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback, icreate::Navigation &navigation, icreate::Robot &robot){
+void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
     // navigation.getFeedbackRobotGoal();
 	// ROS_INFO("FEEDBACK %s",robot.current_state.c_str());
 }
 
-void runControlLoop(icreate::Navigation &navigation, icreate::Robot robot) {
+void runControlLoop(icreate::SingleNavigation &navigation, icreate::Robot robot) {
 
 }
 
-void aaa(icreate::Navigation &navigation, icreate::Robot &robot) {
+void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 	ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
 	robot.state_req_msg.data = navigation.doneRobotGoal(robot.current_state);
 }
@@ -92,14 +187,14 @@ int main(int argc, char** argv) {
 
 	//Class
 	icreate::Robot robot;
-	icreate::Navigation navigation;
+	icreate::SingleNavigation navigation;
 
     MoveBaseClient ac("/icreate/move_base", true);
 
 	// Callback polling Rate 
     ros::Rate r(30);
 
-    navigation.readWaypointFile("/waypoint/build4_f20.csv");
+    navigation.readWaypointFile("/waypoint/build4_f20.csv","1");
     // if(!robot.setCurrentPosition()) {
     //     return -1;
     // }
@@ -126,7 +221,7 @@ int main(int argc, char** argv) {
     // requestToSetNewGoal = false;
 
     // Ask User For Input
-    navigation.getUserInput(robot);
+    // getUserInput(navigation, robot);
 	
 
 	
@@ -171,7 +266,7 @@ int main(int argc, char** argv) {
 			ROS_INFO("Stateee: %s",  robot.current_state.c_str());
 			ac.sendGoal(navigation.goal, 
                       boost::bind(&goalDoneCallback_state, _1, _2), 
-                      boost::bind(&goalActiveCallback, navigation, robot), boost::bind(&goalFeedbackCallback, _1, navigation, robot));
+                      boost::bind(&goalActiveCallback, navigation, robot), boost::bind(&goalFeedbackCallback, _1));
 		}
 		// ROS_INFO("LOOP %s",robot.current_state.c_str());
 
