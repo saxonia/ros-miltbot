@@ -1,0 +1,7 @@
+<launch>
+    <node ns="icreate" pkg="icreate_state" type="state_publisher" name="icreate_state" output="screen">
+        <!--Topic Parameter-->
+        <param name="state_pub_topic" value="state" type="string" />
+        <param name="state_req_sub_topic" value="state_req" type="string" />
+    </node>
+</launch>
