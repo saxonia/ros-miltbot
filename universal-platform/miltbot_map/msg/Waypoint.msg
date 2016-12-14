@@ -1,0 +1,3 @@
+move_base_msgs/MoveBaseGoal goal
+string building
+string floor
