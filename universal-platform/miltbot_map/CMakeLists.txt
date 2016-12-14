@@ -4,7 +4,16 @@ project(miltbot_map)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    rospy
+    roslib
+    std_msgs
+    message_generation
+    move_base_msgs
+    actionlib_msgs
+    geometry_msgs
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -45,6 +54,11 @@ find_package(catkin REQUIRED)
 #   Message1.msg
 #   Message2.msg
 # )
+add_message_files(
+    FILES
+    Waypoint.msg
+    WaypointName.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -52,6 +66,11 @@ find_package(catkin REQUIRED)
 #   Service1.srv
 #   Service2.srv
 # )
+add_service_files(
+    FILES
+    GetWaypoint.srv
+    GetWaypointName.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -65,6 +84,12 @@ find_package(catkin REQUIRED)
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
 # )
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+    move_base_msgs
+    miltbot_map
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -100,6 +125,7 @@ catkin_package(
 #  LIBRARIES miltbot_map
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
+CATKIN_DEPENDS message_runtime   
 )
 
 ###########
@@ -109,11 +135,15 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
+include_directories(
+    include ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a C++ library
 # add_library(miltbot_map
 #   src/${PROJECT_NAME}/miltbot_map.cpp
 # )
+add_library(map src/map.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -122,6 +152,8 @@ catkin_package(
 
 ## Declare a C++ executable
 # add_executable(miltbot_map_node src/miltbot_map_node.cpp)
+add_executable(map_server src/map_server.cpp)
+add_executable(get_path_test src/get_path_test.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -131,6 +163,8 @@ catkin_package(
 # target_link_libraries(miltbot_map_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(map_server ${catkin_LIBRARIES} map)
+target_link_libraries(get_path_test ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -179,3 +213,5 @@ catkin_package(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_definitions(-std=c++11)
