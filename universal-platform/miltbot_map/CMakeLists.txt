@@ -70,6 +70,7 @@ add_service_files(
     FILES
     GetWaypoint.srv
     GetWaypointName.srv
+    SetMapServer.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -152,8 +153,9 @@ add_library(map src/map.cpp)
 
 ## Declare a C++ executable
 # add_executable(miltbot_map_node src/miltbot_map_node.cpp)
-add_executable(map_server src/map_server.cpp)
+add_executable(waypoint_server src/waypoint_server.cpp)
 add_executable(get_path_test src/get_path_test.cpp)
+add_executable(map_server src/map_server.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -163,7 +165,8 @@ add_executable(get_path_test src/get_path_test.cpp)
 # target_link_libraries(miltbot_map_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(map_server ${catkin_LIBRARIES} map)
+target_link_libraries(waypoint_server ${catkin_LIBRARIES} map)
+target_link_libraries(map_server ${catkin_LIBRARIES})
 target_link_libraries(get_path_test ${catkin_LIBRARIES})
 
 #############

@@ -15,23 +15,16 @@ void Map::addMapData(Key id, MapData map_data) {
     // id.second = deleteStringQuote(id.second);
     if(data.find(id) != data.end()) {
         std::cout << "Add Map Data: " << map_data.name  << " " << id.first << " " << id.second << std::endl;
-        // if(data[std::make_pair("\"Building 3\"","\"Floor 20\"")].size() > 0)
-            // std::cout << "ZZZ : " << data[std::make_pair("\"Building 3\"","\"Floor 20\"")][1].name << std::endl;
-        // std::cout << "Key : " << id.first << id.second << std::endl;
         std::vector<MapData> tmp = data[id];
-        // std::cout << tmp.size() << std::endl;
         tmp.push_back(map_data);
-        // std::cout << tmp.size() << std::endl;
-        // data.insert(std::make_pair(id, tmp));
         data.at(id) = tmp;
     }
     else {
         std::cout << "Add Map Data2: " << map_data.name << " " << id.first << " " << id.second << std::endl;
-        // if(data[std::make_pair("\"Building 3\"","\"Floor 20\"")].size() > 0)
-            // std::cout << "ZZZ : " << data[std::make_pair("\"Building 3\"","\"Floor 20\"")][1].name << std::endl;
-        static const MapData arr[] = {map_data};
+        MapData arr[] = {map_data};
         std::vector<MapData> new_data(arr, arr + sizeof(arr) / sizeof(arr[0]) );
-        data.insert(std::make_pair(id, new_data));
+        // data.insert(std::make_pair(id, new_data));
+        data[id] = new_data;
     }
     
 }
