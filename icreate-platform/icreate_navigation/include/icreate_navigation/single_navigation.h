@@ -7,7 +7,8 @@
 #include <fstream>
 #include <vector>
 
-#include "robot.h"
+#include "icreate_navigation/robot.h"
+#include <icreate_transportation/RunTransportation.h>
 
     
 
@@ -42,11 +43,12 @@ class SingleNavigation {
 
         void readLiftFile(std::string filename);
 
-        void readWaypointFile(std::string filename, std::string fileType);
+        // void readWaypointFile(std::string filename, std::string fileType);
+         void readWaypointFile(std::string filename);
 
         void displayWaypoints();
 
-        void getWaitForDelivery();
+        std::string getWaitForDelivery();
 
         int getWaitForNextPoint(int wait_time);
 
@@ -83,19 +85,19 @@ class SingleNavigation {
             
         };
 
-        struct moveBaseGoal {
-            std::string name;
-            move_base_msgs::MoveBaseGoal goal;
-        };
+        // struct moveBaseGoal {
+        //     std::string name;
+        //     move_base_msgs::MoveBaseGoal goal;
+        // };
 
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
 
-        std::vector<moveBaseGoal> targets;
-        // std::vector<move_base_msgs::MoveBaseGoal> targets;
+        // std::vector<moveBaseGoal> targets;
+        std::vector<move_base_msgs::MoveBaseGoal> targets;
         std::vector<move_base_msgs::MoveBaseGoal> lifts;
-        std::vector<moveBaseGoal>::iterator target;
-        // std::vector<move_base_msgs::MoveBaseGoal>::iterator target;
+        // std::vector<moveBaseGoal>::iterator target;
+        std::vector<move_base_msgs::MoveBaseGoal>::iterator target;
         std::vector<move_base_msgs::MoveBaseGoal>::iterator lift;
         std::vector<std::string> target_name;
         std::vector<std::string> lift_name;

@@ -14,12 +14,7 @@
 // #include <termios.h>
 // #include <ctime>
 
-#include "robot.h"
-#include "navigation.h"
-
-//Class
-icreate::Robot robot;
-icreate::Navigation navigation;
+#include "icreate_navigation/single_navigation.h"
 
 //Publisher 
 ros::Publisher state_req_pub;
@@ -71,125 +66,29 @@ void timerCallback(const ros::TimerEvent &event){
     // requestToCreateTimer = true;
 }
 
-void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state, 
-  const move_base_msgs::MoveBaseResultConstPtr &result){
-    ROS_INFO("Goal Done Now !!!!!");
-
-    //Navigation completed
-    if(state.state_ == actionlib::SimpleClientGoalState::SUCCEEDED){
-    	//Clear Costmap
-  		client.call(clearer);
-        int mode = 0;
-        state_req = navigation.doneRobotGoal(robotState, mode);
-    }
-    //Navigation failed
-    if(state.state_ == actionlib::SimpleClientGoalState::ABORTED){
-      ROS_WARN("Failed to reach the goal...");
-      state_req = navigation.failRobotGoal(robotState, finish);
-    }
-
-    std::cout << "Goal Finished Or Cancelled by Joy" << std::endl;
-    // requestToSetNewGoal = true;
-    finish = true;
-}
-
-void goalActiveCallback(){
-    state_req = "GOING";
-    // ROS_INFO();
-    state_req_msg.data = navigation.activeRobotGoal(robotState, state_req);
-    // state_req_msg.data = "GOING";
-    
-}
-
-void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
-    navigation.getFeedbackRobotGoal();
-}
-
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "two_point_navigation_pubsub");
 
-    // Tell the action client that we want to spin a thread by default
-    MoveBaseClient ac("/icreate/move_base", true);
-    
-    navigation.readWaypointConstant();
-
-    ROS_INFO("Successfully Load waypoints !");
-
-    // if(!robot.setCurrentPosition()) {
-        // return -1;
-    // }
-    robot.setCurrentPosition();
-
-    // Request To Create timer
-    requestToCreateTimer = true;
-
-    // Callback polling Rate 
-    ros::Rate r(30);
-
-    // Wait for the action server to come up
-    int tries = 0;
-    while(!ac.waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
-      tries++;
-      if(tries == 3){
-        ROS_INFO("Failed to Start Waypoint Node");
-        return -1;
-      }
+    //Class
+    icreate::Robot robot;
+    icreate::SingleNavigation navigation; 
+    std::string a = navigation.doneRobotGoal("GOING");
+    std::cout << a << std::endl;   
+    // robot.sendStateRequest();
+    ros::NodeHandle nh;
+    ros::ServiceClient client = nh.serviceClient<icreate_state::SetRobotState>("set_robot_state");
+    icreate_state::SetRobotState srv;
+    // srv.request.req = state_req_msg;
+    srv.request.req = "GOING";
+    std::cout << srv.request.req << std::endl;
+    if (client.call(srv))
+    {
+    //   current_state = srv.response.res;
     }
-    ROS_INFO("Navigation Waypoint Node Initialized !");
-
-    // Subscriber to Get Current position 
-    ros::NodeHandle n;
-
-    // Subsribe Robot State Topic
-    state_sub = n.subscribe("/icreate/state",10,stateCallback);
-    state_req_pub = n.advertise<std_msgs::String>("/icreate/state_req",10);
-
-    // Subscribe to Map Clearing Service 
-    client = n.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
-
-    // Ask User For Input
-    userInput();
-
-    finish = false;
-
-    // Loop for Setting Goal and Navigate ! 
-    requestToSetNewGoal = true;
-
-    // Start the Navigation Waypoint Loop
-    while(ros::ok() && !finish ){
-
-        ROS_INFO("Run Loop");
-        // The Next Goal !
-        // ROS_INFO("State request: %s",state_req_msg.data.c_str());
-        state_req_pub.publish(state_req_msg); 
-
-        if(requestToSetNewGoal){
-            ROS_INFO("Loop Set New Goal");
-            // Do this Target until its end
-            requestToSetNewGoal = false;
-
-            navigation.setRobotGoal("/map");
-            
-            // Send Goal to Navigation Stack
-            ac.sendGoal(navigation.getRobotGoal(), 
-                        boost::bind(&goalDoneCallback_state, _1, _2), 
-                        boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
-        }
-
-        //Check if the timer should be create.
-        if(requestToCreateTimer){
-            ROS_INFO("Loop Create Timer");
-            timer = n.createTimer(ros::Duration(10), timerCallback);
-            requestToCreateTimer = false;  //We Don't want to create timer anymore
-        }
-
-        // Spinning the loop and Callback
-        ros::spinOnce();
-        r.sleep();
- 
-        
+    else
+    {
+      ROS_ERROR("Failed to call service xxxxxxx");
     }
 
     ROS_INFO("Exiting Waypoint Navigation");
