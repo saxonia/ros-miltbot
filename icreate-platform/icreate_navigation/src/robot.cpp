@@ -1,12 +1,13 @@
-#include "robot.h"
+#include "icreate_navigation/robot.h"
 
 namespace icreate {
 
 Robot::Robot(void) {
     // Subsribe Robot State Topic
     ROS_INFO("Create Robot Class");
-    state_sub = nh_.subscribe("/icreate/state",100,&Robot::stateCallback, this);
-    state_req_pub = nh_.advertise<std_msgs::String>("/icreate/state_req",10);
+    state_sub = nh_.subscribe("/icreate/state",1000,&Robot::stateCallback, this);
+    // state_req_pub = nh_.advertise<std_msgs::String>("/icreate/state_req",1000);
+    client = nh_.serviceClient<icreate_state::SetRobotState>("/icreate/set_robot_state");
     requestToSendStateReq = false;
 }
 
@@ -58,8 +59,20 @@ bool Robot::setEndPosition(move_base_msgs::MoveBaseGoal goal) {
 
 void Robot::sendStateRequest() {
     ROS_INFO("Loop Send State Request");
-	requestToSendStateReq = false;
-	state_req_pub.publish(state_req_msg);
+	// requestToSendStateReq = false;
+	// state_req_pub.publish(state_req_msg);
+    // ros::ServiceClient client = nh_.serviceClient<icreate_state::SetRobotState>("/icreate/set_robot_state");
+    icreate_state::SetRobotState srv;
+    srv.request.req = state_req_msg.data;
+    std::cout << srv.request.req << std::endl;
+    if (client.call(srv))
+    {
+    //   current_state = srv.response.res;
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service xxxxxxx");
+    }
 }
 
 // STATE CALLBACK

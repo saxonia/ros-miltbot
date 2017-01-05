@@ -46,12 +46,16 @@
   <build_depend>actionlib</build_depend>
   <build_depend>roslib</build_depend>
   <build_depend>move_base_msgs</build_depend>
+  <build_depend>icreate_transportation</build_depend>
+  <build_depend>icreate_state</build_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>move_base_msgs</run_depend>
+  <run_depend>icreate_transportation</run_depend>
+  <run_depend>icreate_state</run_depend>
   
 
   <!-- The export tag contains other, unspecified, tags -->

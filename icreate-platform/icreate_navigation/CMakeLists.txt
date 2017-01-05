@@ -7,11 +7,12 @@ project(icreate_navigation)
 find_package(catkin REQUIRED COMPONENTS
     std_msgs
     roscpp
-    # genmsg
     tf
     move_base_msgs
     actionlib
     roslib
+    icreate_transportation
+    icreate_state
 )
 
 ## System dependencies are found with CMake's conventions
@@ -104,8 +105,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES icreate_navigation
+LIBRARIES robot
+# CATKIN_DEPENDS roscpp
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -118,7 +121,8 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-    include ${catkin_INCLUDE_DIRS}
+    include 
+    ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -135,10 +139,10 @@ add_library(robot src/robot.cpp src/single_navigation.cpp src/multi_navigation.c
 ## Declare a C++ executable
 # add_executable(icreate_navigation_node src/icreate_navigation_node.cpp)
 add_executable(simple_navigation_goal src/simple_navigation_goal.cpp)
-add_executable(two_point_navigation src/two_point_navigation.cpp)
 add_executable(two_point_navigation_pubsub src/two_point_navigation_pubsub.cpp)
 add_executable(waypoint_navigation src/waypoint_navigation.cpp)
 add_executable(multifloor_test src/multifloor_test.cpp)
+add_executable(lift_navigation src/lift_navigation.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -151,10 +155,11 @@ add_executable(multifloor_test src/multifloor_test.cpp)
 # )
 target_link_libraries(robot ${catkin_LIBRARIES})
 target_link_libraries(simple_navigation_goal ${catkin_LIBRARIES})
-target_link_libraries(two_point_navigation ${catkin_LIBRARIES})
 target_link_libraries(two_point_navigation_pubsub ${catkin_LIBRARIES} robot)
 target_link_libraries(waypoint_navigation ${catkin_LIBRARIES} robot)
 target_link_libraries(multifloor_test ${catkin_LIBRARIES} robot)
+target_link_libraries(lift_navigation ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
@@ -183,6 +188,11 @@ target_link_libraries(multifloor_test ${catkin_LIBRARIES} robot)
 #   FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
 # )
+# install(DIRECTORY include/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+#   )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

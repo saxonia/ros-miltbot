@@ -2,6 +2,8 @@
 #include <std_msgs/String.h>
 // #include <string>
 
+#include <icreate_state/SetRobotState.h>
+
 class robotState {
     public:
         robotState();
@@ -9,6 +11,7 @@ class robotState {
         ros::NodeHandle nh_;
         ros::Publisher state_pub_;
         ros::Subscriber state_req_sub_;
+        ros::ServiceServer service_;
 
         enum state_list {
             IDLE = 0,
@@ -25,6 +28,9 @@ class robotState {
 
         int getState();
         void setState(std::string s);
+
+        bool setRobotStateService(icreate_state::SetRobotState::Request &req,
+                                  icreate_state::SetRobotState::Response &res);
 
 
     private:
@@ -45,7 +51,9 @@ robotState::robotState():
     state_pub_ = nh_.advertise<std_msgs::String>(state_pub_topic_name_,1);
 
     //Initialize Subscriber
-    state_req_sub_ = nh_.subscribe(state_req_sub_topic_name_,10,&robotState::stateCallback, this);
+    // state_req_sub_ = nh_.subscribe(state_req_sub_topic_name_,10,&robotState::stateCallback, this);
+
+    service_ = nh_.advertiseService("set_robot_state",&robotState::setRobotStateService, this);
 
     state = robotState::IDLE;
     state_req = "";
@@ -112,6 +120,15 @@ void robotState::setState(std::string s) {
     else if(s == "EXECUTESEQ") {
         state = 6;
     }
+}
+
+bool robotState::setRobotStateService(icreate_state::SetRobotState::Request &req,
+                                  icreate_state::SetRobotState::Response &res) {
+    setState(req.req);
+    ROS_INFO("robot state request: %s",req.req.c_str());
+    ROS_INFO("robot state : %s",convertToStateName(state).c_str());
+    res.res = convertToStateName(state);
+    return true;
 }
 
 int main(int argc, char** argv) {

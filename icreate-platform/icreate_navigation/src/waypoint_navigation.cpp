@@ -3,7 +3,8 @@
 #include <std_srvs/Empty.h>
 
 // #include "robot.h"
-#include "single_navigation.h"
+#include "icreate_navigation/single_navigation.h"
+// #include <icreate_navigation/single_navigation.h>
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -127,6 +128,21 @@ bool waitMoveBaseServer(MoveBaseClient &ac) {
 //     }
 // }
 
+bool verifyActiveState(icreate::Robot &robot) {
+	if(robot.current_state == "GOING")
+		return true;
+	else if(robot.current_state == "BACKTOBASE")
+		return true;
+	else if(robot.current_state == "SENDSUPPLIES")
+		return true;
+	else if(robot.current_state == "SINGLERUN")
+		return true;
+	else if(robot.current_state == "EXECUTEQ")
+		return true;
+	else
+		return false;
+}
+
 
 /// CALLBACKS Function
 
@@ -163,8 +179,8 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 }
 
 void goalActiveCallback(icreate::SingleNavigation &navigation, icreate::Robot &robot){
-    robot.state_req_msg.data = navigation.activeRobotGoal(robot.current_state, state_req);
-	robot.requestToSendStateReq = true;
+    // robot.state_req_msg.data = navigation.activeRobotGoal(robot.current_state, state_req);
+	// robot.requestToSendStateReq = true;
 }
 
 void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
@@ -179,6 +195,9 @@ void runControlLoop(icreate::SingleNavigation &navigation, icreate::Robot robot)
 void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 	ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
 	robot.state_req_msg.data = navigation.doneRobotGoal(robot.current_state);
+	ROS_INFO("aaa Request ! %s",robot.state_req_msg.data.c_str());
+	robot.requestToSendStateReq = true;
+	robot.sendStateRequest();
 }
 
 int main(int argc, char** argv) {
@@ -194,16 +213,18 @@ int main(int argc, char** argv) {
 	// Callback polling Rate 
     ros::Rate r(30);
 
-    navigation.readWaypointFile("/waypoint/build4_f20.csv","1");
+    // navigation.readWaypointFile("/waypoint/build4_f20.csv","1");
+	navigation.readWaypointFile("/waypoint/build4_f20.csv");
     // if(!robot.setCurrentPosition()) {
     //     return -1;
     // }
 	robot.setCurrentPosition();
 
     // Wait for the action server to come up
-    if(!waitMoveBaseServer(ac)) {
-		return -1;
-	}
+    // if(!waitMoveBaseServer(ac)) {
+	// 	return -1;
+	// }
+	waitMoveBaseServer(ac);
 		
 
     // Subscriber to Get Current position 
@@ -222,7 +243,8 @@ int main(int argc, char** argv) {
 
     // Ask User For Input
     // getUserInput(navigation, robot);
-	
+	navigation.getUserInput(robot);
+	robot.sendStateRequest();
 
 	
 
@@ -238,7 +260,7 @@ int main(int argc, char** argv) {
 		// }
 		if(robot.requestToSendStateReq) {
 			// ROS_INFO("Stateee: %s",  robot.state_req_msg.data.c_str());
-			robot.sendStateRequest();
+			// robot.sendStateRequest();
 		}
 
 		if(isDoneGoal)
@@ -248,7 +270,6 @@ int main(int argc, char** argv) {
 			{
 				aaa(navigation, robot);
 			}
-			robot.requestToSendStateReq = true;
 			isNextStep = true;
 		}
 
@@ -256,14 +277,18 @@ int main(int argc, char** argv) {
 			ROS_INFO("Loop Done Goal");
 			isNextStep = false;
 			navigation.getNextStep(robot);
+			robot.sendStateRequest();
 		}
 
 		if(navigation.requestToSetNewGoal) {
+		// if(navigation.requestToSetNewGoal && verifyActiveState(robot)) {
 			ROS_INFO("Loop Set New Goal");
 			navigation.requestToSetNewGoal = false;
 
 			navigation.setRobotGoal("/map");
 			ROS_INFO("Stateee: %s",  robot.current_state.c_str());
+			// isDoneGoal = true;
+			// doneGoalNumber = 1;
 			ac.sendGoal(navigation.goal, 
                       boost::bind(&goalDoneCallback_state, _1, _2), 
                       boost::bind(&goalActiveCallback, navigation, robot), boost::bind(&goalFeedbackCallback, _1));

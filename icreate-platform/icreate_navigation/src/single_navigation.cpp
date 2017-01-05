@@ -1,4 +1,4 @@
-#include "single_navigation.h"
+#include "icreate_navigation/single_navigation.h"
 
 namespace icreate {
 
@@ -65,18 +65,22 @@ std::string SingleNavigation::doneRobotGoal(std::string robot_state) {
     std::string state_msg; 
     if(robot_state == "GOING") {
         state_msg = "WAITING";
-        this->input_mode = 1;
+        this->input_mode = waitParcel;
     }
     else if(robot_state == "WAITING") {
-        this->input_mode = 1;
+        this->input_mode = waitParcel;
     }
     else if(robot_state == "BACKTOBASE") {
         state_msg = "IDLE";
-        this->input_mode = 0;
+        this->input_mode = inputUser;
+    }
+    else if(robot_state == "SENDSUPPLIES") {
+        state_msg = "WAITING";
+        this->input_mode = waitParcel;
     }
     else if(robot_state == "SINGLERUN") {
         state_msg = "IDLE";
-        this->input_mode = 0;
+        this->input_mode = inputUser;
     }
     else if(robot_state == "EXECUTESEQ") {
         state_msg = "IDLE";
@@ -196,11 +200,12 @@ void SingleNavigation::readLiftFile(std::string filename) {
     ROS_INFO("Successfully Load waypoints !");
 }
 
-void SingleNavigation::readWaypointFile(std::string filename, std::string fileType) {
-    std::vector<moveBaseGoal> point_list;
-    if(strcmp(fileType,"target") == 0) {
-        point_list = &targets;
-    }
+// void SingleNavigation::readWaypointFile(std::string filename, std::string fileType) {
+//     std::vector<moveBaseGoal> point_list;
+//     if(strcmp(fileType,"target") == 0) {
+//         point_list = &targets;
+//     }
+void SingleNavigation::readWaypointFile(std::string filename) {
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath("icreate_navigation")+ filename;
     std::ifstream inFile(path.c_str());
@@ -260,31 +265,43 @@ void SingleNavigation::displayWaypoints() {
     }
 }
 
-void SingleNavigation::getWaitForDelivery() {
+std::string SingleNavigation::getWaitForDelivery() {
     //ฟังก์ชันสำหรับจัดการพัสดุ รับรหัสพัสดุ บอกตำแหน่งจุดหมายที่จะส่ง 
+    ros::ServiceClient client = nh_.serviceClient<icreate_transportation::RunTransportation>("run_transportation");
+	icreate_transportation::RunTransportation srv;
+    srv.request.request = "req";
+    if (client.call(srv))
+    {
+      std::string res = srv.response.mode;
+      return res;
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service run_transportation");
+      return "";
+    }
+    // // Wait Time 
+  	// int waittime = 10; //seconds
+  	// ros::Duration waitingDuration(waittime);
+  	// ros::Time startTime = ros::Time::now();
+  	// ros::Time thisTime = ros::Time::now();
 
-	// Wait Time 
-  	int waittime = 10; //seconds
-  	ros::Duration waitingDuration(waittime);
-  	ros::Time startTime = ros::Time::now();
-  	ros::Time thisTime = ros::Time::now();
+  	// // Prompt User To Accept Parcel
+	// std::cout << "[AGENT] AFTER YOU GOT THE PACKAGE " <<std::endl;
+	// std::cout << "[AGENT] PRESS ANYKEY TO ACCEPT PARCEL" << std::endl;
+	// char keyin;
+	// int flag = -1;// Time Out
 
-  	// Prompt User To Accept Parcel
-	std::cout << "[AGENT] AFTER YOU GOT THE PACKAGE " <<std::endl;
-	std::cout << "[AGENT] PRESS ANYKEY TO ACCEPT PARCEL" << std::endl;
-	char keyin;
-	int flag = -1;// Time Out
-
-  	//Wait For User Input Within Specific Timeout
-  	while(true){
-  	  thisTime = ros::Time::now();
-  	//   if(thisTime - startTime > waitingDuration)break;
-  	  std::cin >> keyin;
-  	  if((int)keyin != 0){
-  	    flag = 1;
-  	    break;
-  	  }
-	}
+  	// //Wait For User Input Within Specific Timeout
+  	// while(true){
+  	//   thisTime = ros::Time::now();
+  	// //   if(thisTime - startTime > waitingDuration)break;
+  	//   std::cin >> keyin;
+  	//   if((int)keyin != 0){
+  	//     flag = 1;
+  	//     break;
+  	//   }
+	// }
 }
 
 int SingleNavigation::getWaitForNextPoint(int wait_time) {
@@ -328,11 +345,13 @@ void SingleNavigation::getUserInput(Robot &robot) {
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
 		    std::cout << "[AGENT] Select Mode" <<std::endl;
 		    std::cout << "[ 0 ] Go to Specific Point." <<std::endl;
-		    std::cout << "[ 1 ] Delivery and Come Back to This Place." <<std::endl;
-		    std::cout << "[ 2 ] Delivery and Come Back to Base Station" <<std::endl;
-			std::cout << "[ 3 ] Execute The Memorized Sequence" <<std::endl;
+		    std::cout << "[ 1 ] Going and Come Back to This Place." <<std::endl;
+		    std::cout << "[ 2 ] Going and Come Back to Base Station." <<std::endl;
+            std::cout << "[ 3 ] Going and Wait for Cargo." <<std::endl;
+            std::cout << "[ 4 ] Delivery to Target Place." <<std::endl;
+            std::cout << "[ 6 ] Execute The Memorized Sequence" <<std::endl;
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
-		    std::cout << "Select Mode[0,1,2] : " ;
+		    std::cout << "Select Mode[0,1,2,3,4,6] : " ;
 			int input; 
 		    std::cin  >> input;
 			this->setNavigationMode(input); 
@@ -352,7 +371,7 @@ void SingleNavigation::getUserInput(Robot &robot) {
 						robot.requestToSendStateReq = true;
 						// finish = false;
 			    	    return;
-		    	//MODE : Delivery and Come back to this place
+		    	//MODE : Going and Come back to this place
 			    	case 1 :
 			    		//Remember This Location as startPoint
 			    		robot.setCurrentPosition();
@@ -364,7 +383,7 @@ void SingleNavigation::getUserInput(Robot &robot) {
 			      		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 			    		return;
-				//MODE : Delivery and Come back to base
+				//MODE : Going and Come back to base
 			    	case 2:
 			    		//Remember This Location as startPoint
 			    		robot.setCurrentPosition();
@@ -376,8 +395,32 @@ void SingleNavigation::getUserInput(Robot &robot) {
 			      		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 			    		return;
+                //MODE : Going and Wait for Cargo.
+			    	case 3:
+			    		//Remember This Location as startPoint
+			    		robot.setCurrentPosition();
+			    		//Set the Robot State 
+                        robot.state_req_msg.data = "GOING";
+			    		//Set the endPoint to go
+			      		this->setRobotTarget(selected_point);
+						robot.setEndPosition(this->getRobotTarget());
+			      		requestToSetNewGoal = true;
+						robot.requestToSendStateReq = true;
+			    		return;
+                //MODE : Delivery to Target Place.
+			    	case 4:
+			    		//Remember This Location as startPoint
+			    		robot.setCurrentPosition();
+			    		//Set the Robot State 
+                        robot.state_req_msg.data = "SENDSUPPLIES";
+			    		//Set the endPoint to go
+			      		this->setRobotTarget(selected_point);
+						robot.setEndPosition(this->getRobotTarget());
+			      		requestToSetNewGoal = true;
+						robot.requestToSendStateReq = true;
+			    		return;
 			  	//MODE : Execute the Sequence
-					case 3:
+					case 6:
 						//Set the Robot State 
 						robot.state_req_msg.data = "EXECUTESEQ";
 			    		//Set Target to Next Sequence 
@@ -412,34 +455,56 @@ void SingleNavigation::getNextStep(Robot &robot) {
     ROS_INFO("Input Mode: %d",this->input_mode);
 	switch(input_mode) {
 		case inputUser :
-			std::cout << "[AGENT] REACH THE BASE , YAY ! " <<std::endl;
+        {
+            std::cout << "[AGENT] REACH THE BASE , YAY ! " <<std::endl;
 			this->getUserInput(robot);
 			break;
+        }
 		case waitParcel :
-			// WAIT FOR PARCEL DELIVERY
+        {
+            // WAIT FOR PARCEL DELIVERY
           	std::cout << "[AGENT] WAIT FOR ACCEPTANCE !" <<std::endl <<std::endl;
-          	this->getWaitForDelivery();
+          	std::string res_mode = getWaitForDelivery();
+            if(res_mode == "sending"){
+                
+            }
+            else if(res_mode == "receiving") {
 
-			// After Delivering = Set Back to the First place
-			robot.state_req_msg.data = "BACKTOBASE";
+            }
+            else if(res_mode == "cancel") {
+
+            }
+            // After Delivering = Set Back to the First place
+			
 			if(this->getNavigationMode() == 1) {
+                robot.state_req_msg.data = "GOING";
 				this->setRobotTarget(robot.startPosition);
+                robot.setCurrentPosition();
+			    robot.setEndPosition(this->getRobotTarget());
+          	    std::cout << "[AGENT] GOING BACK TO : ";
+          	    std::cout << robot.startPosition.target_pose.pose.position.x <<","<<robot.startPosition.target_pose.pose.position.y  <<std::endl;
+                requestToSetNewGoal = true;
 			}
 			else if(this->getNavigationMode() == 2) {
+                robot.state_req_msg.data = "BACKTOBASE";
 				this->setRobotTarget(0);
+                robot.setCurrentPosition();
+			    robot.setEndPosition(this->getRobotTarget());
+          	    std::cout << "[AGENT] GOING BACK TO : ";
+          	    std::cout << robot.startPosition.target_pose.pose.position.x <<","<<robot.startPosition.target_pose.pose.position.y  <<std::endl;
+                requestToSetNewGoal = true;
 			}
-			
-			robot.setCurrentPosition();
-			robot.setEndPosition(this->getRobotTarget());
-          	std::cout << "[AGENT] GOING BACK TO : ";
-          	std::cout << robot.startPosition.target_pose.pose.position.x <<","<<robot.startPosition.target_pose.pose.position.y  <<std::endl;
-          	requestToSetNewGoal = true;
+            else if(navigation_mode == 3) {
+                this->getUserInput(robot);
+            }
+            else if(navigation_mode == 4) {
+                this->getUserInput(robot);
+            }
 			break;
-
+        }
 		case waitQueue :
-			// break;
-			std::cout <<std::endl <<std::endl;
-    		std::cout << "[AGENT] REACH THE TARGET" <<std::endl;
+        {
+            std::cout << "[AGENT] REACH THE TARGET" <<std::endl;
     		std::cout << "[AGENT] EXECUTESEQ NEXT SEQUENCE : "<< targetId <<std::endl;
 			this->getWaitForNextPoint(3);
 			targetId++;
@@ -455,6 +520,7 @@ void SingleNavigation::getNextStep(Robot &robot) {
 			requestToSetNewGoal = true;
 			robot.requestToSendStateReq = true;
 			break;
+        }
 		default:
 			break;
 	}
