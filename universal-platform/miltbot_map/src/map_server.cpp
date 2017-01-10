@@ -27,7 +27,7 @@ void loadMap() {
 
 bool callService() {
     ros::NodeHandle nh;
-    ros::ServiceClient client = nh.serviceClient<nav_msgs::SetMap>("/icreate/set_map");
+    ros::ServiceClient client = nh.serviceClient<nav_msgs::SetMap>("/set_map");
     nav_msgs::SetMap srv;
     srv.request.map = map;
     //รับ initialpose มาจาก topic 

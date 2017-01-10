@@ -1,5 +1,5 @@
 <launch>
-    <node ns="icreate" pkg="create_node" type="turtlebot_node.py" name="icreate_node" output="screen">
+    <node pkg="create_node" type="turtlebot_node.py" name="icreate_node" output="screen">
         <param name="port" type="string" value="/dev/ttyUSB1"/>
 	    <param name="publish_tf" type="string" value="True"/>
         <param name="cmd_vel_timeout" type="int" value="10"/>

@@ -203,35 +203,39 @@ void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 int main(int argc, char** argv) {
     
     ros::init(argc, argv, "waypoint_navigation");
+	ros::NodeHandle nh;
 
 	//Class
 	icreate::Robot robot;
 	icreate::SingleNavigation navigation;
 
-    MoveBaseClient ac("/icreate/move_base", true);
+	std::string move_base_topic("/move_base");
+    std::string lift_file_path("/waypoint/build4_f20l.csv");
+    std::string base_frame_id("/map");
+    std::string package_name("icreate_navigation");
+    nh.param("/waypoint_navigation/move_base_topic", move_base_topic, move_base_topic);
+    nh.param("/waypoint_navigation/lift_file_path", lift_file_path, lift_file_path);
+    nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
+    nh.param("/waypoint_navigation/package_name", package_name, package_name); 
+    MoveBaseClient ac(move_base_topic, true);
 
 	// Callback polling Rate 
     ros::Rate r(30);
 
-    // navigation.readWaypointFile("/waypoint/build4_f20.csv","1");
-	navigation.readWaypointFile("/waypoint/build4_f20.csv");
+	navigation.readWaypointFile(package_name, lift_file_path);
     // if(!robot.setCurrentPosition()) {
     //     return -1;
     // }
-	robot.setCurrentPosition();
+	robot.setCurrentPosition("map", "base_footprint");
 
     // Wait for the action server to come up
     // if(!waitMoveBaseServer(ac)) {
 	// 	return -1;
 	// }
 	waitMoveBaseServer(ac);
-		
-
-    // Subscriber to Get Current position 
-    ros::NodeHandle nh;
 
 	// Point The iterator to the beginning of the sequence
-    navigation.target = navigation.targets.begin();
+    navigation.targets_iterator = navigation.targets.begin();
 	
 	// Request To Create timer
     // requestToCreateTimer = true;
@@ -243,7 +247,8 @@ int main(int argc, char** argv) {
 
     // Ask User For Input
     // getUserInput(navigation, robot);
-	navigation.getUserInput(robot);
+	//Remember This Location as startPoint
+	navigation.getUserInput(robot, "map", "base_footprint");
 	robot.sendStateRequest();
 
 	
@@ -253,11 +258,6 @@ int main(int argc, char** argv) {
 		ros::spinOnce();
 		r.sleep();
 
-		// if(requestToSendStateReq) {
-		// 	ROS_INFO("Loop Send State Request");
-		// 	requestToSendStateReq = false;
-		// 	state_req_pub.publish(state_req_msg);
-		// }
 		if(robot.requestToSendStateReq) {
 			// ROS_INFO("Stateee: %s",  robot.state_req_msg.data.c_str());
 			// robot.sendStateRequest();
@@ -276,7 +276,7 @@ int main(int argc, char** argv) {
 		if(isNextStep) {
 			ROS_INFO("Loop Done Goal");
 			isNextStep = false;
-			navigation.getNextStep(robot);
+			navigation.getNextStep(robot, "map", "base_footprint");
 			robot.sendStateRequest();
 		}
 
@@ -287,25 +287,14 @@ int main(int argc, char** argv) {
 
 			navigation.setRobotGoal("/map");
 			ROS_INFO("Stateee: %s",  robot.current_state.c_str());
-			// isDoneGoal = true;
-			// doneGoalNumber = 1;
 			ac.sendGoal(navigation.goal, 
                       boost::bind(&goalDoneCallback_state, _1, _2), 
                       boost::bind(&goalActiveCallback, navigation, robot), boost::bind(&goalFeedbackCallback, _1));
 		}
-		// ROS_INFO("LOOP %s",robot.current_state.c_str());
-
-		// if(requestToCreateTimer) {
-		// 	// ROS_INFO("Loop Create Timer");
-		// 	requestToCreateTimer = false;
-		// 	timer = nh.createTimer(ros::Duration(10), timerCallback);
-		// }
 		if(navigation.requestToCreateTimer) {
 			navigation.setTimer(10);
 		}
-
 	}
-
 	ROS_INFO("Exiting Waypoint Navigation");
     return 0;
 }

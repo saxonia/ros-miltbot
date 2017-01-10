@@ -5,8 +5,36 @@
 #include <tf/transform_listener.h>
 
 #include <icreate_state/SetRobotState.h>
+
+#ifndef __ICREATE_NAVIGATION_ROBOT
+#define __ICREATE_NAVIGATION_ROBOT
  
 namespace icreate {
+
+class MoveBaseGoalData {
+    public:
+        MoveBaseGoalData(void);
+
+        MoveBaseGoalData(move_base_msgs::MoveBaseGoal goal, std::string goal_name);
+
+        ~MoveBaseGoalData(void);
+
+        void setGoal(move_base_msgs::MoveBaseGoal &goal);
+
+        move_base_msgs::MoveBaseGoal getGoal();
+
+        void setGoalName(std::string goal_name);
+
+        std::string getGoalName();        
+
+    private:
+
+    public:
+        move_base_msgs::MoveBaseGoal goal;
+        std::string goal_name;
+    private:
+        
+};
 
 class Robot {
     public:
@@ -14,11 +42,13 @@ class Robot {
 
         ~Robot(void);
 
-        bool setCurrentPosition();
+        bool setCurrentPosition(std::string base_frame_id, std::string robot_frame_id);
 
-        move_base_msgs::MoveBaseGoal getCurrentPosition();
+        // move_base_msgs::MoveBaseGoal getCurrentPosition();
+        MoveBaseGoalData getCurrentPosition();
 
-        bool setEndPosition(move_base_msgs::MoveBaseGoal goal);
+        // bool setEndPosition(move_base_msgs::MoveBaseGoal goal);
+        bool setEndPosition(MoveBaseGoalData data);
 
         void sendStateRequest();    
 
@@ -26,9 +56,12 @@ class Robot {
         void stateCallback(const std_msgs::String::ConstPtr& msg);
 
     public:
-        move_base_msgs::MoveBaseGoal    startPosition;
-        move_base_msgs::MoveBaseGoal    endPosition;
-        move_base_msgs::MoveBaseGoal    currentPosition;
+        // move_base_msgs::MoveBaseGoal    startPosition;
+        // move_base_msgs::MoveBaseGoal    endPosition;
+        // move_base_msgs::MoveBaseGoal    currentPosition;
+        MoveBaseGoalData    startPosition;
+        MoveBaseGoalData    endPosition;
+        MoveBaseGoalData    currentPosition;
 
         //Publisher & Subscriber
         ros::Publisher state_req_pub;
@@ -46,6 +79,11 @@ class Robot {
     private:
         //NodeHandle
         ros::NodeHandle nh_;
+
+        const std::string state_sub_topic = "/state";
+        const std::string set_robot_state_service = "/set_robot_state";
 };
 
 }
+
+#endif

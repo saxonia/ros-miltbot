@@ -5,7 +5,7 @@ namespace icreate {
 SingleNavigation::SingleNavigation(): sequence(24){
     // this->ac("move_base", true);
     navigation_mode = -1;
-    client = nh_.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+    client = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service);
     requestToCreateTimer = true;
     requestToSetNewGoal = false;
     targetId = 0;
@@ -22,18 +22,21 @@ SingleNavigation::~SingleNavigation() {
 
 }
 
-void SingleNavigation::setRobotTarget(move_base_msgs::MoveBaseGoal goal) {
-    // moveBaseGoal mbg;
-    // mbg.
-    // targets.push_back();
-    // // targets.push_back(goal);
-    // target = targets.end() - 1;
+void SingleNavigation::setRobotTarget(move_base_msgs::MoveBaseGoal &goal) {
+    ROS_INFO("%lf",goal.target_pose.pose.position.x);
+    target = goal;
 }
 
 void SingleNavigation::setRobotTarget(int selected_point) {
     SingleNavigation::selected_point = selected_point;
-    target = targets.begin() + selected_point;
+    targets_iterator = targets.begin() + selected_point;
     ROS_INFO("set Robot Target: %s", this->target_name[selected_point].c_str());
+    target.target_pose.pose.position.x    = targets_iterator->target_pose.pose.position.x;
+    target.target_pose.pose.position.y    = targets_iterator->target_pose.pose.position.y;
+    target.target_pose.pose.orientation.x = targets_iterator->target_pose.pose.orientation.x;
+    target.target_pose.pose.orientation.y = targets_iterator->target_pose.pose.orientation.y;
+    target.target_pose.pose.orientation.z = targets_iterator->target_pose.pose.orientation.z;
+    target.target_pose.pose.orientation.w = targets_iterator->target_pose.pose.orientation.w;
 }
 
 move_base_msgs::MoveBaseGoal SingleNavigation::getRobotTarget() {
@@ -42,16 +45,15 @@ move_base_msgs::MoveBaseGoal SingleNavigation::getRobotTarget() {
 }
 
 void SingleNavigation::setRobotGoal(std::string frame_id) {
-    //frame_id = "/map"
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
 
-    goal.target_pose.pose.position.x    = target->target_pose.pose.position.x;
-    goal.target_pose.pose.position.y    = target->target_pose.pose.position.y;
-    goal.target_pose.pose.orientation.x = target->target_pose.pose.orientation.x;
-    goal.target_pose.pose.orientation.y = target->target_pose.pose.orientation.y;
-    goal.target_pose.pose.orientation.z = target->target_pose.pose.orientation.z;
-    goal.target_pose.pose.orientation.w = target->target_pose.pose.orientation.w;
+    goal.target_pose.pose.position.x    = target.target_pose.pose.position.x;
+    goal.target_pose.pose.position.y    = target.target_pose.pose.position.y;
+    goal.target_pose.pose.orientation.x = target.target_pose.pose.orientation.x;
+    goal.target_pose.pose.orientation.y = target.target_pose.pose.orientation.y;
+    goal.target_pose.pose.orientation.z = target.target_pose.pose.orientation.z;
+    goal.target_pose.pose.orientation.w = target.target_pose.pose.orientation.w;
     std::cout << "[AGENT] SET NEW GOAL ! " << std::endl;
 
 }
@@ -144,12 +146,12 @@ void SingleNavigation::readWaypointConstant() {
     newPoint.target_pose.pose.orientation.w = 0.834;
     targets.push_back(newPoint);
 
-    target = targets.begin();    
+    targets_iterator = targets.begin();    
 }
 
-void SingleNavigation::readLiftFile(std::string filename) {
+void SingleNavigation::readLiftFile(std::string package_name, std::string filename) {
     std::vector<std::string> tokenized;
-    std::string path = ros::package::getPath("icreate_navigation")+ filename;
+    std::string path = ros::package::getPath(package_name)+ filename;
     std::ifstream inFile(path.c_str());
     std::string line;   
     //Prompt to User
@@ -205,9 +207,9 @@ void SingleNavigation::readLiftFile(std::string filename) {
 //     if(strcmp(fileType,"target") == 0) {
 //         point_list = &targets;
 //     }
-void SingleNavigation::readWaypointFile(std::string filename) {
+void SingleNavigation::readWaypointFile(std::string package_name, std::string filename) {
     std::vector<std::string> tokenized;
-    std::string path = ros::package::getPath("icreate_navigation")+ filename;
+    std::string path = ros::package::getPath(package_name)+ filename;
     std::ifstream inFile(path.c_str());
     std::string line;   
     //Prompt to User
@@ -330,7 +332,7 @@ int SingleNavigation::getWaitForNextPoint(int wait_time) {
     return flag;
 }
 
-void SingleNavigation::getUserInput(Robot &robot) {
+void SingleNavigation::getUserInput(Robot &robot, std::string base_frame_id, std::string robot_frame_id) {
     int selected_point = -1;
     while(true) {
         this->displayWaypoints();
@@ -349,7 +351,7 @@ void SingleNavigation::getUserInput(Robot &robot) {
 		    std::cout << "[ 2 ] Going and Come Back to Base Station." <<std::endl;
             std::cout << "[ 3 ] Going and Wait for Cargo." <<std::endl;
             std::cout << "[ 4 ] Delivery to Target Place." <<std::endl;
-            std::cout << "[ 6 ] Execute The Memorized Sequence" <<std::endl;
+            // std::cout << "[ 6 ] Execute The Memorized Sequence" <<std::endl;
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
 		    std::cout << "Select Mode[0,1,2,3,4,6] : " ;
 			int input; 
@@ -358,78 +360,64 @@ void SingleNavigation::getUserInput(Robot &robot) {
 		    std::cout << "You Selected : " << this->getNavigationMode() <<std::endl;
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
 
+            //Remember This Location as startPoint
+			robot.setCurrentPosition(base_frame_id, robot_frame_id);
+            //Set New Goal
+            //Set the endPoint to go
+            this->setRobotTarget(selected_point);
+            MoveBaseGoalData data(this->getRobotTarget(), target_name[selected_point]);
+            robot.setEndPosition(data);
+
             // Do Action depends on the Mode selected
 		    switch(this->getNavigationMode()){
 		    	//MODE : Go to Specific Point
 			    	case 0:
                         //Set the Robot State 
                         robot.state_req_msg.data = "SINGLERUN";
-			    		//Set New Goal
-			    		this->setRobotTarget(selected_point);
-						robot.setEndPosition(this->getRobotTarget());
 			    		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 						// finish = false;
 			    	    return;
 		    	//MODE : Going and Come back to this place
 			    	case 1 :
-			    		//Remember This Location as startPoint
-			    		robot.setCurrentPosition();
 			    		//Set the Robot State 
                         robot.state_req_msg.data = "GOING";
-			    		//Set the endPoint to go
-			      		this->setRobotTarget(selected_point);
-						robot.setEndPosition(this->getRobotTarget());
 			      		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 			    		return;
 				//MODE : Going and Come back to base
 			    	case 2:
-			    		//Remember This Location as startPoint
-			    		robot.setCurrentPosition();
 			    		//Set the Robot State 
                         robot.state_req_msg.data = "GOING";
-			    		//Set the endPoint to go
-			      		this->setRobotTarget(selected_point);
-						robot.setEndPosition(this->getRobotTarget());
 			      		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 			    		return;
                 //MODE : Going and Wait for Cargo.
 			    	case 3:
-			    		//Remember This Location as startPoint
-			    		robot.setCurrentPosition();
 			    		//Set the Robot State 
                         robot.state_req_msg.data = "GOING";
-			    		//Set the endPoint to go
-			      		this->setRobotTarget(selected_point);
-						robot.setEndPosition(this->getRobotTarget());
 			      		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 			    		return;
                 //MODE : Delivery to Target Place.
 			    	case 4:
-			    		//Remember This Location as startPoint
-			    		robot.setCurrentPosition();
 			    		//Set the Robot State 
                         robot.state_req_msg.data = "SENDSUPPLIES";
-			    		//Set the endPoint to go
-			      		this->setRobotTarget(selected_point);
-						robot.setEndPosition(this->getRobotTarget());
 			      		requestToSetNewGoal = true;
 						robot.requestToSendStateReq = true;
 			    		return;
 			  	//MODE : Execute the Sequence
-					case 6:
-						//Set the Robot State 
-						robot.state_req_msg.data = "EXECUTESEQ";
-			    		//Set Target to Next Sequence 
-						this->setRobotTarget(sequence[targetId]);
-						robot.setEndPosition(this->getRobotTarget());
-			    		//Set the new Goal
-			    		requestToSetNewGoal = true;
-						robot.requestToSendStateReq = true;
-			      		return;
+					// case 6:
+					// 	//Set the Robot State 
+					// 	robot.state_req_msg.data = "EXECUTESEQ";
+			    	// 	//Set Target to Next Sequence 
+					// 	this->setRobotTarget(sequence[targetId]);
+                    //     MoveBaseGoalData data(this->getRobotTarget(), target_name[selected_point]);
+                    //     robot.setEndPosition(data);
+			    	// 	//Set the new Goal
+			    	// 	requestToSetNewGoal = true;
+					// 	robot.requestToSendStateReq = true;
+			      	// 	return;
 			    //MODE : EXIT
 					case 99:
 						//Set the Robot State 
@@ -451,13 +439,13 @@ void SingleNavigation::getUserInput(Robot &robot) {
     }
 }
 
-void SingleNavigation::getNextStep(Robot &robot) {
+void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std::string robot_frame_id) {
     ROS_INFO("Input Mode: %d",this->input_mode);
 	switch(input_mode) {
 		case inputUser :
         {
             std::cout << "[AGENT] REACH THE BASE , YAY ! " <<std::endl;
-			this->getUserInput(robot);
+			this->getUserInput(robot, base_frame_id, robot_frame_id);
 			break;
         }
 		case waitParcel :
@@ -478,27 +466,29 @@ void SingleNavigation::getNextStep(Robot &robot) {
 			
 			if(this->getNavigationMode() == 1) {
                 robot.state_req_msg.data = "GOING";
-				this->setRobotTarget(robot.startPosition);
-                robot.setCurrentPosition();
-			    robot.setEndPosition(this->getRobotTarget());
+				this->setRobotTarget(robot.startPosition.goal);
+                robot.setCurrentPosition(base_frame_id, robot_frame_id);
+                MoveBaseGoalData data(this->getRobotTarget(), robot.startPosition.goal_name);
+			    robot.setEndPosition(data);
           	    std::cout << "[AGENT] GOING BACK TO : ";
-          	    std::cout << robot.startPosition.target_pose.pose.position.x <<","<<robot.startPosition.target_pose.pose.position.y  <<std::endl;
+          	    std::cout << robot.startPosition.goal.target_pose.pose.position.x <<","<<robot.startPosition.goal.target_pose.pose.position.y  <<std::endl;
                 requestToSetNewGoal = true;
 			}
 			else if(this->getNavigationMode() == 2) {
                 robot.state_req_msg.data = "BACKTOBASE";
 				this->setRobotTarget(0);
-                robot.setCurrentPosition();
-			    robot.setEndPosition(this->getRobotTarget());
+                robot.setCurrentPosition(base_frame_id, robot_frame_id);
+                MoveBaseGoalData data(this->getRobotTarget(), target_name[0]);
+			    robot.setEndPosition(data);
           	    std::cout << "[AGENT] GOING BACK TO : ";
-          	    std::cout << robot.startPosition.target_pose.pose.position.x <<","<<robot.startPosition.target_pose.pose.position.y  <<std::endl;
+          	    std::cout << robot.startPosition.goal.target_pose.pose.position.x <<","<<robot.startPosition.goal.target_pose.pose.position.y  <<std::endl;
                 requestToSetNewGoal = true;
 			}
             else if(navigation_mode == 3) {
-                this->getUserInput(robot);
+                this->getUserInput(robot, base_frame_id, robot_frame_id);
             }
             else if(navigation_mode == 4) {
-                this->getUserInput(robot);
+                this->getUserInput(robot, base_frame_id, robot_frame_id);
             }
 			break;
         }
@@ -513,9 +503,10 @@ void SingleNavigation::getNextStep(Robot &robot) {
 				break;
 			}
 			// Set The Next Sequence
-			robot.setCurrentPosition();
+			robot.setCurrentPosition(base_frame_id, robot_frame_id);
 			this->setRobotTarget(sequence[targetId]);
-			robot.setEndPosition(this->getRobotTarget());
+            MoveBaseGoalData data(this->getRobotTarget(),target_name[sequence[targetId]]);
+			robot.setEndPosition(data);
 			robot.state_req_msg.data = "EXECUTESEQ";
 			requestToSetNewGoal = true;
 			robot.requestToSendStateReq = true;
