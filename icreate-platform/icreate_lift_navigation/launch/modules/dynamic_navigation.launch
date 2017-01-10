@@ -1,0 +1,11 @@
+<launch>
+    <!--SLAM Gmapping-->
+    <include file="$(find icreate_lift_navigation)/launch/modules/gmapping.launch" />
+
+    <!--Move Base-->
+    <include file="$(find icreate_lift_navigation)/launch/modules/move_base.launch" />
+
+    <!--Velocity Smoother-->
+    <include file="$(find icreate_navigation)/launch/modules/velocity_smoother.launch">
+    </include>
+</launch>
