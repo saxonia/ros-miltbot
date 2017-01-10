@@ -1,0 +1,8 @@
+<launch>
+    <node pkg="icreate_navigation" type="multifloor_test" name="multifloor_test" output="screen">
+        <param name="move_base_topic" value="/move_base" type="string" />
+        <param name="lift_file_path" value="/waypoint/build4_f20lift.csv" type="string" />
+        <param name="base_frame_id" value="/map" type="string" />
+        <param name="package_name" value="icreate_navigation" type="string" />
+    </node>
+</launch>

@@ -116,6 +116,7 @@ LIBRARIES robot
 ###########
 ## Build ##
 ###########
+add_definitions(-std=c++11)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -213,5 +214,3 @@ target_link_libraries(lift_navigation ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-add_definitions(-std=c++11)

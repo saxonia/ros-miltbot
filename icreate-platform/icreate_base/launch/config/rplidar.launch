@@ -1,5 +1,5 @@
 <launch>
-    <node ns="icreate" pkg="rplidar_ros" type="rplidarNode" name="rplidarNode" output="screen">
+    <node pkg="rplidar_ros" type="rplidarNode" name="rplidarNode" output="screen">
         <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
         <param name="serial_baudrate"     type="int"    value="115200"/>
         <param name="frame_id"            type="string" value="laser"/>

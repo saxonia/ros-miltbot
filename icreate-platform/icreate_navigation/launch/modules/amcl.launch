@@ -18,7 +18,7 @@
     -->
   <arg name="odom_model_type" default="diff"/>
 
-  <node ns="icreate" pkg="amcl" type="amcl" name="amcl">
+  <node pkg="amcl" type="amcl" name="amcl">
     <param name="use_map_topic"             value="$(arg use_map_topic)"/>
     <param name="odom_model_type"           value="$(arg odom_model_type)"/>
 
