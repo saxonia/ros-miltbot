@@ -42,8 +42,8 @@ class robotState {
 };
 
 robotState::robotState(): 
-    state_pub_topic_name_("/state"),
-    state_req_sub_topic_name_("/state_req"),
+    state_pub_topic_name_("state"),
+    state_req_sub_topic_name_("state_req"),
     set_robot_state_service_name_("set_robot_state")
 {   
     nh_.param("/icreate_state/state_pub_topic",state_pub_topic_name_,state_pub_topic_name_);

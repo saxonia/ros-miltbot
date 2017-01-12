@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="icreate_transpotation" type="single_transportation" name="single_transportation" output="screen">
+        <param name="transportation_service" value="run_transportation"/>
+        <param name="transportation_pub" value="cargo_list"/>
+    </node>
+</launch>
