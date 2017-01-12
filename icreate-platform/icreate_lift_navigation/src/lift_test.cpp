@@ -10,24 +10,39 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 bool isDoneGoal;
 bool isNextStep;
 bool finish;
+bool requestToSetupRobot;
 int count;
 
 int doneGoalNumber;
 
 icreate::MoveBaseGoalData forward_goal;
 
-void initializeMoveBaseTarget() {
-    //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
-    //สั่งหุ่นยนต์เดินไปยาวๆ ถ้าเจอ obstacle แล้วหา path ไม่ได้ถือว่าเสร็จ ?
+void initializeSimpleRotateMoveBase(std::string goal_name) {
     move_base_msgs::MoveBaseGoal new_point;
-    new_point.target_pose.pose.position.x = 0.5;
-    // new_point.target_pose.pose.position.y = 0;
-    // new_point.target_pose.pose.orientation.x = 0;
-    // new_point.target_pose.pose.orientation.y = 0;
-    // new_point.target_pose.pose.orientation.z = 0;
-    new_point.target_pose.pose.orientation.w = 1.0;
+    new_point.target_pose.pose.orientation.z = -1.0;
+    new_point.target_pose.pose.orientation.w = 0.0;
     forward_goal.setGoal(new_point);
-    forward_goal.setGoalName("Going to Lift");
+    forward_goal.setGoalName(goal_name);
+}
+
+void initializeSimpleForwardMoveBaseTarget(std::string goal_name) {
+    //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
+    //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
+    float x_position = 0;
+    // ros::ServiceClient client = nh.serverClient<std_msgs::Int16>("/get_depth_distance");
+    // std_msgs::Int16 srv;
+    // if(client.call(srv)) {
+        // x_position = srv.response.distance;
+    // }
+    // else {
+        // ROS_ERROR("Fail to call Service get_depth_distance");
+    // }
+    x_position = 2.5;
+    move_base_msgs::MoveBaseGoal new_point;
+    new_point.target_pose.pose.position.x = x_position;
+    new_point.target_pose.pose.orientation.w = 1;
+    forward_goal.setGoal(new_point);
+    forward_goal.setGoalName(goal_name);
 }
 
 bool waitMoveBaseServer(MoveBaseClient &ac) {
@@ -45,14 +60,15 @@ bool waitMoveBaseServer(MoveBaseClient &ac) {
 }
 
 void setupToRunRobot(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
-    // single_navigation.setRobotTarget(forward_goal.getGoal());
+    move_base_msgs::MoveBaseGoal goal = forward_goal.getGoal();
+    single_navigation.setRobotTarget(goal);
     robot.setEndPosition(forward_goal);
-    robot.state_req_msg.data = "SINGLERUN";
 	single_navigation.requestToSetNewGoal = true;
-	robot.requestToSendStateReq = true;
+	robot.sendStateRequest("SINGLERUN");
+    ROS_INFO("Setup Robot: %s",forward_goal.getGoalName().c_str());
 }
 
-bool getUserInput() {
+bool Start() {
     bool flag;
     while(true) {
         std::cout << "Start Lift Navigation" << std::endl;
@@ -72,18 +88,64 @@ bool getUserInput() {
     return flag;
 }
 
-void getNextStep(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
-    if(count == 0) finish = true;
-    setupToRunRobot(single_navigation, robot);
-    count++;
+bool waitUserInputLift() {
+    bool flag;
+    while(true) {
+        std::cout << "Waiting for lift stop on the target floor" << std::endl;
+        std::cout << "Please press \"y\" to start navigation " << std::endl;
+        std::cout << "or Please press \"n\" to stop navigation " << std::endl;
+        std::string input;
+        std::cin >> input;
+        if(input == "y" || input == "Y") {
+            flag = true;
+            break;
+        }
+        else if(input == "n" || input == "N") {
+            flag = false;
+            break;
+        }
+        else {
+            std::cout << "Wrong Input Please Try Again" << std::endl;
+        }
+    }
+    return flag;
+}
+
+bool getNextStep(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
+    // if(count == 1) { 
+    //     finish = true;
+    //     return false;
+    // }
+    // setupToRunRobot(single_navigation, robot);
+    // return true;
+    if(forward_goal.getGoalName() == "Going To Lift") {
+        initializeSimpleRotateMoveBase("Rotate In Lift");
+        setupToRunRobot(single_navigation, robot);
+        return true;
+    }
+    else if(forward_goal.getGoalName() == "Rotate In Lift") {
+        bool flag = waitUserInputLift();
+        if(!flag) {
+            return false;
+        }
+        initializeSimpleForwardMoveBaseTarget("Going Out Lift");
+        setupToRunRobot(single_navigation, robot);
+        return true;
+    }
+    else {
+        ROS_WARN("Warning");
+        return false;
+    }
 }
 
 void goalDoneCallback(const actionlib::SimpleClientGoalState &state, 
   const move_base_msgs::MoveBaseResultConstPtr &result){
       ROS_INFO("Goal Done Now !!!!!");
       //Navigation completed
+    doneGoalNumber = -1;
     if(state.state_ == actionlib::SimpleClientGoalState::SUCCEEDED){
-		doneGoalNumber = 1;
+		ROS_INFO("SUCCEEDED");
+        doneGoalNumber = 1;
 	}
 
 	if(state.state_ == actionlib::SimpleClientGoalState::REJECTED) {
@@ -99,6 +161,7 @@ void goalDoneCallback(const actionlib::SimpleClientGoalState &state,
     //Navigation failed
     if(state.state_ == actionlib::SimpleClientGoalState::ABORTED){
       	ROS_WARN("Failed to reach the goal...");
+        //หยุดแล้วแสดงว่าอาจจะเข้าลิฟต์ได้รึเปล่าก็ไม่รู้
 		doneGoalNumber = 4;
     }
 
@@ -116,9 +179,7 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
 void callDoneRobotGoal(icreate::SingleNavigation &single_navigation, icreate::Robot &robot) {
     ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
 	robot.state_req_msg.data = single_navigation.doneRobotGoal(robot.current_state);
-	ROS_INFO("Request ! %s",robot.state_req_msg.data.c_str());
-	// robot.requestToSendStateReq = true;
-	robot.sendStateRequest();
+	robot.sendStateRequest(robot.state_req_msg.data);
 }
 
 int main(int argc, char** argv) {
@@ -148,13 +209,13 @@ int main(int argc, char** argv) {
     // }
     waitMoveBaseServer(ac);
 
-    initializeMoveBaseTarget();
+    initializeSimpleForwardMoveBaseTarget("Going To Lift");
     isDoneGoal = false;
     doneGoalNumber = -1;
     finish = false;
     count = 0;
 
-    if(!getUserInput())
+    if(!Start())
         return -3;
 
     setupToRunRobot(single_navigation, robot);
@@ -163,24 +224,20 @@ int main(int argc, char** argv) {
         ros::spinOnce();
         r.sleep();
 
-        if(robot.requestToSendStateReq) {
-            robot.sendStateRequest();
-        }
-        ROS_INFO("ffff2");
         if(isDoneGoal) {
 			isDoneGoal = false;
 			if(doneGoalNumber == 1)
 			{
 				// aaa(navigation, robot);
                 callDoneRobotGoal(single_navigation, robot);
+                isNextStep = true;
 			}
-			isNextStep = true;
 		}
 
         if(isNextStep) {
             isNextStep = false;
-            getNextStep(single_navigation, robot);
-            robot.sendStateRequest();
+            if(!getNextStep(single_navigation, robot))
+                break;
         }
 
         if(single_navigation.requestToSetNewGoal) {

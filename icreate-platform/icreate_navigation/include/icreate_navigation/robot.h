@@ -50,10 +50,9 @@ class Robot {
         // bool setEndPosition(move_base_msgs::MoveBaseGoal goal);
         bool setEndPosition(MoveBaseGoalData data);
 
-        void sendStateRequest();    
+        void sendStateRequest(std::string state_request);    
 
     private:
-        void stateCallback(const std_msgs::String::ConstPtr& msg);
 
     public:
         // move_base_msgs::MoveBaseGoal    startPosition;
@@ -74,7 +73,7 @@ class Robot {
         std::string current_state;
 
         // Request Flags
-        bool requestToSendStateReq;
+        // bool requestToSendStateReq;
 
     private:
         //NodeHandle
