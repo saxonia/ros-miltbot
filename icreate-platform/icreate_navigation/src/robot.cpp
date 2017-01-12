@@ -31,16 +31,13 @@ std::string MoveBaseGoalData::getGoalName() {
 Robot::Robot(void) {
     // Subsribe Robot State Topic
     ROS_INFO("Create Robot Class");
-    state_sub = nh_.subscribe(state_sub_topic, 1000, &Robot::stateCallback, this);
-    // state_req_pub = nh_.advertise<std_msgs::String>("/state_req",1000);
     client = nh_.serviceClient<icreate_state::SetRobotState>(set_robot_state_service);
-    requestToSendStateReq = false;
+    current_state = "IDLE";
 }
 
 Robot::~Robot(void) {
 
 }
-
 
 bool Robot::setCurrentPosition(std::string base_frame_id, std::string robot_frame_id) {
     tf::TransformListener listener;  
@@ -99,31 +96,21 @@ bool Robot::setEndPosition(MoveBaseGoalData data) {
     return true;
 }
 
-void Robot::sendStateRequest() {
-    ROS_INFO("Loop Send State Request");
-	// requestToSendStateReq = false;
-	// state_req_pub.publish(state_req_msg);
+void Robot::sendStateRequest(std::string state_request) {
+    ROS_INFO("Send State Request: %s",state_request.c_str());
     // ros::ServiceClient client = nh_.serviceClient<icreate_state::SetRobotState>(set_robot_state_service);
     icreate_state::SetRobotState srv;
-    srv.request.req = state_req_msg.data;
-    std::cout << srv.request.req << std::endl;
+    state_req_msg.data = state_request;
+    srv.request.req = state_request;
     if (this->client.call(srv))
     {
-    //   current_state = srv.response.res;
+      current_state = srv.response.res;
+      
     }
     else
     {
-      ROS_ERROR("Failed to call service xxxxxxx");
+      ROS_ERROR("Failed to call service set_robot_state");
     }
-}
-
-// STATE CALLBACK
-void Robot::stateCallback(const std_msgs::String::ConstPtr& msg) {
-    if(strcmp(this->current_state.c_str(), msg->data.c_str()) != 0){
-        this->current_state = msg->data;
-        ROS_INFO("Robot state: %s",current_state.c_str());
-    }
-	
 }
 
 }

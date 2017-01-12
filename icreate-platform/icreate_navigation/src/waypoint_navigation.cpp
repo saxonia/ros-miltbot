@@ -196,8 +196,7 @@ void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 	ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
 	robot.state_req_msg.data = navigation.doneRobotGoal(robot.current_state);
 	ROS_INFO("aaa Request ! %s",robot.state_req_msg.data.c_str());
-	robot.requestToSendStateReq = true;
-	robot.sendStateRequest();
+	robot.sendStateRequest(robot.state_req_msg.data);
 }
 
 int main(int argc, char** argv) {
@@ -209,15 +208,15 @@ int main(int argc, char** argv) {
 	icreate::Robot robot;
 	icreate::SingleNavigation navigation;
 
-	std::string move_base_topic("/move_base");
+	std::string move_base_topic_name("/move_base");
     std::string lift_file_path("/waypoint/build4_f20l.csv");
     std::string base_frame_id("/map");
     std::string package_name("icreate_navigation");
-    nh.param("/waypoint_navigation/move_base_topic", move_base_topic, move_base_topic);
+    nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
     nh.param("/waypoint_navigation/lift_file_path", lift_file_path, lift_file_path);
     nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
     nh.param("/waypoint_navigation/package_name", package_name, package_name); 
-    MoveBaseClient ac(move_base_topic, true);
+    MoveBaseClient ac(move_base_topic_name, true);
 
 	// Callback polling Rate 
     ros::Rate r(30);
@@ -249,19 +248,16 @@ int main(int argc, char** argv) {
     // getUserInput(navigation, robot);
 	//Remember This Location as startPoint
 	navigation.getUserInput(robot, "map", "base_footprint");
-	robot.sendStateRequest();
-
-	
 
 	// Start the Navigation Waypoint Loop
 	while(ros::ok() && !finish) {
 		ros::spinOnce();
 		r.sleep();
 
-		if(robot.requestToSendStateReq) {
+		// if(robot.requestToSendStateReq) {
 			// ROS_INFO("Stateee: %s",  robot.state_req_msg.data.c_str());
 			// robot.sendStateRequest();
-		}
+		// }
 
 		if(isDoneGoal)
 		{
@@ -277,7 +273,6 @@ int main(int argc, char** argv) {
 			ROS_INFO("Loop Done Goal");
 			isNextStep = false;
 			navigation.getNextStep(robot, "map", "base_footprint");
-			robot.sendStateRequest();
 		}
 
 		if(navigation.requestToSetNewGoal) {

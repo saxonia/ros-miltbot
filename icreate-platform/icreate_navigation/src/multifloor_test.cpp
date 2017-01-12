@@ -52,7 +52,6 @@ bool userInput(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
     std::cin >> key;
     
     robot.setCurrentPosition("map", "base_footprint");
-    robot.state_req_msg.data = "SINGLERUN";
     
     //Edit -----------------------------------------
     move_base_msgs::MoveBaseGoal newPoint;
@@ -69,7 +68,9 @@ bool userInput(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
     icreate::MoveBaseGoalData data(navigation.targets[0],navigation.target_name[0]);
 	robot.setEndPosition(data);
 	requestToSetNewGoal = true;
-	robot.requestToSendStateReq = true;
+    robot.state_req_msg.data = "SINGLERUN";
+	// robot.requestToSendStateReq = true;
+    robot.sendStateRequest("SINGLERUN");
     return true;
     // I'm not sure about ascii code == 0 what it is.
 }
@@ -94,7 +95,7 @@ void nextStep(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
     icreate::MoveBaseGoalData data(navigation.lifts[std::stoi(liftNumber)], navigation.lift_name[std::stoi(liftNumber)]);
     robot.setEndPosition(data);
     ROS_INFO("Get");
-    robot.requestToSendStateReq = true;
+    // robot.requestToSendStateReq = true;
 }
 
 void setFrontLiftToLift(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
@@ -135,8 +136,6 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 }
 
 void goalActiveCallback(){
-    // state_req_msg.data = navigation.activeRobotGoal(current_state, state_req);
-	  // requestToSendStateReq = true;
 }
 
 void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
@@ -216,10 +215,10 @@ int main(int argc, char** argv) {
         //             requestToSendStateReq = false;
         //             state_req_pub.publish(state_req_msg);
         // }
-        if(robot.requestToSendStateReq) {
+        // if(robot.requestToSendStateReq) {
 			// ROS_INFO("Stateee: %s",  robot.state_req_msg.data.c_str());
-			robot.sendStateRequest();
-		}
+			// robot.sendStateRequest();
+		// }
 
         if(isDoneGoal)
 		{
@@ -228,7 +227,7 @@ int main(int argc, char** argv) {
 			{
 				aaa(navigation, robot);
 			}
-			robot.requestToSendStateReq = true;
+			// robot.requestToSendStateReq = true;
 			isNextStep = true;
 		}
 

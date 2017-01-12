@@ -23,7 +23,7 @@ SingleNavigation::~SingleNavigation() {
 }
 
 void SingleNavigation::setRobotTarget(move_base_msgs::MoveBaseGoal &goal) {
-    ROS_INFO("%lf",goal.target_pose.pose.position.x);
+    ROS_INFO("setRobotTarget: %lf",goal.target_pose.pose.position.x);
     target = goal;
 }
 
@@ -352,8 +352,9 @@ void SingleNavigation::getUserInput(Robot &robot, std::string base_frame_id, std
             std::cout << "[ 3 ] Going and Wait for Cargo." <<std::endl;
             std::cout << "[ 4 ] Delivery to Target Place." <<std::endl;
             // std::cout << "[ 6 ] Execute The Memorized Sequence" <<std::endl;
+            std::cout << "[ 99 ] Exit Sysytem." << std::endl;
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
-		    std::cout << "Select Mode[0,1,2,3,4,6] : " ;
+		    std::cout << "Select Mode[0,1,2,3,4,6,99] : " ;
 			int input; 
 		    std::cin  >> input;
 			this->setNavigationMode(input); 
@@ -373,38 +374,32 @@ void SingleNavigation::getUserInput(Robot &robot, std::string base_frame_id, std
 		    	//MODE : Go to Specific Point
 			    	case 0:
                         //Set the Robot State 
-                        robot.state_req_msg.data = "SINGLERUN";
-			    		requestToSetNewGoal = true;
-						robot.requestToSendStateReq = true;
-						// finish = false;
+			    		robot.sendStateRequest("SINGLERUN");
+                        requestToSetNewGoal = true;
 			    	    return;
 		    	//MODE : Going and Come back to this place
 			    	case 1 :
 			    		//Set the Robot State 
-                        robot.state_req_msg.data = "GOING";
+                        robot.sendStateRequest("GOING");
 			      		requestToSetNewGoal = true;
-						robot.requestToSendStateReq = true;
 			    		return;
 				//MODE : Going and Come back to base
 			    	case 2:
 			    		//Set the Robot State 
-                        robot.state_req_msg.data = "GOING";
-			      		requestToSetNewGoal = true;
-						robot.requestToSendStateReq = true;
+			      		robot.sendStateRequest("GOING");
+                        requestToSetNewGoal = true;
 			    		return;
                 //MODE : Going and Wait for Cargo.
 			    	case 3:
 			    		//Set the Robot State 
-                        robot.state_req_msg.data = "GOING";
-			      		requestToSetNewGoal = true;
-						robot.requestToSendStateReq = true;
+			      		robot.sendStateRequest("GOING");
+                        requestToSetNewGoal = true;
 			    		return;
                 //MODE : Delivery to Target Place.
 			    	case 4:
 			    		//Set the Robot State 
-                        robot.state_req_msg.data = "SENDSUPPLIES";
+                        robot.sendStateRequest("SENDSUPPLIES");
 			      		requestToSetNewGoal = true;
-						robot.requestToSendStateReq = true;
 			    		return;
 			  	//MODE : Execute the Sequence
 					// case 6:
@@ -416,23 +411,19 @@ void SingleNavigation::getUserInput(Robot &robot, std::string base_frame_id, std
                     //     robot.setEndPosition(data);
 			    	// 	//Set the new Goal
 			    	// 	requestToSetNewGoal = true;
-					// 	robot.requestToSendStateReq = true;
 			      	// 	return;
 			    //MODE : EXIT
 					case 99:
 						//Set the Robot State 
-			      		robot.state_req_msg.data = "IDLE";
+			      		robot.sendStateRequest("IDLE");
 						requestToSetNewGoal = false;
-						robot.requestToSendStateReq = false;
 			      		// finish = true;
 			      		return;
 			    //Not Specified : Do Nothing ^_^
 		      	default:
-		      		robot.state_req_msg.data = "IDLE";
-		      		std::cout << "[AGENT]You Selected NOTHING" <<std::endl;
-		      		this->setNavigationMode(-1);
+		      		std::cout << "[AGENT]You Selection was Wrong Input" <<std::endl;
+                    std::cout << "Please Try Again" << std::endl;
 					requestToSetNewGoal = false;
-					robot.requestToSendStateReq = false;
 					return;
 		    }//Mode Select
         }   
@@ -465,7 +456,7 @@ void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std:
             // After Delivering = Set Back to the First place
 			
 			if(this->getNavigationMode() == 1) {
-                robot.state_req_msg.data = "GOING";
+                robot.sendStateRequest("GOING");
 				this->setRobotTarget(robot.startPosition.goal);
                 robot.setCurrentPosition(base_frame_id, robot_frame_id);
                 MoveBaseGoalData data(this->getRobotTarget(), robot.startPosition.goal_name);
@@ -475,7 +466,7 @@ void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std:
                 requestToSetNewGoal = true;
 			}
 			else if(this->getNavigationMode() == 2) {
-                robot.state_req_msg.data = "BACKTOBASE";
+                robot.sendStateRequest("BACKTOBASE");
 				this->setRobotTarget(0);
                 robot.setCurrentPosition(base_frame_id, robot_frame_id);
                 MoveBaseGoalData data(this->getRobotTarget(), target_name[0]);
@@ -507,9 +498,8 @@ void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std:
 			this->setRobotTarget(sequence[targetId]);
             MoveBaseGoalData data(this->getRobotTarget(),target_name[sequence[targetId]]);
 			robot.setEndPosition(data);
-			robot.state_req_msg.data = "EXECUTESEQ";
 			requestToSetNewGoal = true;
-			robot.requestToSendStateReq = true;
+            robot.sendStateRequest("EXECUTESEQ");
 			break;
         }
 		default:
