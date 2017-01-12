@@ -3,5 +3,6 @@
         <!--Topic Parameter-->
         <param name="state_pub_topic" value="state" type="string" />
         <param name="state_req_sub_topic" value="state_req" type="string" />
+        <param name="set_robot_state_service" value="set_robot_state" type="string" />
     </node>
 </launch>

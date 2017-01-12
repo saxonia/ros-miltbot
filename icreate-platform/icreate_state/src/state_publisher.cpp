@@ -37,23 +37,25 @@ class robotState {
         void stateCallback(const std_msgs::String::ConstPtr& msg);
 
         std::string state_pub_topic_name_, state_req_sub_topic_name_; 
+        std::string set_robot_state_service_name_;
         int state;
 };
 
 robotState::robotState(): 
-    state_pub_topic_name_("/miltbot/state"),
-    state_req_sub_topic_name_("/miltbot/state_req")
+    state_pub_topic_name_("/state"),
+    state_req_sub_topic_name_("/state_req"),
+    set_robot_state_service_name_("set_robot_state")
 {   
-    nh_.param("/icreate/icreate_state/state_pub_topic",state_pub_topic_name_,state_pub_topic_name_);
-    nh_.param("/icreate/icreate_state/state_req_sub_topic",state_req_sub_topic_name_,state_req_sub_topic_name_);
-
+    nh_.param("/icreate_state/state_pub_topic",state_pub_topic_name_,state_pub_topic_name_);
+    nh_.param("/icreate_state/state_req_sub_topic",state_req_sub_topic_name_,state_req_sub_topic_name_);
+    nh_.param("/icreate_state/set_robot_state_service", set_robot_state_service_name_, set_robot_state_service_name_);
     //Initialize Publisher
     state_pub_ = nh_.advertise<std_msgs::String>(state_pub_topic_name_,1);
 
     //Initialize Subscriber
     // state_req_sub_ = nh_.subscribe(state_req_sub_topic_name_,10,&robotState::stateCallback, this);
 
-    service_ = nh_.advertiseService("set_robot_state",&robotState::setRobotStateService, this);
+    service_ = nh_.advertiseService(set_robot_state_service_name_, &robotState::setRobotStateService, this);
 
     state = robotState::IDLE;
     state_req = "";
