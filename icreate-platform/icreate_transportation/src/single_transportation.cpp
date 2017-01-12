@@ -130,8 +130,13 @@ bool runTransportation(icreate_transportation::RunTransportation::Request &req,
 int main(int argc, char** argv) {
     ros::init(argc, argv, "single_transportation");
     ros::NodeHandle nh;
-    ros::ServiceServer transportation_service = nh.advertiseService("run_transportation", runTransportation);
-    ros::Publisher transportation_pub = nh.advertise<icreate_transportation::CargoList>("cargo_list", 1000);
+    std::string transportation_service_name("run_transportation");
+    std::string transportation_pub_name("cargo_list");
+    nh.param("/icreate_transportation/transportation_service", transportation_service_name, transportation_service_name);
+    nh.param("/icreate_transportation/transportation_pub", transportation_pub_name, transportation_pub_name);
+
+    ros::ServiceServer transportation_service = nh.advertiseService(transportation_service_name, runTransportation);
+    ros::Publisher transportation_pub = nh.advertise<icreate_transportation::CargoList>(transportation_pub_name, 1000);
     ros::Rate loop_rate(10);
     while(ros::ok()) {
         icreate_transportation::CargoList msg;
@@ -139,9 +144,7 @@ int main(int argc, char** argv) {
         transportation_pub.publish(msg);
         ros::spinOnce();
         loop_rate.sleep();
-
     }
-    // ros::Subscriber transportation_req_sub = nh.subcribe("transportation_req", 1000, transportCallback); 
     ros::spin();
     return 0;
 }
