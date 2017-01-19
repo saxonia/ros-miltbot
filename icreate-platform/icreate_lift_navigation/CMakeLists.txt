@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   icreate_navigation
   icreate_state
 )
@@ -122,10 +123,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_definitions(-std=c++11)
 ## Declare a C++ library
 # add_library(icreate_lift_navigation
 #   src/${PROJECT_NAME}/icreate_lift_navigation.cpp
 # )
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -135,6 +138,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(icreate_lift_navigation_node src/icreate_lift_navigation_node.cpp)
 add_executable(lift_test src/lift_test.cpp)
+add_executable(laser_test src/laser_test.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -145,6 +149,7 @@ add_executable(lift_test src/lift_test.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(lift_test ${catkin_LIBRARIES} robot)
+target_link_libraries(laser_test ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -193,5 +198,3 @@ target_link_libraries(lift_test ${catkin_LIBRARIES} robot)
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-add_definitions(-std=c++11)
