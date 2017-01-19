@@ -1,5 +1,4 @@
 string building
 string floor
 ---
-string[] data
-string floor
+miltbot_map/Waypoint[] waypoints

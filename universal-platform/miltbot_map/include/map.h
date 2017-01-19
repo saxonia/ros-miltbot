@@ -2,6 +2,8 @@
 #include <map>
 #include <vector>
 
+#include "miltbot_map/Waypoint.h"
+
 // namespace icreate {
     typedef std::pair<std::string, std::string> Key;
 
@@ -27,12 +29,14 @@ class Map {
 
         MapData getMapData(Key id, int idx);
 
-        std::pair<std::vector<std::string>, std::vector<std::string> > getWaypointNameList(std::string building);
+        std::vector<miltbot_map::Waypoint> getWaypointList(std::string building, std::string building_floor);
 
     private:
         std::string makeStringQuote(std::string data);
 
         std::string deleteStringQuote(std::string data);
+
+        move_base_msgs::MoveBaseGoal convertPointToMoveBaseGoal(std::vector<double> point);
 
     public:
         std::map<Key, std::vector<MapData> > data;

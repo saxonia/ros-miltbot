@@ -5,7 +5,7 @@
 #include <map>
 
 #include "map.h"
-#include <miltbot_map/GetWaypointName.h>
+#include <miltbot_map/GetWaypointList.h>
 
 Map map;
 
@@ -106,11 +106,10 @@ void loadWaypoint(Map &map) {
     }
 } 
 
-bool getWaypointNameService(miltbot_map::GetWaypointName::Request &req, 
-                            miltbot_map::GetWaypointName::Response &res) {
-    std::pair<std::vector<std::string>, std::vector<std::string> > ret = map.getWaypointNameList(req.building);
-    res.data = ret.first;
-    res.floor = ret.second; 
+bool getWaypointListService(miltbot_map::GetWaypointList::Request &req, 
+                            miltbot_map::GetWaypointList::Response &res) {
+    std::vector<miltbot_map::Waypoint> ret = map.getWaypointList(req.building, req.floor);
+    res.waypoints = ret;
     return true;
 }
 
@@ -120,7 +119,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     loadWaypoint(map);
-    ros::ServiceServer service = nh.advertiseService("get_waypoint_name", getWaypointNameService);
+    ros::ServiceServer service = nh.advertiseService("get_waypoint_list", getWaypointListService);
     ros::spin();
 
     return 0;

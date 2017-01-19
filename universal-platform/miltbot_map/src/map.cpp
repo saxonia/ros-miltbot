@@ -44,31 +44,27 @@ Map::MapData Map::getMapData(Key id, int idx) {
     return res;
 }
 
-std::pair<std::vector<std::string>, std::vector<std::string> > Map::getWaypointNameList(std::string building) {
-    std::cout << building << std::endl;
+std::vector<miltbot_map::Waypoint> Map::getWaypointList(std::string building, std::string building_floor) {
+    std::cout << "Request: " <<  building << ", " << building_floor << std::endl;
     std::vector<MapData> map_data_list;
-    std::vector<std::string> name_list;
-    std::vector<std::string> floor_list;
-    for(std::map<Key,std::vector<MapData> >::iterator it = data.begin(); it != data.end(); ++it) {
-        if(it->first.first == makeStringQuote(building)) {
-            Key key = std::make_pair(makeStringQuote(building) , it->first.second);
-            //Key key = std::make_pair(building, f);
-            if(data.find(key) == data.end()) {
-                ROS_WARN("Error to get MapData: Wrong building or floor");
-            }
-            else {
-                ROS_INFO("Finish get MapData");
-                std::cout << data[key].size() << std::endl;
-                map_data_list = data[key];
-            }
-            for(int i = 0; i < map_data_list.size(); i++) {
-                name_list.push_back(map_data_list[i].name);
-                floor_list.push_back(it->first.second);
-            }
-        }
-    }
-    std::pair<std::vector<std::string>, std::vector<std::string> > res =  std::make_pair(name_list, floor_list);
+    std::vector<miltbot_map::Waypoint> res;
     
+    Key key = std::make_pair(makeStringQuote(building) , makeStringQuote(building_floor));
+    if(data.find(key) == data.end()) {
+        ROS_WARN("Error to get MapData: Wrong building or floor");
+    }
+    else {
+        ROS_INFO("Finish get MapData");
+        map_data_list = data[key];
+    }
+    for(int i = 0; i < map_data_list.size(); i++) {
+        miltbot_map::Waypoint waypoint;
+        waypoint.name = map_data_list[i].name;
+        waypoint.building = building;
+        waypoint.floor = building_floor;
+        waypoint.goal = convertPointToMoveBaseGoal(map_data_list[i].point);
+        res.push_back(waypoint);
+    }
     return res;
 }
 
@@ -80,6 +76,18 @@ std::string Map::makeStringQuote(std::string data) {
 std::string Map::deleteStringQuote(std::string data) {
     std::size_t pos = data.find("\"");
     return data.substr(pos+1,data.size()-2);
+}
+
+move_base_msgs::MoveBaseGoal Map::convertPointToMoveBaseGoal(std::vector<double> point) {
+    move_base_msgs::MoveBaseGoal res;
+    if(point.size() != 6) return res;
+    res.target_pose.pose.position.x = point[0];
+    res.target_pose.pose.position.y = point[1];
+    res.target_pose.pose.orientation.x = point[2];
+    res.target_pose.pose.orientation.y = point[3];
+    res.target_pose.pose.orientation.z = point[4];
+    res.target_pose.pose.orientation.w = point[5];
+    return res;
 }
 
 // }

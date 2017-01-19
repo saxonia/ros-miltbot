@@ -27,7 +27,7 @@ void loadMap() {
 
 bool callService() {
     ros::NodeHandle nh;
-    ros::ServiceClient client = nh.serviceClient<nav_msgs::SetMap>("/icreate/set_map");
+    ros::ServiceClient client = nh.serviceClient<nav_msgs::SetMap>("/set_map");
     nav_msgs::SetMap srv;
     srv.request.map = map;
     //รับ initialpose มาจาก topic 
@@ -81,9 +81,13 @@ bool setMapServerService(miltbot_map::SetMapServer::Request &req,miltbot_map::Se
 int main(int argc, char** argv) {
     ros::init(argc, argv, "map_server");
     ros::NodeHandle nh;
+
+    std::string map1_sub_topic_name("/map");
+    std::string map2_sub_topic_name("/map2");
+    std::string initialpose_sub_topic_name();
     
-    ros::Subscriber map_sub = nh.subscribe("/icreate/map", 1000, mapCallback);
-    ros::Subscriber map_sub2 = nh.subscribe("/icreate/map2", 1000, mapCallback2);
+    ros::Subscriber map_sub = nh.subscribe("/map", 1000, mapCallback);
+    ros::Subscriber map_sub2 = nh.subscribe("/map2", 1000, mapCallback2);
     ros::Subscriber initialpose_sub = nh.subscribe("/icreate/amcl_pose", 1000, initialposeCallback);
     // ros::Subscriber floor_sub = nh.subscribe("/icreate/building", 1000, floorCallback);
     ros::ServiceServer service = nh.advertiseService("set_map_server", setMapServerService);

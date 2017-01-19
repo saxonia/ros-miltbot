@@ -70,6 +70,7 @@ add_service_files(
     FILES
     GetWaypoint.srv
     GetWaypointName.srv
+    GetWaypointList.srv
     SetMapServer.srv
 )
 
