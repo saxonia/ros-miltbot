@@ -60,8 +60,7 @@ bool waitMoveBaseServer(MoveBaseClient &ac) {
 }
 
 void setupToRunRobot(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
-    move_base_msgs::MoveBaseGoal goal = forward_goal.getGoal();
-    single_navigation.setRobotTarget(goal);
+    single_navigation.setRobotTarget(forward_goal);
     robot.setEndPosition(forward_goal);
 	single_navigation.requestToSetNewGoal = true;
 	robot.sendStateRequest("SINGLERUN");
@@ -178,8 +177,7 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
 
 void callDoneRobotGoal(icreate::SingleNavigation &single_navigation, icreate::Robot &robot) {
     ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
-	robot.state_req_msg.data = single_navigation.doneRobotGoal(robot.current_state);
-	robot.sendStateRequest(robot.state_req_msg.data);
+	robot.sendStateRequest(single_navigation.doneRobotGoal(robot.current_state));
 }
 
 int main(int argc, char** argv) {
@@ -203,7 +201,7 @@ int main(int argc, char** argv) {
     // if(!robot.setCurrentPosition(base_frame_id, robot_frame_id)) {
     //     return -1;
     // }
-    robot.setCurrentPosition(base_frame_id, robot_frame_id);
+    robot.setCurrentPosition(base_frame_id, robot_frame_id, "Building 4", "Floor 20");
     // if(!waitMoveBaseServer(ac)) {
     //     return -2;
     // }
