@@ -39,36 +39,66 @@ bool isNextStep;
 bool isFrontLiftToLift;
 int doneGoalNumber;
 
-void setLiftPosition(icreate::SingleNavigation &navigation, int liftNumber) {
-    navigation.lift = navigation.lifts.begin() + liftNumber;
-    navigation.targets_iterator = navigation.lift;
-    ROS_INFO("set Robot Lift: %s", navigation.lift_name[liftNumber].c_str());
-    requestToSetNewGoal = true;
+icreate::MoveBaseGoalData target_goal;
+
+void initializeWaitLiftPosition(std::string goal_name) {
+    move_base_msgs::MoveBaseGoal new_point;
+    new_point.target_pose.pose.position.x    = 0.327;
+    new_point.target_pose.pose.position.y    = 1.634;
+    new_point.target_pose.pose.orientation.x = 0.000;
+    new_point.target_pose.pose.orientation.y = 0.000;
+    new_point.target_pose.pose.orientation.z = -0.686;
+    new_point.target_pose.pose.orientation.w = 0.727;
+    target_goal.setGoal(new_point);
+    target_goal.setGoalName(goal_name);
 }
 
-bool userInput(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
+bool waitMoveBaseServer(MoveBaseClient &ac, float wait_duration) {
+	// Wait for the action server to come up
+    int tries = 0;
+    while(!ac.waitForServer(ros::Duration(wait_duration))){
+      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
+      tries++;
+      if(tries == 3){
+        ROS_INFO("Failed to Start Waypoint Node");
+        return false;
+      }
+    }
+    ROS_INFO("Navigation Waypoint Node Initialized !");
+	return true;
+}
+
+// void setLiftPosition(icreate::SingleNavigation &navigation, int liftNumber) {
+//     navigation.lift = navigation.lifts.begin() + liftNumber;
+//     navigation.target_iterator = navigation.lift;
+//     ROS_INFO("set Robot Lift: %s", navigation.lift_name[liftNumber].c_str());
+//     requestToSetNewGoal = true;
+// }
+
+void setupToRunRobot(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
+    single_navigation.setRobotTarget(target_goal);
+    robot.setEndPosition(target_goal);
+	// single_navigation.requestToSetNewGoal = true;
+	robot.sendStateRequest("SINGLERUN");
+    ROS_INFO("Setup Robot: %s",target_goal.getGoalName().c_str());
+}
+
+bool userInput(icreate::Robot &robot, icreate::SingleNavigation &navigation) {
     std::cout << "Press Any Key To Start Navigation Or ESC To Exit" << std::endl;
     std::string key;
     std::cin >> key;
     
-    robot.setCurrentPosition("map", "base_footprint");
+    robot.setCurrentPosition("map", "base_footprint", "Building 4", "Floor 20");
     
-    //Edit -----------------------------------------
-    move_base_msgs::MoveBaseGoal newPoint;
-    newPoint.target_pose.pose.position.x    = 4.538;
-    newPoint.target_pose.pose.position.y    = 10.365;
-    newPoint.target_pose.pose.orientation.x = 0.000;
-    newPoint.target_pose.pose.orientation.y = 0.000;
-    newPoint.target_pose.pose.orientation.z = 0.983;
-    newPoint.target_pose.pose.orientation.w = 0.180;
-    navigation.targets.push_back(newPoint);
     
-    navigation.targets_iterator = navigation.targets.begin(); 
+    // navigation.targets.push_back(newPoint);
+    // navigation.target_iterator = navigation.targets.begin(); 
+    
     //End ---------------------------------
-    icreate::MoveBaseGoalData data(navigation.targets[0],navigation.target_name[0]);
-	robot.setEndPosition(data);
+    // icreate::MoveBaseGoalData data(navigation.targets[0],navigation.target_name[0]);
+	// robot.setEndPosition(data);
 	requestToSetNewGoal = true;
-    robot.state_req_msg.data = "SINGLERUN";
+    // robot.state_req_msg.data = "SINGLERUN";
 	// robot.requestToSendStateReq = true;
     robot.sendStateRequest("SINGLERUN");
     return true;
@@ -91,9 +121,9 @@ void nextStep(icreate::Robot &robot,icreate::SingleNavigation &navigation) {
     std::string liftNumber;
     std::cin >> liftNumber;
     std::cout << "[AGENT] Lift Number " + liftNumber + " is on the floor" <<std::endl;
-    setLiftPosition(navigation, std::stoi(liftNumber));
-    icreate::MoveBaseGoalData data(navigation.lifts[std::stoi(liftNumber)], navigation.lift_name[std::stoi(liftNumber)]);
-    robot.setEndPosition(data);
+    // setLiftPosition(navigation, std::stoi(liftNumber));
+    // icreate::MoveBaseGoalData data(navigation.lifts[std::stoi(liftNumber)], navigation.lift_name[std::stoi(liftNumber)]);
+    // robot.setEndPsdosition(data);
     ROS_INFO("Get");
     // robot.requestToSendStateReq = true;
 }
@@ -144,7 +174,7 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
 
 void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 	ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
-	robot.state_req_msg.data = navigation.doneRobotGoal(robot.current_state);
+    robot.sendStateRequest(navigation.doneRobotGoal(robot.current_state));
 }
 
 int main(int argc, char** argv) {
@@ -156,55 +186,40 @@ int main(int argc, char** argv) {
     icreate::Robot robot;
     icreate::SingleNavigation navigation;
 
-    std::string move_base_topic("/move_base");
+    std::string move_base_topic_name("/move_base");
     std::string lift_file_path("/waypoint/build4_f20lift.csv");
     std::string base_frame_id("/map");
     std::string package_name("icreate_navigation");
-    nh.param("move_base_topic", move_base_topic, move_base_topic);
+    int rate_value(30);
+    nh.param("move_base_topic", move_base_topic_name, move_base_topic_name);
     nh.param("lift_file_path", lift_file_path, lift_file_path);
     nh.param("base_frame_id", base_frame_id, base_frame_id);
     nh.param("package_name", package_name, package_name);
-    MoveBaseClient ac(move_base_topic, true);
+    nh.param("rate_value", rate_value, rate_value);
+    MoveBaseClient ac(move_base_topic_name, true);
 
-    ros::Rate r(30);
+    ros::Rate r(rate_value);
 
     navigation.readLiftFile(package_name, lift_file_path);
 
-    robot.setCurrentPosition("map", "base_footprint");
+    robot.setCurrentPosition("map", "base_footprint", "Building 4", "Floor 20");
 
-    // Wait for the action server to come up
-    int tries = 0;
-    while(!ac.waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
-      tries++;
-      if(tries == 3){
-        ROS_INFO("Failed to Start Waypoint Node");
-        return -1;
-      }
-    }
-
-    ROS_INFO("Navigation Waypoint Node Initialized !");
-    
-
-    // Subsribe Robot State Topic
-    // state_sub = nh.subscribe("/state",100,stateCallback);
-    // state_req_pub = nh.advertise<std_msgs::String>("/state_req",10);
-
-    // Subscribe to Map Clearing Service 
-    // client = nh.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+    waitMoveBaseServer(ac, 5.0);
 
     // requestToCreateTimer = true;
     // requestToSendStateReq = false;
 	isDoneGoal = false;
-    isNextStep = true;
-    doneGoalNumber = 0;
+    isNextStep = false;
+    doneGoalNumber = -1;
     // requestToSetNewGoal = false;
 
-    navigation.targets_iterator = navigation.targets.begin();
-    navigation.lift = navigation.lifts.begin();
+    navigation.target_iterator = navigation.targets.begin();
+    // navigation.lift = navigation.lifts.begin();
+    initializeWaitLiftPosition("Lift Position");
 
+    userInput(robot, navigation); 
 
-    userInput(robot, navigation);    
+    setupToRunRobot(navigation, robot);   
 
     while(ros::ok()) {
         ros::spinOnce();
@@ -246,28 +261,13 @@ int main(int argc, char** argv) {
 
         if(requestToSetNewGoal) {
             ROS_INFO("Loop Set New Goal");
-                    requestToSetNewGoal = false;
+            requestToSetNewGoal = false;
             navigation.setRobotGoal(base_frame_id);
             ac.sendGoal(navigation.goal, 
                         boost::bind(&goalDoneCallback_state, _1, _2), 
                         boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
         }
-        // if(navigation.requestToSetNewGoal) {
-		// 	ROS_INFO("Loop Set New Goal");
-		// 	navigation.requestToSetNewGoal = false;
-
-		// 	navigation.setRobotGoal("/map");
-		// 	ROS_INFO("Stateee: %s",  robot.current_state.c_str());
-		// 	ac.sendGoal(navigation.goal, 
-        //               boost::bind(&goalDoneCallback_state, _1, _2, navigation, robot), 
-        //               boost::bind(&goalActiveCallback, navigation, robot), boost::bind(&goalFeedbackCallback, _1, navigation));
-		// }
-
-        // if(requestToCreateTimer) {
-        //     ROS_INFO("Loop Create Timer");
-        //     requestToCreateTimer = false;
-        //     timer = nh.createTimer(ros::Duration(10), timerCallback);
-        // }
+        
         if(navigation.requestToCreateTimer) {
 			navigation.setTimer(10);
 		}

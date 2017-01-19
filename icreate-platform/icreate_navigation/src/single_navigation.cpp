@@ -22,40 +22,70 @@ SingleNavigation::~SingleNavigation() {
 
 }
 
-void SingleNavigation::setRobotTarget(move_base_msgs::MoveBaseGoal &goal) {
-    ROS_INFO("setRobotTarget: %lf",goal.target_pose.pose.position.x);
-    target = goal;
+// void SingleNavigation::setRobotTarget(move_base_msgs::MoveBaseGoal &goal) {
+//     ROS_INFO("setRobotTarget: %lf",goal.target_pose.pose.position.x);
+//     target = goal;
+// }
+void SingleNavigation::setRobotTarget(MoveBaseGoalData &data) {
+    ROS_INFO("setRobotTarget: %s",data.getGoalName().c_str());
+    target = data;
 }
 
-void SingleNavigation::setRobotTarget(int selected_point) {
-    SingleNavigation::selected_point = selected_point;
-    targets_iterator = targets.begin() + selected_point;
-    ROS_INFO("set Robot Target: %s", this->target_name[selected_point].c_str());
-    target.target_pose.pose.position.x    = targets_iterator->target_pose.pose.position.x;
-    target.target_pose.pose.position.y    = targets_iterator->target_pose.pose.position.y;
-    target.target_pose.pose.orientation.x = targets_iterator->target_pose.pose.orientation.x;
-    target.target_pose.pose.orientation.y = targets_iterator->target_pose.pose.orientation.y;
-    target.target_pose.pose.orientation.z = targets_iterator->target_pose.pose.orientation.z;
-    target.target_pose.pose.orientation.w = targets_iterator->target_pose.pose.orientation.w;
+// void SingleNavigation::setRobotTarget(int selected_point) {
+//     this->selected_point = selected_point;
+//     target_iterator = targets.begin() + selected_point;
+//     ROS_INFO("set Robot Target: %s", this->target_name[selected_point].c_str());
+//     target.target_pose.pose.position.x    = target_iterator->target_pose.pose.position.x;
+//     target.target_pose.pose.position.y    = target_iterator->target_pose.pose.position.y;
+//     target.target_pose.pose.orientation.x = target_iterator->target_pose.pose.orientation.x;
+//     target.target_pose.pose.orientation.y = target_iterator->target_pose.pose.orientation.y;
+//     target.target_pose.pose.orientation.z = target_iterator->target_pose.pose.orientation.z;
+//     target.target_pose.pose.orientation.w = target_iterator->target_pose.pose.orientation.w;
+// }
+bool SingleNavigation::setRobotTarget(int selected_point, std::string type) {
+    this->selected_point = selected_point;
+    if(type == "Floor") {
+        this->target_iterator = targets.begin() + selected_point;
+    }
+    else if(type == "Lift") {
+        this->target_iterator = lifts.begin() + selected_point;
+    }
+    else {
+        return false;
+    }
+    
+    ROS_INFO("set Robot Target: %s", this->target_iterator->getGoalName().c_str());
+    target = *(this->target_iterator);
 }
 
-move_base_msgs::MoveBaseGoal SingleNavigation::getRobotTarget() {
-    ROS_INFO("get Robot Target: %s",this->target_name[selected_point].c_str());
-    return targets[selected_point];
+// move_base_msgs::MoveBaseGoal SingleNavigation::getRobotTarget() {
+//     ROS_INFO("get Robot Target: %s",this->target_name[selected_point].c_str());
+//     return targets[selected_point];
+// }
+MoveBaseGoalData SingleNavigation::getRobotTarget() {
+    ROS_INFO("get Robot Target: %s",this->target.getGoalName().c_str());
+    return this->target;
 }
 
+// void SingleNavigation::setRobotGoal(std::string frame_id) {
+//     goal.target_pose.header.frame_id = frame_id;
+//     goal.target_pose.header.stamp = ros::Time::now();
+
+//     goal.target_pose.pose.position.x    = target.target_pose.pose.position.x;
+//     goal.target_pose.pose.position.y    = target.target_pose.pose.position.y;
+//     goal.target_pose.pose.orientation.x = target.target_pose.pose.orientation.x;
+//     goal.target_pose.pose.orientation.y = target.target_pose.pose.orientation.y;
+//     goal.target_pose.pose.orientation.z = target.target_pose.pose.orientation.z;
+//     goal.target_pose.pose.orientation.w = target.target_pose.pose.orientation.w;
+//     std::cout << "[AGENT] SET NEW GOAL ! " << std::endl;
+
+// }
 void SingleNavigation::setRobotGoal(std::string frame_id) {
+    
+    goal = this->target.getGoal();    
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
-
-    goal.target_pose.pose.position.x    = target.target_pose.pose.position.x;
-    goal.target_pose.pose.position.y    = target.target_pose.pose.position.y;
-    goal.target_pose.pose.orientation.x = target.target_pose.pose.orientation.x;
-    goal.target_pose.pose.orientation.y = target.target_pose.pose.orientation.y;
-    goal.target_pose.pose.orientation.z = target.target_pose.pose.orientation.z;
-    goal.target_pose.pose.orientation.w = target.target_pose.pose.orientation.w;
     std::cout << "[AGENT] SET NEW GOAL ! " << std::endl;
-
 }
 
 move_base_msgs::MoveBaseGoal SingleNavigation::getRobotGoal() {
@@ -136,19 +166,6 @@ void SingleNavigation::getFeedbackRobotGoal() {
     ROS_INFO("Getting feedback! How cool is that?");
 }
 
-void SingleNavigation::readWaypointConstant() {
-    move_base_msgs::MoveBaseGoal newPoint;
-    newPoint.target_pose.pose.position.x    = 7.687;
-    newPoint.target_pose.pose.position.y    = 14.260;
-    newPoint.target_pose.pose.orientation.x = 0.000;
-    newPoint.target_pose.pose.orientation.y = 0.000;
-    newPoint.target_pose.pose.orientation.z = 0.552;
-    newPoint.target_pose.pose.orientation.w = 0.834;
-    targets.push_back(newPoint);
-
-    targets_iterator = targets.begin();    
-}
-
 void SingleNavigation::readLiftFile(std::string package_name, std::string filename) {
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath(package_name)+ filename;
@@ -161,39 +178,64 @@ void SingleNavigation::readLiftFile(std::string package_name, std::string filena
     int waypoint_count = toint(line);
     std::cout << "[POINT_READER]Points Counted : " << waypoint_count <<std::endl;
 
+    // //Read POI Line By Line 
+    // while(getline(inFile,line)){
+    //  // New Line
+    //    std::stringstream strstr(line);
+    //    std::string word = "";
+    //  // Ignore First Param (Place's Name)
+    //    getline(strstr,word,',');
+    //    lift_name.push_back(word);
+    //  // Gather Params
+    //    while(getline(strstr,word,',')){
+    //        tokenized.push_back(word);
+    //    }
+    // }
     //Read POI Line By Line 
     while(getline(inFile,line)){
-     // New Line
-       std::stringstream strstr(line);
-       std::string word = "";
-     // Ignore First Param (Place's Name)
-       getline(strstr,word,',');
-       lift_name.push_back(word);
-     // Gather Params
-       while(getline(strstr,word,',')){
-           tokenized.push_back(word);
-       }
+        // New Line
+        std::stringstream strstr(line);
+        std::string word = "";
+        // Gather Params
+        while(getline(strstr,word,',')){
+            tokenized.push_back(word);
+        }
     }
 
     //Count All Parameters
     size_t counter = tokenized.size();
     std::cout << "[POINT_READER]Counter  : " << counter <<std::endl; 
-    size_t point_amount = (size_t)(counter / 6.0);
+    size_t point_amount = (size_t)((counter - waypoint_count) / 6.0);
     std::cout << "[POINT_READER]Div Count : " << point_amount << " ,  File Count = " << waypoint_count <<std::endl;
 
     std::vector<std::string>::iterator word_it;
     word_it = tokenized.begin();
 
+    // // Create move_base GOAL and Push into vector ! 
+    // for(int point_index = 0  ; point_index < counter ; point_index++){
+    //    move_base_msgs::MoveBaseGoal newPoint;
+    //    newPoint.target_pose.pose.position.x    = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.position.y    = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.x = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.y = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.z = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.w = std::atof((word_it++)->c_str());
+    //    lifts.push_back(newPoint);
+    //    if(word_it == tokenized.end())break;
+    // }
     // Create move_base GOAL and Push into vector ! 
     for(int point_index = 0  ; point_index < counter ; point_index++){
+       MoveBaseGoalData data;
        move_base_msgs::MoveBaseGoal newPoint;
+       data.setGoalName((word_it++)->c_str());
        newPoint.target_pose.pose.position.x    = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.position.y    = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.x = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.y = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.z = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.w = std::atof((word_it++)->c_str());
-       lifts.push_back(newPoint);
+       data.setGoal(newPoint);
+       lifts.push_back(data);
        if(word_it == tokenized.end())break;
     }
 
@@ -202,11 +244,6 @@ void SingleNavigation::readLiftFile(std::string package_name, std::string filena
     ROS_INFO("Successfully Load waypoints !");
 }
 
-// void SingleNavigation::readWaypointFile(std::string filename, std::string fileType) {
-//     std::vector<moveBaseGoal> point_list;
-//     if(strcmp(fileType,"target") == 0) {
-//         point_list = &targets;
-//     }
 void SingleNavigation::readWaypointFile(std::string package_name, std::string filename) {
     std::vector<std::string> tokenized;
     std::string path = ros::package::getPath(package_name)+ filename;
@@ -219,14 +256,24 @@ void SingleNavigation::readWaypointFile(std::string package_name, std::string fi
     int waypoint_count = toint(line);
     std::cout << "[POINT_READER]Points Counted : " << waypoint_count <<std::endl;
 
+    // //Read POI Line By Line 
+    // while(getline(inFile,line)){
+    //  // New Line
+    //    std::stringstream strstr(line);
+    //    std::string word = "";
+    //  // Ignore First Param (Place's Name)
+    //    getline(strstr,word,',');
+    //    target_name.push_back(word);
+    //  // Gather Params
+    //    while(getline(strstr,word,',')){
+    //        tokenized.push_back(word);
+    //    }
+    // }
     //Read POI Line By Line 
     while(getline(inFile,line)){
      // New Line
        std::stringstream strstr(line);
        std::string word = "";
-     // Ignore First Param (Place's Name)
-       getline(strstr,word,',');
-       target_name.push_back(word);
      // Gather Params
        while(getline(strstr,word,',')){
            tokenized.push_back(word);
@@ -236,22 +283,37 @@ void SingleNavigation::readWaypointFile(std::string package_name, std::string fi
     //Count All Parameters
     size_t counter = tokenized.size();
     std::cout << "[POINT_READER]Counter  : " << counter <<std::endl; 
-    size_t point_amount = (size_t)(counter / 6.0);
+    size_t point_amount = (size_t)((counter - waypoint_count) / 6.0);
     std::cout << "[POINT_READER]Div Count : " << point_amount << " ,  File Count = " << waypoint_count <<std::endl;
 
     std::vector<std::string>::iterator word_it;
     word_it = tokenized.begin();
 
+    // // Create move_base GOAL and Push into vector ! 
+    // for(int point_index = 0  ; point_index < counter ; point_index++){
+    //    move_base_msgs::MoveBaseGoal newPoint;
+    //    newPoint.target_pose.pose.position.x    = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.position.y    = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.x = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.y = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.z = std::atof((word_it++)->c_str());
+    //    newPoint.target_pose.pose.orientation.w = std::atof((word_it++)->c_str());
+    //    targets.push_back(newPoint);
+    //    if(word_it == tokenized.end())break;
+    // }
     // Create move_base GOAL and Push into vector ! 
     for(int point_index = 0  ; point_index < counter ; point_index++){
+       MoveBaseGoalData data;
        move_base_msgs::MoveBaseGoal newPoint;
+       data.setGoalName((word_it++)->c_str());
        newPoint.target_pose.pose.position.x    = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.position.y    = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.x = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.y = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.z = std::atof((word_it++)->c_str());
        newPoint.target_pose.pose.orientation.w = std::atof((word_it++)->c_str());
-       targets.push_back(newPoint);
+       data.setGoal(newPoint);
+       targets.push_back(data);
        if(word_it == tokenized.end())break;
     }
 
@@ -261,9 +323,14 @@ void SingleNavigation::readWaypointFile(std::string package_name, std::string fi
 }
 
 // Display Waypoints
+// void SingleNavigation::displayWaypoints() {
+//     for(int i = 0 ; i < target_name.size() ; i++) {
+//       std::cout <<"["<<i<<"] " << target_name[i] << " " << targets[i].target_pose.pose.position.x <<std::endl; 
+//     }
+// }
 void SingleNavigation::displayWaypoints() {
-    for(int i = 0 ; i < target_name.size() ; i++) {
-      std::cout <<"["<<i<<"] " << target_name[i] << " " << targets[i].target_pose.pose.position.x <<std::endl; 
+    for(int i = 0 ; i < targets.size() ; i++) {
+      std::cout <<"["<<i<<"] " << targets[i].getGoalName() << " " <<std::endl; 
     }
 }
 
@@ -362,12 +429,11 @@ void SingleNavigation::getUserInput(Robot &robot, std::string base_frame_id, std
 		    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<" <<std::endl;
 
             //Remember This Location as startPoint
-			robot.setCurrentPosition(base_frame_id, robot_frame_id);
+			robot.setCurrentPosition(base_frame_id, robot_frame_id,"","");
             //Set New Goal
             //Set the endPoint to go
-            this->setRobotTarget(selected_point);
-            MoveBaseGoalData data(this->getRobotTarget(), target_name[selected_point]);
-            robot.setEndPosition(data);
+            this->setRobotTarget(selected_point, "Floor");
+            robot.setEndPosition(this->target);
 
             // Do Action depends on the Mode selected
 		    switch(this->getNavigationMode()){
@@ -457,20 +523,18 @@ void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std:
 			
 			if(this->getNavigationMode() == 1) {
                 robot.sendStateRequest("GOING");
-				this->setRobotTarget(robot.startPosition.goal);
-                robot.setCurrentPosition(base_frame_id, robot_frame_id);
-                MoveBaseGoalData data(this->getRobotTarget(), robot.startPosition.goal_name);
-			    robot.setEndPosition(data);
+				this->setRobotTarget(robot.startPosition);
+                robot.setCurrentPosition(base_frame_id, robot_frame_id,"", "");
+			    robot.setEndPosition(this->target);
           	    std::cout << "[AGENT] GOING BACK TO : ";
           	    std::cout << robot.startPosition.goal.target_pose.pose.position.x <<","<<robot.startPosition.goal.target_pose.pose.position.y  <<std::endl;
                 requestToSetNewGoal = true;
 			}
 			else if(this->getNavigationMode() == 2) {
                 robot.sendStateRequest("BACKTOBASE");
-				this->setRobotTarget(0);
-                robot.setCurrentPosition(base_frame_id, robot_frame_id);
-                MoveBaseGoalData data(this->getRobotTarget(), target_name[0]);
-			    robot.setEndPosition(data);
+				this->setRobotTarget(0, "Floor");
+                robot.setCurrentPosition(base_frame_id, robot_frame_id, "", "");
+			    robot.setEndPosition(this->target);
           	    std::cout << "[AGENT] GOING BACK TO : ";
           	    std::cout << robot.startPosition.goal.target_pose.pose.position.x <<","<<robot.startPosition.goal.target_pose.pose.position.y  <<std::endl;
                 requestToSetNewGoal = true;
@@ -494,10 +558,9 @@ void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std:
 				break;
 			}
 			// Set The Next Sequence
-			robot.setCurrentPosition(base_frame_id, robot_frame_id);
-			this->setRobotTarget(sequence[targetId]);
-            MoveBaseGoalData data(this->getRobotTarget(),target_name[sequence[targetId]]);
-			robot.setEndPosition(data);
+			robot.setCurrentPosition(base_frame_id, robot_frame_id, "", "");
+			this->setRobotTarget(sequence[targetId], "Floor");
+			robot.setEndPosition(target);
 			requestToSetNewGoal = true;
             robot.sendStateRequest("EXECUTESEQ");
 			break;
@@ -508,11 +571,11 @@ void SingleNavigation::getNextStep(Robot &robot, std::string base_frame_id, std:
 }
 
 void SingleNavigation::setNavigationMode(int mode) {
-    navigation_mode = mode;
+    this->navigation_mode = mode;
 }
 
 int SingleNavigation::getNavigationMode() {
-    return navigation_mode;
+    return this->navigation_mode;
 }
 
 void SingleNavigation::setTimer(int duration) {

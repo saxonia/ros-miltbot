@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
     roslib
     icreate_transportation
     icreate_state
+    miltbot_map
 )
 
 ## System dependencies are found with CMake's conventions
@@ -131,6 +132,7 @@ include_directories(
 #   src/${PROJECT_NAME}/icreate_navigation.cpp
 # )
 add_library(robot src/robot.cpp src/single_navigation.cpp src/multi_navigation.cpp)
+add_library(robot_new src/robot.cpp src/single_navigation_new.cpp )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -139,11 +141,10 @@ add_library(robot src/robot.cpp src/single_navigation.cpp src/multi_navigation.c
 
 ## Declare a C++ executable
 # add_executable(icreate_navigation_node src/icreate_navigation_node.cpp)
-add_executable(simple_navigation_goal src/simple_navigation_goal.cpp)
-add_executable(two_point_navigation_pubsub src/two_point_navigation_pubsub.cpp)
 add_executable(waypoint_navigation src/waypoint_navigation.cpp)
 add_executable(multifloor_test src/multifloor_test.cpp)
 add_executable(lift_navigation src/lift_navigation.cpp)
+add_executable(waypoint_navigation_new src/waypoint_navigation_new.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -155,12 +156,11 @@ add_executable(lift_navigation src/lift_navigation.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(robot ${catkin_LIBRARIES})
-target_link_libraries(simple_navigation_goal ${catkin_LIBRARIES})
-target_link_libraries(two_point_navigation_pubsub ${catkin_LIBRARIES} robot)
 target_link_libraries(waypoint_navigation ${catkin_LIBRARIES} robot)
 target_link_libraries(multifloor_test ${catkin_LIBRARIES} robot)
 target_link_libraries(lift_navigation ${catkin_LIBRARIES})
-
+target_link_libraries(robot_new ${catkin_LIBRARIES})
+target_link_libraries(waypoint_navigation_new ${catkin_LIBRARIES} robot_new)
 
 #############
 ## Install ##

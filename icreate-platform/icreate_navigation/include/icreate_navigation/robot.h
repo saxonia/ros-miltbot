@@ -15,23 +15,34 @@ class MoveBaseGoalData {
     public:
         MoveBaseGoalData(void);
 
-        MoveBaseGoalData(move_base_msgs::MoveBaseGoal goal, std::string goal_name);
+        MoveBaseGoalData(std::string goal_name, move_base_msgs::MoveBaseGoal goal, std::string building, std::string building_floor);
 
         ~MoveBaseGoalData(void);
 
         void setGoal(move_base_msgs::MoveBaseGoal &goal);
 
-        move_base_msgs::MoveBaseGoal getGoal();
+        move_base_msgs::MoveBaseGoal getGoal(); 
 
         void setGoalName(std::string goal_name);
 
-        std::string getGoalName();        
+        std::string getGoalName();  
+
+        void setBuilding(std::string building);
+
+        std::string getBuilding();
+
+        void setBuildingFloor(std::string building_floor);
+
+        std::string getBuildingFloor();
 
     private:
 
     public:
-        move_base_msgs::MoveBaseGoal goal;
         std::string goal_name;
+        move_base_msgs::MoveBaseGoal goal;
+        std::string building;
+        std::string building_floor;
+    
     private:
         
 };
@@ -42,7 +53,8 @@ class Robot {
 
         ~Robot(void);
 
-        bool setCurrentPosition(std::string base_frame_id, std::string robot_frame_id);
+        bool setCurrentPosition(std::string base_frame_id, std::string robot_frame_id, 
+                                std::string building, std::string building_floor);
 
         // move_base_msgs::MoveBaseGoal getCurrentPosition();
         MoveBaseGoalData getCurrentPosition();
@@ -65,7 +77,6 @@ class Robot {
         //Publisher & Subscriber
         ros::Publisher state_req_pub;
         ros::Subscriber state_sub;
-        std_msgs::String state_req_msg;
 
         //Service Client
         ros::ServiceClient client;
