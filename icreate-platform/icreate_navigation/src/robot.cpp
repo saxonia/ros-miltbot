@@ -6,8 +6,11 @@ MoveBaseGoalData::MoveBaseGoalData(void) {
 
 }
 
-MoveBaseGoalData::MoveBaseGoalData(move_base_msgs::MoveBaseGoal goal, std::string goal_name) {
-
+MoveBaseGoalData::MoveBaseGoalData(std::string goal_name, move_base_msgs::MoveBaseGoal goal, std::string building, std::string building_floor) {
+    this->goal_name = goal_name;
+    this->goal = goal;
+    this->building = building;
+    this->building_floor = building_floor;
 }
 
 MoveBaseGoalData::~MoveBaseGoalData(void) {}
@@ -28,18 +31,35 @@ std::string MoveBaseGoalData::getGoalName() {
     return this->goal_name;
 }
 
+void MoveBaseGoalData::setBuilding(std::string building) {
+    this->building = building;
+}
+
+std::string MoveBaseGoalData::getBuilding() {
+    return building;
+}
+
+void MoveBaseGoalData::setBuildingFloor(std::string building_floor) {
+    this->building_floor = building_floor;
+}
+
+std::string MoveBaseGoalData::getBuildingFloor() {
+    return building_floor;
+}
+
 Robot::Robot(void) {
     // Subsribe Robot State Topic
     ROS_INFO("Create Robot Class");
-    client = nh_.serviceClient<icreate_state::SetRobotState>(set_robot_state_service);
-    current_state = "IDLE";
+    this->client = nh_.serviceClient<icreate_state::SetRobotState>(set_robot_state_service);
+    this->current_state = "IDLE";
 }
 
 Robot::~Robot(void) {
 
 }
 
-bool Robot::setCurrentPosition(std::string base_frame_id, std::string robot_frame_id) {
+bool Robot::setCurrentPosition(std::string base_frame_id, std::string robot_frame_id,
+                                std::string building, std::string building_floor) {
     tf::TransformListener listener;  
     tf::StampedTransform transform;
     ros::Time now = ros::Time::now();
@@ -52,14 +72,17 @@ bool Robot::setCurrentPosition(std::string base_frame_id, std::string robot_fram
         return false;
     }
 
-    this->startPosition.goal_name = "Current Position"; 
+    this->startPosition.setGoalName("Current Position");
     this->startPosition.goal.target_pose.pose.position.x    = transform.getOrigin().x();
     this->startPosition.goal.target_pose.pose.position.y    = transform.getOrigin().y();
     this->startPosition.goal.target_pose.pose.orientation.x = transform.getRotation().x();
     this->startPosition.goal.target_pose.pose.orientation.y = transform.getRotation().y();
     this->startPosition.goal.target_pose.pose.orientation.z = transform.getRotation().z();
     this->startPosition.goal.target_pose.pose.orientation.w = transform.getRotation().w();
-
+    //assign building & building_floor
+    this->startPosition.setBuilding(building);
+    this->startPosition.setBuildingFloor(building_floor);
+    
     std::cout << "RETURNING POSITION MARKED : ";
     std::cout << this->startPosition.goal.target_pose.pose.position.x << "," 
             << this->startPosition.goal.target_pose.pose.position.y << " at Time: " << now <<std::endl;
@@ -100,11 +123,10 @@ void Robot::sendStateRequest(std::string state_request) {
     ROS_INFO("Send State Request: %s",state_request.c_str());
     // ros::ServiceClient client = nh_.serviceClient<icreate_state::SetRobotState>(set_robot_state_service);
     icreate_state::SetRobotState srv;
-    state_req_msg.data = state_request;
     srv.request.req = state_request;
     if (this->client.call(srv))
     {
-      current_state = srv.response.res;
+      this->current_state = srv.response.res;
       
     }
     else

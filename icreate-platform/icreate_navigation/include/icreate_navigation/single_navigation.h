@@ -24,13 +24,13 @@ class SingleNavigation {
 
         ~SingleNavigation();
 
-        void setRobotTarget(move_base_msgs::MoveBaseGoal &goal);
-        // void setRobotTarget(MoveBaseGoalData &data);
+        // void setRobotTarget(move_base_msgs::MoveBaseGoal &goal);
+        void setRobotTarget(MoveBaseGoalData &data);
 
-        void setRobotTarget(int selected_point);
+        bool setRobotTarget(int selected_point, std::string type);
 
-        move_base_msgs::MoveBaseGoal getRobotTarget();
-        // MoveBaseGoalData getRobotTarget();
+        // move_base_msgs::MoveBaseGoal getRobotTarget();
+        MoveBaseGoalData getRobotTarget();
 
         void setRobotGoal(std::string frame_id);
 
@@ -44,8 +44,6 @@ class SingleNavigation {
         std::string activeRobotGoal(std::string robot_state, std::string state_req);
 
         void getFeedbackRobotGoal();
-
-        void readWaypointConstant();
 
         void readLiftFile(std::string package_name, std::string filename);
 
@@ -66,6 +64,7 @@ class SingleNavigation {
         int getNavigationMode();
 
         void setTimer(int duration);
+
         
 
     private:
@@ -93,19 +92,21 @@ class SingleNavigation {
 
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
+        // MoveBaseGoalData goal;
 
-        move_base_msgs::MoveBaseGoal target;
+        // move_base_msgs::MoveBaseGoal target;
+        MoveBaseGoalData target;
 
-        // std::vector<MoveBaseGoalData> targets;
-        // std::vector<MoveBaseGoalData> lifts;
-        std::vector<move_base_msgs::MoveBaseGoal> targets;
-        std::vector<move_base_msgs::MoveBaseGoal> lifts;
-        // std::vector<MoveBaseGoalData>::iterator targets_iterator;
+        std::vector<MoveBaseGoalData> targets;
+        std::vector<MoveBaseGoalData> lifts;
+        // std::vector<move_base_msgs::MoveBaseGoal> targets;
+        // std::vector<move_base_msgs::MoveBaseGoal> lifts;
+        std::vector<MoveBaseGoalData>::iterator target_iterator;
         // std::vector<MoveBaseGoalData>::iterator lift;
-        std::vector<move_base_msgs::MoveBaseGoal>::iterator targets_iterator;
-        std::vector<move_base_msgs::MoveBaseGoal>::iterator lift;
-        std::vector<std::string> target_name;
-        std::vector<std::string> lift_name;
+        // std::vector<move_base_msgs::MoveBaseGoal>::iterator target_iterator;
+        // std::vector<move_base_msgs::MoveBaseGoal>::iterator lift;
+        // std::vector<std::string> target_name;
+        // std::vector<std::string> lift_name;
 
         //Costmap Clearing Service Client (/move_base_node/clear_costmaps)
         ros::ServiceClient client;
