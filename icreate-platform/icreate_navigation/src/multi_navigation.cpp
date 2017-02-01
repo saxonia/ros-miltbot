@@ -3,9 +3,11 @@
 namespace icreate {
 
 MultiNavigation::MultiNavigation(void): 
-    run_gmapping_service_name_("run_gmapping")
+    run_gmapping_service_name_("run_gmapping"),
+    set_map_service_name_("set_map")
 {
     nh_.param("run_gmapping_service", run_gmapping_service_name_, run_gmapping_service_name_);
+    nh_.param("set_map_service", set_map_service_name_, set_map_service_name_);
     this->requestToSetNewGoal = false;
     this->nav_idx = -1;
     this->lift_navigation_step = -1;
@@ -240,6 +242,16 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
                 if(!verifyLiftDoor()) {
                     continue;
                 }
+                // ros::ServiceClient client = nh_.serviceClient<miltbot_map::SetMapServer>(set_map_service_name_);
+                // miltbot_map::SetMapServer set_map_srv;
+                // set_map_srv.request.floor = "Lift";
+                // if(client.call(srv)) {
+                //     // flag = srv.response.flag;
+                //     // break;
+                // }
+                // else {
+                //     ROS_WARN("Failed to run gmapping");
+                // }
                 ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
                 icreate_navigation::RunGmappingService srv;
                 srv.request.task = "open";

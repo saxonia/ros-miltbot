@@ -72,6 +72,7 @@ class MultiNavigation {
         int floor_count_;
 
         std::string run_gmapping_service_name_;
+        std::string set_map_service_name_;
 };
 
 }

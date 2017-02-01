@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "lift_test");
     ros::NodeHandle nh;
 
-    icreate::Robot robot;
+    icreate::Robot robot("Building 4", "Floor 20");
     icreate::SingleNavigation single_navigation;
 
     std::string move_base_topic("/move_base");
