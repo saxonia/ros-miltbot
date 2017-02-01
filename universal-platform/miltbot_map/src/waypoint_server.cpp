@@ -97,8 +97,8 @@ std::vector<std::string> loadWaypointFileList(std::string filename) {
     return waypoint_list;
 } 
 
-void loadWaypoint(Map &map) {
-    std::vector<std::string> waypoint_list = loadWaypointFileList("waypoint_list.csv");
+void loadWaypoint(Map &map, std::string waypoint_list_file_name) {
+    std::vector<std::string> waypoint_list = loadWaypointFileList(waypoint_list_file_name);
     for(int i = 0; i < waypoint_list.size(); i++) {
         std::cout << "Show : " << waypoint_list[i] << std::endl;
         // [FUTURE] do delete string quote before  send to load_waypoint_file
@@ -116,10 +116,17 @@ bool getWaypointListService(miltbot_map::GetWaypointList::Request &req,
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "waypoint_server");
+    // ros::NodeHandle nh("~");
     ros::NodeHandle nh;
 
-    loadWaypoint(map);
-    ros::ServiceServer service = nh.advertiseService("get_waypoint_list", getWaypointListService);
+    std::string get_waypoint_list_service_name("get_waypoint_list");
+    std::string waypoint_list_file_name("waypoint_list.csv");
+
+    nh.param("get_waypoint_list_service",get_waypoint_list_service_name, get_waypoint_list_service_name);
+    nh.param("/waypoint_server/waypoint_list_file",waypoint_list_file_name, waypoint_list_file_name);
+
+    loadWaypoint(map, waypoint_list_file_name);
+    ros::ServiceServer service = nh.advertiseService(get_waypoint_list_service_name, getWaypointListService);
     ros::spin();
 
     return 0;
