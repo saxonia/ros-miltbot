@@ -51,9 +51,9 @@ void loadWaypointFile(Map &map, std::string filename) {
 
     //Count All Parameters
     size_t counter = tokenized.size();
-    std::cout << "[POINT_READER]Counter  : " << counter <<std::endl; 
+    std::cout << "[POINT_READER] Counter  : " << counter <<std::endl; 
     size_t point_amount = (size_t)(counter / 6.0);
-    std::cout << "[POINT_READER]Div Count : " << point_amount << " ,  File Count = " << waypoint_count <<std::endl;
+    std::cout << "[POINT_READER] Div Count : " << point_amount << " , File Count = " << waypoint_count <<std::endl;
 
     std::vector<std::string>::iterator word_it;
     word_it = tokenized.begin();
