@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 	ros::NodeHandle nh;
 
 	//Class
-	icreate::Robot robot;
+	icreate::Robot robot("B", "A");
 	icreate::SingleNavigation navigation;
 
 	std::string move_base_topic_name("/move_base");

@@ -49,6 +49,7 @@
   <build_depend>icreate_transportation</build_depend>
   <build_depend>icreate_state</build_depend>
   <build_depend>miltbot_map</build_depend>
+  <!--<build_depend>message_generation</build_depend>-->
   <run_depend>std_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>tf</run_depend>
@@ -58,6 +59,7 @@
   <run_depend>icreate_transportation</run_depend>
   <run_depend>icreate_state</run_depend>
   <run_depend>miltbot_map</run_depend>
+  <!--<run_depend>message_runtime</run_depend>-->
   
 
   <!-- The export tag contains other, unspecified, tags -->

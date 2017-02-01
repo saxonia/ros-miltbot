@@ -7,7 +7,7 @@
 // #include "robot.h"
 #include <iostream>
 #include <string>
-#include "icreate_navigation/single_navigation.h"
+#include "icreate_navigation/single_navigation_new.h"
 
 
 
@@ -174,7 +174,7 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
 
 void aaa(icreate::SingleNavigation &navigation, icreate::Robot &robot) {
 	ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
-    robot.sendStateRequest(navigation.doneRobotGoal(robot.current_state));
+    navigation.doneRobotGoal(robot);
 }
 
 int main(int argc, char** argv) {
@@ -182,39 +182,34 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "multifloor_test");
     ros::NodeHandle nh;
 
-    // Class
-    icreate::Robot robot;
-    icreate::SingleNavigation navigation;
-
     std::string move_base_topic_name("/move_base");
     std::string lift_file_path("/waypoint/build4_f20lift.csv");
-    std::string base_frame_id("/map");
+    std::string base_frame_id("map");
+    std::string robot_frame_id("base_footprint");
     std::string package_name("icreate_navigation");
-    int rate_value(30);
+    std::string building_name("Building 4");
+    std::string building_floor_name("Floor 20");
+    int polling_rate(30);
     nh.param("move_base_topic", move_base_topic_name, move_base_topic_name);
     nh.param("lift_file_path", lift_file_path, lift_file_path);
     nh.param("base_frame_id", base_frame_id, base_frame_id);
     nh.param("package_name", package_name, package_name);
-    nh.param("rate_value", rate_value, rate_value);
+    nh.param("polling_rate", polling_rate, polling_rate);
+
+    // Class
+    icreate::Robot robot(building_name, building_floor_name);
+    icreate::SingleNavigation navigation(building_name, building_floor_name);
+
     MoveBaseClient ac(move_base_topic_name, true);
 
-    ros::Rate r(rate_value);
-
-    navigation.readLiftFile(package_name, lift_file_path);
-
-    robot.setCurrentPosition("map", "base_footprint", "Building 4", "Floor 20");
+    ros::Rate r(polling_rate);
 
     waitMoveBaseServer(ac, 5.0);
 
-    // requestToCreateTimer = true;
-    // requestToSendStateReq = false;
 	isDoneGoal = false;
     isNextStep = false;
     doneGoalNumber = -1;
-    // requestToSetNewGoal = false;
 
-    navigation.target_iterator = navigation.targets.begin();
-    // navigation.lift = navigation.lifts.begin();
     initializeWaitLiftPosition("Lift Position");
 
     userInput(robot, navigation); 
@@ -263,13 +258,13 @@ int main(int argc, char** argv) {
             ROS_INFO("Loop Set New Goal");
             requestToSetNewGoal = false;
             navigation.setRobotGoal(base_frame_id);
-            ac.sendGoal(navigation.goal, 
+            ac.sendGoal(navigation.getRobotGoal(), 
                         boost::bind(&goalDoneCallback_state, _1, _2), 
                         boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
         }
         
         if(navigation.requestToCreateTimer) {
-			navigation.setTimer(10);
+			navigation.createTimer(10);
 		}
     }
 

@@ -1,8 +1,7 @@
 #include <ros/ros.h>
-#include <std_msgs/String.h>
-#include <std_srvs/Empty.h>
+#include <iostream>
 
-#include "icreate_navigation/single_navigation_new.h"
+#include "icreate_navigation/multi_navigation.h"
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -65,48 +64,45 @@ void goalActiveCallback(){
 void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
 }
 
-void setGoalSucceedEvent(icreate::SingleNavigation &single_navigation, icreate::Robot &robot) {
+void setGoalSucceedEvent(icreate::MultiNavigation &multi_navigation, icreate::Robot &robot) {
     ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
-    single_navigation.doneRobotGoal(robot);
+    multi_navigation.doneRobotGoal(robot);
 }
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "waypoint_navigation_new");
+    ros::init(argc, argv, "multifloor_navigation");
     ros::NodeHandle nh;
 
-    std::string move_base_topic_name("/move_base");
-    // std::string base_frame_id("/map");
     std::string base_frame_id("map");
     std::string robot_frame_id("base_footprint");
-    std::string package_name("icreate_navigation");
-    std::string building_name("Building 4");
-    std::string building_floor_name("Floor 20");
-	int polling_rate(30);
+    int polling_rate(30);
     int timer_duration(10);
-    nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
-    nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
-    nh.param("/waypoint_navigation/package_name", package_name, package_name); 
-	nh.param("/waypoint_navigation/polling_rate", polling_rate, polling_rate);
-    nh.param("/waypoint_navigation/timer_duration", timer_duration, timer_duration);
-    nh.param("/waypoint_navigation/building", building_name, building_name);
-    nh.param("/waypoint_navigation/building_floor", building_floor_name, building_floor_name);
-
-    //Initialize Class
-    icreate::SingleNavigation single_navigation(building_name, building_floor_name);
-    icreate::Robot robot(building_name, building_floor_name);
+    std::string move_base_topic_name("/move_base");
     
-    MoveBaseClient ac(move_base_topic_name, true);
 
-    // Callback polling Rate 
-    ros::Rate r(polling_rate);
+    nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
+    nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
+    nh.param("/waypoint_navigation/polling_rate", polling_rate, polling_rate);
+
+    icreate::Robot robot("Building 4", "Floor 20");
+    robot.setCurrentPosition(base_frame_id, robot_frame_id, "Building 4", "Floor 20");
+    icreate::MultiNavigation multi_navigation;
+    multi_navigation.addSingleNavigation("Building 4", "Floor 20");
+    multi_navigation.addSingleNavigation("Building 4", "Floor 17");
+
+    MoveBaseClient ac(move_base_topic_name, true);
     waitMoveBaseServer(ac, 5.0);
 
-    single_navigation.setupNavigationQueue(robot);
-    single_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
+    ros::Rate r(polling_rate);
+
+    multi_navigation.setupTargetQueue(robot);
+    multi_navigation.verifyTarget(robot);
+    multi_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
     isDoneGoal = false;
     doneGoalNumber = -1;
     isNextStep = false;
-    single_navigation.requestToCreateTimer = true;
+    multi_navigation.navigations_[multi_navigation.nav_idx].requestToCreateTimer = true;
+    
     while(ros::ok()) {
         ros::spinOnce();
         r.sleep();
@@ -115,40 +111,43 @@ int main(int argc, char** argv) {
 			isDoneGoal = false;
 			if(doneGoalNumber == 1)
 			{
-				setGoalSucceedEvent(single_navigation, robot);
+				setGoalSucceedEvent(multi_navigation, robot);
                 isNextStep = true;
 			}
             else {
-                single_navigation.setupNavigationQueue(robot);
-                single_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
+                // multi_navigation.setupNavigationQueue(robot);
+                // single_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
                 // single_navigation.runRecoveryMode();
             }
 		}
 
         if(isNextStep) {
             isNextStep = false;
-            if(!single_navigation.setNextStepMode(robot)) {
+            if(!multi_navigation.setNextStepMode(robot)) {
                 return -3;
             }
-            single_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
+            multi_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
         }
 
-        if(single_navigation.requestToSetNewGoal) {
+        if(multi_navigation.navigations_[multi_navigation.nav_idx].requestToSetNewGoal) {
             ROS_INFO("Loop Set New Goal");
-            single_navigation.requestToSetNewGoal = false;
-            single_navigation.setRobotGoal(base_frame_id);
-            // isDoneGoal = true;
-            // doneGoalNumber = 1;
-            ac.sendGoal(single_navigation.getRobotGoal(), 
+            multi_navigation.navigations_[multi_navigation.nav_idx].requestToSetNewGoal = false;
+            if(multi_navigation.navigation_case == 1) {
+                multi_navigation.navigations_[multi_navigation.nav_idx].setRobotGoal(robot_frame_id);
+            }
+            else {
+                multi_navigation.navigations_[multi_navigation.nav_idx].setRobotGoal(base_frame_id);
+            }
+            ROS_WARN("%lf",multi_navigation.navigations_[multi_navigation.nav_idx].getRobotGoal().target_pose.pose.position.x);
+            ac.sendGoal(multi_navigation.navigations_[multi_navigation.nav_idx].getRobotGoal(), 
                       boost::bind(&goalDoneCallback_state, _1, _2), 
                       boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
         }
 
-        if(single_navigation.requestToCreateTimer) {
-			single_navigation.createTimer(timer_duration);
+        if(multi_navigation.navigations_[multi_navigation.nav_idx].requestToCreateTimer) {
+			multi_navigation.navigations_[multi_navigation.nav_idx].createTimer(timer_duration);
 		}
-
     }
-    ROS_INFO("Exiting Waypoint Navigation");
+
     return 0;
 }
