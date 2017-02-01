@@ -49,49 +49,58 @@ class MoveBaseGoalData {
 
 class Robot {
     public:
-        Robot(void);
+        Robot(std::string building, std::string building_floor);
 
         ~Robot(void);
 
         bool setCurrentPosition(std::string base_frame_id, std::string robot_frame_id, 
                                 std::string building, std::string building_floor);
 
-        // move_base_msgs::MoveBaseGoal getCurrentPosition();
         MoveBaseGoalData getCurrentPosition();
 
-        // bool setEndPosition(move_base_msgs::MoveBaseGoal goal);
-        bool setEndPosition(MoveBaseGoalData data);
+        bool setStartPosition(MoveBaseGoalData &data);
+
+        MoveBaseGoalData getStartPosition();
+
+        bool setEndPosition(MoveBaseGoalData &data);
+
+        MoveBaseGoalData getEndPosition();
+        
+        void addTargetQueue(MoveBaseGoalData data);
+
+        void deleteTargetQueue(int idx);
+
+        void setNavigationMode();
+
+        int getNavigationMode();
 
         void sendStateRequest(std::string state_request);    
 
     private:
 
     public:
-        // move_base_msgs::MoveBaseGoal    startPosition;
-        // move_base_msgs::MoveBaseGoal    endPosition;
-        // move_base_msgs::MoveBaseGoal    currentPosition;
         MoveBaseGoalData    startPosition;
         MoveBaseGoalData    endPosition;
         MoveBaseGoalData    currentPosition;
 
-        //Publisher & Subscriber
-        ros::Publisher state_req_pub;
-        ros::Subscriber state_sub;
-
         //Service Client
         ros::ServiceClient client;
 
+        std::vector<MoveBaseGoalData> target_queue;
+
         std::string current_state;
 
-        // Request Flags
-        // bool requestToSendStateReq;
+        std::string building;
+        std::string building_floor;
 
     private:
         //NodeHandle
         ros::NodeHandle nh_;
 
-        const std::string state_sub_topic = "/state";
-        const std::string set_robot_state_service = "/set_robot_state";
+        int navigation_mode;
+
+        std::string state_sub_topic_name_;
+        std::string set_robot_state_service_name_;
 };
 
 }

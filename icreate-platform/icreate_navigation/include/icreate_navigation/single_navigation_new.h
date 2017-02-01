@@ -5,6 +5,7 @@
 #include <std_srvs/Empty.h>
 
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 #include "icreate_navigation/robot.h"
@@ -19,21 +20,21 @@ namespace icreate {
 
 class SingleNavigation {
     public:
-        SingleNavigation();
-
         SingleNavigation(std::string building, std::string building_floor);
 
-        ~SingleNavigation();
+        ~SingleNavigation(void);
 
         void setRobotTarget(MoveBaseGoalData &data);
 
+        // void setRobotTarget();
+        
         MoveBaseGoalData getRobotTarget();
 
         void setRobotGoal(std::string frame_id);
 
         move_base_msgs::MoveBaseGoal getRobotGoal();
 
-        void doneRobotGoal();
+        void doneRobotGoal(Robot &robot);
         
         bool sendWaypointRequest(std::string building, std::string building_floor);
 
@@ -41,17 +42,15 @@ class SingleNavigation {
 
         void displayLiftWaypoints();
 
-        bool showNavigationMenu(std::string base_frame_id, std::string robot_frame_id);
+        void setupRobotToRun(Robot &robot, std::string base_frame_id, std::string robot_frame_id);
+
+        bool setupNavigationQueue(Robot &robot);
 
         int showWaypointMenu();
 
-        bool setNextStepMode();
+        bool setNextStepMode(Robot &robot);
 
         bool runRecoveryMode();
-        
-        void setNavigationMode(int mode);
-
-        int getNavigationMode();
 
         void createTimer(int duration);
 
@@ -64,11 +63,15 @@ class SingleNavigation {
 
         void setWaypoint(std::vector<miltbot_map::Waypoint> waypoints, std::string building_floor);
 
-    public:
-        icreate::Robot robot;
+        std::string substrBuildingFloor(std::string building_floor);
 
+    public:
         std::string building;
         std::string building_floor;
+        int building_floor_num;
+
+        std::vector<MoveBaseGoalData> targets;
+        std::vector<MoveBaseGoalData> lifts;
 
         bool requestToSetNewGoal;
         bool requestToCreateTimer;
@@ -86,17 +89,13 @@ class SingleNavigation {
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
 
-        MoveBaseGoalData target;
+        MoveBaseGoalData target;      
+        // std::vector<MoveBaseGoalData>::iterator target_iterator; 
 
-        std::vector<MoveBaseGoalData> target_queue;
-        std::vector<MoveBaseGoalData> targets;
-        std::vector<MoveBaseGoalData> lifts;      
-        std::vector<MoveBaseGoalData>::iterator target_iterator; 
+        bool isFinishQueue;
 
         std::string base_frame_id; 
         std::string robot_frame_id; 
-
-        int navigation_mode;
 
         std::string clear_costmap_service_name_;
         std::string get_waypoint_list_service_name_;
