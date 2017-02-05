@@ -20,23 +20,35 @@ std::vector<nav_msgs::OccupancyGrid> maps;
 geometry_msgs::PoseWithCovarianceStamped initial_pose;
 int floor_flag = 0;
 bool pub_flag = false;
+bool get_map1 = true;
+bool get_map2 = true;
+bool get_map3 = true;
 
 void mapCallback(const nav_msgs::OccupancyGrid &msg) {
-    map1 = msg;
-    ROS_INFO("Map1: %d",map1.info.width);
-    pub_flag = true;
+    if(get_map1) {
+        map1 = msg;
+        ROS_INFO("Map1: %d",map1.info.width);
+        pub_flag = true;
+        get_map1 = false;
+    }
 }
 
 void mapCallback2(const nav_msgs::OccupancyGrid &msg) {
-    map2 = msg;
-    ROS_INFO("Map2: %d",map2.info.width);
-    pub_flag = true;
+    if(get_map2) {
+        map2 = msg;
+        ROS_INFO("Map2: %d",map2.info.width);
+        pub_flag = true;
+        get_map2 = false;
+    }
 }
 
 void mapDynamicCallback(const nav_msgs::OccupancyGrid &msg) {
-    map_dynamic = msg;
-    ROS_INFO("Map Dynamic: %d",map_dynamic.info.width);
-    pub_flag = true;
+    if(get_map3) {
+        map_dynamic = msg;
+        ROS_INFO("Map Dynamic: %d",map_dynamic.info.width);
+        pub_flag = true;
+        get_map3 = false;
+    }
 }
 
 void initialposeCallback(const geometry_msgs::PoseWithCovarianceStamped &msg) {
@@ -72,7 +84,7 @@ bool setMapServerService(miltbot_map::SetMapServer::Request &req,miltbot_map::Se
 }
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "map_server");
+    ros::init(argc, argv, "maps_server");
     ros::NodeHandle nh;
 
     std::string map1_sub_topic_name("/build4_f17/map");
@@ -80,7 +92,7 @@ int main(int argc, char** argv) {
     std::string map_dynamic_sub_topic_name("/map_dynamic");
     std::string set_map_service_name("set_map");
     std::string map_pub_topic_name("map");
-    // std::string initialpose_sub_topic_name();
+    std::string initialpose_sub_topic_name();
 
     nh.param("map1_sub_topic", map1_sub_topic_name, map1_sub_topic_name);
     nh.param("map2_sub_topic", map2_sub_topic_name, map2_sub_topic_name);
@@ -88,21 +100,25 @@ int main(int argc, char** argv) {
     nh.param("set_map_service", set_map_service_name, set_map_service_name);
     nh.param("map_pub_topic", map_pub_topic_name, map_pub_topic_name);
     
-    ros::Subscriber map_sub = nh.subscribe(map1_sub_topic_name, 10, mapCallback);
-    ros::Subscriber map_sub2 = nh.subscribe(map2_sub_topic_name, 10, mapCallback2);
-    ros::Subscriber map_dynamic_sub = nh.subscribe(map_dynamic_sub_topic_name, 10, mapDynamicCallback);
+    ros::Subscriber map_sub = nh.subscribe(map1_sub_topic_name, 1, mapCallback);
+    ros::Subscriber map_sub2 = nh.subscribe(map2_sub_topic_name, 1, mapCallback2);
+    ros::Subscriber map_dynamic_sub = nh.subscribe(map_dynamic_sub_topic_name, 1, mapDynamicCallback);
     // ros::Subscriber initialpose_sub = nh.subscribe("/icreate/amcl_pose", 1000, initialposeCallback);
     // ros::Subscriber floor_sub = nh.subscribe("/icreate/building", 1000, floorCallback);
-    ros::ServiceServer service = nh.advertiseService(set_map_service_name, setMapServerService);
-    ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>(map_pub_topic_name, 1000);
-    // ros::Rate r(30);
+    // ros::ServiceServer service = nh.advertiseService(set_map_service_name, setMapServerService);
+    ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>(map_pub_topic_name, 1, true);
+    ros::Rate r(10);
     map = &map2;
+    get_map1 = true;
+    get_map2 = true;
     while(ros::ok()) {
         ros::spinOnce();
         if(pub_flag) {
-            map_pub.publish(*map);
+        map_pub.publish(*map);
             pub_flag = false;
         }
+        r.sleep();
     }
+    // ros::spin();
     return 0;
 }
