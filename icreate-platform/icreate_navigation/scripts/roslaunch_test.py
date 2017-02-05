@@ -3,7 +3,7 @@
 import roslaunch
 import rospy
 
-from icreate_lift_navigation.srv import RunGmappingService
+from icreate_navigation.srv import RunGmappingService
 from miltbot_map.srv import SetMapServer
 
 ROOT_PATH = "/home/sax/miltbot_catkin_ws/src/ros-miltbot/icreate-platform/"
@@ -51,7 +51,7 @@ def gmapping_callback(msg):
 if __name__ == '__main__':
     rospy.init_node('dynamic_map_launch', anonymous=True)
     rospy.on_shutdown(shutdown)
-    set_map_service_name_ = "set_map"
+    set_map_service_name_ = "set_map_service"
     rospy.Service('run_gmapping', RunGmappingService, gmapping_callback)
     flag = False 
     while not rospy.is_shutdown():
