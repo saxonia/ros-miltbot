@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
-  icreate_navigation
+  # icreate_navigation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -145,8 +145,8 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(icreate_transportation_node src/icreate_transportation_node.cpp)
-add_executable(single_test src/single_test.cpp)
-add_executable(single_transportation_new src/single_transportation_new.cpp)
+# add_executable(single_test src/single_test.cpp)
+# add_executable(single_transportation src/single_transportation.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -156,8 +156,8 @@ add_executable(single_transportation_new src/single_transportation_new.cpp)
 # target_link_libraries(icreate_transportation_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(single_test ${catkin_LIBRARIES})
-target_link_libraries(single_transportation_new ${catkin_LIBRARIES} robot)
+# target_link_libraries(single_test ${catkin_LIBRARIES})
+# target_link_libraries(single_transportation ${catkin_LIBRARIES} robot)
 
 #############
 ## Install ##
