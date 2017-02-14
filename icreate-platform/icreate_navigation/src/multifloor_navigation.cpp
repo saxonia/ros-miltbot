@@ -126,16 +126,19 @@ int main(int argc, char** argv) {
             if(!multi_navigation.setNextStepMode(robot)) {
                 return -3;
             }
+            multi_navigation.verifyTarget(robot);
             multi_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
         }
 
         if(multi_navigation.navigations_[multi_navigation.nav_idx].requestToSetNewGoal) {
             ROS_INFO("Loop Set New Goal");
             multi_navigation.navigations_[multi_navigation.nav_idx].requestToSetNewGoal = false;
-            if(multi_navigation.navigation_case == 1) {
+            if(multi_navigation.lift_navigation_step > 1 && multi_navigation.lift_navigation_step < 6) {
+                ROS_INFO("Loop Set New Goal 1");
                 multi_navigation.navigations_[multi_navigation.nav_idx].setRobotGoal(robot_frame_id);
             }
             else {
+                ROS_INFO("Loop Set New Goal 2");
                 multi_navigation.navigations_[multi_navigation.nav_idx].setRobotGoal(base_frame_id);
             }
             ROS_WARN("%lf",multi_navigation.navigations_[multi_navigation.nav_idx].getRobotGoal().target_pose.pose.position.x);

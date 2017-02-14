@@ -133,8 +133,7 @@ include_directories(
 # add_library(icreate_navigation
 #   src/${PROJECT_NAME}/icreate_navigation.cpp
 # )
-add_library(robot src/robot.cpp src/single_navigation.cpp )
-add_library(robot_new src/robot.cpp src/single_navigation_new.cpp src/multi_navigation.cpp)
+add_library(robot src/robot.cpp src/single_navigation.cpp src/multi_navigation.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -146,7 +145,6 @@ add_library(robot_new src/robot.cpp src/single_navigation_new.cpp src/multi_navi
 add_executable(waypoint_navigation src/waypoint_navigation.cpp)
 add_executable(multifloor_test src/multifloor_test.cpp)
 # add_executable(lift_navigation src/lift_navigation.cpp)
-add_executable(waypoint_navigation_new src/waypoint_navigation_new.cpp)
 add_executable(multifloor_navigation src/multifloor_navigation.cpp)
 
 add_executable(single_navigation_test test/single_navigation_test.cpp)
@@ -164,14 +162,12 @@ add_executable(multi_navigation_test test/multi_navigation_test.cpp)
 # )
 target_link_libraries(robot ${catkin_LIBRARIES})
 target_link_libraries(waypoint_navigation ${catkin_LIBRARIES} robot)
-target_link_libraries(multifloor_test ${catkin_LIBRARIES} robot_new)
+target_link_libraries(multifloor_test ${catkin_LIBRARIES} robot)
 # target_link_libraries(lift_navigation ${catkin_LIBRARIES})
-target_link_libraries(robot_new ${catkin_LIBRARIES})
-target_link_libraries(waypoint_navigation_new ${catkin_LIBRARIES} robot_new)
-target_link_libraries(multifloor_navigation ${catkin_LIBRARIES} robot_new)
+target_link_libraries(multifloor_navigation ${catkin_LIBRARIES} robot)
 
-target_link_libraries(single_navigation_test ${catkin_LIBRARIES} robot_new)
-target_link_libraries(multi_navigation_test ${catkin_LIBRARIES} robot_new)
+target_link_libraries(single_navigation_test ${catkin_LIBRARIES} robot)
+target_link_libraries(multi_navigation_test ${catkin_LIBRARIES} robot)
 
 
 #############

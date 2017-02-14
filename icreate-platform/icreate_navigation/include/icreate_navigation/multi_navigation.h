@@ -4,7 +4,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "icreate_navigation/single_navigation_new.h"
+#include "icreate_navigation/single_navigation.h"
 #include "icreate_navigation/RunGmappingService.h"
 #include "miltbot_map/SetMapServer.h"
 
