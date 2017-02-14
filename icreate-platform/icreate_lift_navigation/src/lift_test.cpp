@@ -1,8 +1,9 @@
 #include <ros/ros.h>
 #include <iostream>
+#include <std_msgs/String.h>
 
-#include <icreate_navigation/single_navigation.h>
-// #include "single_navigation.h"
+#include "icreate_navigation/single_navigation.h"
+#include "icreate_lift_navigation/GetMiddleRange.h"
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -25,19 +26,20 @@ void initializeSimpleRotateMoveBase(std::string goal_name) {
     forward_goal.setGoalName(goal_name);
 }
 
-void initializeSimpleForwardMoveBaseTarget(std::string goal_name) {
+void initializeSimpleForwardMoveBaseTarget(ros::NodeHandle &nh,std::string goal_name) {
     //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
     //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
     float x_position = 0;
-    // ros::ServiceClient client = nh.serverClient<std_msgs::Int16>("/get_depth_distance");
-    // std_msgs::Int16 srv;
-    // if(client.call(srv)) {
-        // x_position = srv.response.distance;
-    // }
-    // else {
-        // ROS_ERROR("Fail to call Service get_depth_distance");
-    // }
-    x_position = 2.5;
+    ros::ServiceClient client = nh.serviceClient<icreate_lift_navigation::GetMiddleRange>("get_middle_range");
+    icreate_lift_navigation::GetMiddleRange srv;
+    if(client.call(srv)) {
+        x_position = srv.response.mid_range;
+    }
+    else {
+        ROS_ERROR("Fail to call Service get_depth_distance");
+    }
+    // x_position = 2.5;
+    x_position -= 0.3;
     move_base_msgs::MoveBaseGoal new_point;
     new_point.target_pose.pose.position.x = x_position;
     new_point.target_pose.pose.orientation.w = 1;
@@ -60,10 +62,11 @@ bool waitMoveBaseServer(MoveBaseClient &ac) {
 }
 
 void setupToRunRobot(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
+    robot.setCurrentPosition("map", "base_footprint", "Building 4", "Floor 20");
     single_navigation.setRobotTarget(forward_goal);
     robot.setEndPosition(forward_goal);
-	single_navigation.requestToSetNewGoal = true;
-	robot.sendStateRequest("SINGLERUN");
+    single_navigation.requestToSetNewGoal = true;
+	robot.sendStateRequest("USINGLIFT");
     ROS_INFO("Setup Robot: %s",forward_goal.getGoalName().c_str());
 }
 
@@ -89,7 +92,7 @@ bool Start() {
 
 bool waitUserInputLift() {
     bool flag;
-    while(true) {
+    while(ros::ok()) {
         std::cout << "Waiting for lift stop on the target floor" << std::endl;
         std::cout << "Please press \"y\" to start navigation " << std::endl;
         std::cout << "or Please press \"n\" to stop navigation " << std::endl;
@@ -110,7 +113,7 @@ bool waitUserInputLift() {
     return flag;
 }
 
-bool getNextStep(icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
+bool getNextStep(ros::NodeHandle &nh, icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
     // if(count == 1) { 
     //     finish = true;
     //     return false;
@@ -127,7 +130,7 @@ bool getNextStep(icreate::SingleNavigation &single_navigation,icreate::Robot &ro
         if(!flag) {
             return false;
         }
-        initializeSimpleForwardMoveBaseTarget("Going Out Lift");
+        initializeSimpleForwardMoveBaseTarget(nh, "Going Out Lift");
         setupToRunRobot(single_navigation, robot);
         return true;
     }
@@ -177,15 +180,12 @@ void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedba
 
 void callDoneRobotGoal(icreate::SingleNavigation &single_navigation, icreate::Robot &robot) {
     ROS_INFO("SUCCEEDED %s",robot.current_state.c_str());
-	robot.sendStateRequest(single_navigation.doneRobotGoal(robot.current_state));
+	single_navigation.doneRobotGoal(robot);
 }
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "lift_test");
     ros::NodeHandle nh;
-
-    icreate::Robot robot("Building 4", "Floor 20");
-    icreate::SingleNavigation single_navigation;
 
     std::string move_base_topic("/move_base");
     int polling_rate(30);
@@ -193,6 +193,10 @@ int main(int argc, char** argv) {
     std::string robot_frame_id("base_footprint");
     nh.param("move_base_topic", move_base_topic, move_base_topic);
     nh.param("polling_rate", polling_rate, polling_rate);
+
+    icreate::Robot robot("Building 4", "Floor 20");
+    icreate::SingleNavigation single_navigation("Building 4", "Floor 20");
+
     MoveBaseClient ac(move_base_topic, true);
 
     // Callback polling rate
@@ -207,7 +211,6 @@ int main(int argc, char** argv) {
     // }
     waitMoveBaseServer(ac);
 
-    initializeSimpleForwardMoveBaseTarget("Going To Lift");
     isDoneGoal = false;
     doneGoalNumber = -1;
     finish = false;
@@ -216,9 +219,10 @@ int main(int argc, char** argv) {
     if(!Start())
         return -3;
 
+    initializeSimpleForwardMoveBaseTarget(nh, "Going To Lift");
     setupToRunRobot(single_navigation, robot);
 
-    while(ros::ok() && !finish) {
+    while(ros::ok()) {
         ros::spinOnce();
         r.sleep();
 
@@ -230,26 +234,29 @@ int main(int argc, char** argv) {
                 callDoneRobotGoal(single_navigation, robot);
                 isNextStep = true;
 			}
+            else {
+                Start();
+            }
 		}
 
         if(isNextStep) {
             isNextStep = false;
-            if(!getNextStep(single_navigation, robot))
+            if(!getNextStep(nh, single_navigation, robot))
                 break;
         }
 
         if(single_navigation.requestToSetNewGoal) {
             ROS_INFO("Loop Set New Goal");
             single_navigation.requestToSetNewGoal = false;
-            single_navigation.setRobotGoal("/base_footprint");
-            ac.sendGoal(single_navigation.goal, 
+            single_navigation.setRobotGoal(robot_frame_id);
+            ac.sendGoal(single_navigation.getRobotGoal(), 
                 boost::bind(&goalDoneCallback, _1, _2), 
                 boost::bind(&goalActiveCallback), 
                 boost::bind(&goalFeedbackCallback, _1));
         }
 
         if(single_navigation.requestToCreateTimer) {
-			single_navigation.setTimer(10);
+			single_navigation.createTimer(10);
 		}
     }
 

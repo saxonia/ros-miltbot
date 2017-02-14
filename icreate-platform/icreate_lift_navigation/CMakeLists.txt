@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   icreate_navigation
   icreate_state
+  message_generation
 )
 
 
@@ -55,11 +56,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
+add_service_files(
+  FILES
 #   Service1.srv
 #   Service2.srv
-# )
+GetMiddleRange.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -69,10 +71,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  # std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -106,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES icreate_lift_navigation
-# LIBRARIES icreate_navigation
+LIBRARIES robot
 #  CATKIN_DEPENDS roscpp rospy std_msgs icreate_navigation
 #  DEPENDS system_lib
 )
