@@ -66,7 +66,7 @@ void initialposeCallback(const geometry_msgs::PoseWithCovarianceStamped &msg) {
 //     }
 // }
 
-bool setMapServerService(miltbot_map::SetMapServer::Request &req,miltbot_map::SetMapServer::Response &res) {
+bool setMapServerService(miltbot_map::SetMapServer::Request &req, miltbot_map::SetMapServer::Response &res) {
     building_floor_req = req.floor;
     if(building_floor_req == "Floor 20") {
         map = &map2;
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
     std::string map1_sub_topic_name("/build4_f17/map");
     std::string map2_sub_topic_name("/build4_f20/map");
     std::string map_dynamic_sub_topic_name("/map_dynamic");
-    std::string set_map_service_name("set_map");
+    std::string set_map_service_name("set_map_service");
     std::string map_pub_topic_name("map");
     std::string initialpose_sub_topic_name();
 
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     ros::Subscriber map_dynamic_sub = nh.subscribe(map_dynamic_sub_topic_name, 1, mapDynamicCallback);
     // ros::Subscriber initialpose_sub = nh.subscribe("/icreate/amcl_pose", 1000, initialposeCallback);
     // ros::Subscriber floor_sub = nh.subscribe("/icreate/building", 1000, floorCallback);
-    // ros::ServiceServer service = nh.advertiseService(set_map_service_name, setMapServerService);
+    ros::ServiceServer service = nh.advertiseService(set_map_service_name, setMapServerService);
     ros::Publisher map_pub = nh.advertise<nav_msgs::OccupancyGrid>(map_pub_topic_name, 1, true);
     ros::Rate r(10);
     map = &map2;

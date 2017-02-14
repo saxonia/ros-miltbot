@@ -20,7 +20,9 @@ class robotState {
             BACKTOBASE = 3,
             SENDSUPPLIES = 4,
             SINGLERUN = 5,
-            EXECUTESEQ = 6
+            EXECUTESEQ = 6,
+            USINGLIFT = 7
+            
         };
         std::string state_req;
 
@@ -91,6 +93,8 @@ std::string robotState::convertToStateName(int state) {
         case 6:
             stateName = "EXECUTESEQ";
             break;
+        case 7:
+            stateName = "USINGLIFT";
     }
     return stateName;
 }
@@ -121,6 +125,9 @@ void robotState::setState(std::string s) {
     }
     else if(s == "EXECUTESEQ") {
         state = 6;
+    }
+    else if(s == "USINGLIFT") {
+        state = 7;
     }
 }
 

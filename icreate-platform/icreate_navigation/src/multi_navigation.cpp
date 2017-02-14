@@ -60,21 +60,27 @@ SingleNavigation MultiNavigation::getSingleNavigation(size_t idx) {
 
 void MultiNavigation::doneRobotGoal(Robot &robot) {
     this->navigations_[this->nav_idx].doneRobotGoal(robot);
+    if(this->navigation_case == 1) {
+        this->lift_navigation_step++;
+    }
 }
 
 void MultiNavigation::setupRobotToRun(Robot &robot, std::string base_frame_id, std::string robot_frame_id) {
-    robot.setCurrentPosition(base_frame_id, robot_frame_id, robot.building, robot.building_floor);
+    // robot.setCurrentPosition(base_frame_id, robot_frame_id, robot.building, robot.building_floor);
     this->navigations_[this->nav_idx].setupRobotToRun(robot, base_frame_id, robot_frame_id);
 }
 
 bool MultiNavigation::verifyTarget(Robot &robot) {
-    for(int i = 0; i < this->navigations_.size(); i++) {
-        ROS_INFO("%s %s",this->navigations_[i].building.c_str(), robot.building.c_str());
-        ROS_INFO("%s %s",this->navigations_[i].building_floor.c_str(), robot.building_floor.c_str());
-        if(this->navigations_[i].building == robot.building 
-            && this->navigations_[i].building_floor == robot.building_floor) {
-            this->nav_idx = i;
-            break;
+    if(!(this->navigations_[this->nav_idx].building == robot.building 
+        && this->navigations_[this->nav_idx].building_floor == robot.building_floor)) {
+        for(int i = 0; i < this->navigations_.size(); i++) {
+            ROS_INFO("%s %s",this->navigations_[i].building.c_str(), robot.building.c_str());
+            ROS_INFO("%s %s",this->navigations_[i].building_floor.c_str(), robot.building_floor.c_str());
+            if(this->navigations_[i].building == robot.building 
+                && this->navigations_[i].building_floor == robot.building_floor) {
+                this->nav_idx = i;
+                break;
+            }
         }
     }
     this->navigation_case = -1;
@@ -84,15 +90,13 @@ bool MultiNavigation::verifyTarget(Robot &robot) {
     bool flag2 = verifyTargetFloor(robot.currentPosition, robot.target_queue[0]);
     if(flag1 && flag2) {
         this->navigation_case = 0;
+        this->navigations_[this->nav_idx].requestToSetNewGoal = true;
         ROS_INFO("Verify Target : case 0");
     }
     else if(flag1 && !flag2) {
         ROS_INFO("Verify Target : case 1");
         this->navigation_case = 1;
-        this->lift_navigation_step = 0;
         runLiftNavigation(robot);
-        ROS_INFO("SAx2");
-        
     }
     else {
         ROS_INFO("Verify Target : case 2");
@@ -127,6 +131,7 @@ bool MultiNavigation::setupTargetQueue(Robot &robot) {
     int navigation_mode = robot.getNavigationMode();
     int selected_point = -1;
     this->requestToSetNewGoal = false;
+    this->lift_navigation_step = 0;
     if(navigation_mode >= 0 && navigation_mode < 10) {
         std::pair<int, int> selected = this->showWaypointMenu();
         if(selected.first == 99 || selected.second == 99) {
@@ -199,48 +204,172 @@ bool MultiNavigation::setNextStepMode(Robot &robot) {
     //เช็คว่าก่อนหน้านี้ทำอะไรมา
     //navigation_case == 0 อยู่ชั้นเดียวกัน รัน target_queue ต่อไปได้เลย 
     //// รัน nextStepMode ของ single_navigation ได้เลย 
-    //navigation_case == 1 อยู่คนละชั้น 
-    //// มี 3 step ย่อย ๑เดินไปที่จุดรอลิฟต์ ๒รอรับค่าลิฟต์ที่มาถึง มาแล้วให้หุ่นไปหยุดที่หน้าลิฟต์ 
-    //// ๓เช็คว่าประตูลิฟต์เปิดรึยัง ถ้ายังรอต่อจนลิฟต์เปิด ถ้าเปิดแล้วสั่งรัน service gmapping
-    //// แล้วสั่งหุ่นเดินเข้าลิฟต์ ๔หุ่นหมุนตัวในลิฟต์ ๕หุ่นเดินออกจากลิฟต์ 
-
-    switch(this->navigation_case) {
-        //CASE : On Same Building Same Floor
-        case 0: {
-            this->navigations_[this->nav_idx].setNextStepMode(robot);
+    std::string state;
+    switch(robot.getNavigationMode()) {
+        //MODE : Go to Specific Point
+	    case 0: {
+            if(robot.target_queue.size() == 0) {
+	    	    this->setupTargetQueue(robot);
+            }
+            else {
+                state = "SINGLERUN";
+                robot.sendStateRequest(state);
+            }
             break;
         }
-        //CASE : On Same Building Different Floor
-        case 1: {
-            this->runLiftNavigation(robot);
+		//MODE : Going and Wait for Cargo
+		case 1 : { 
+            this->setupTargetQueue(robot);
             break;
         }
-        //CASE : On Different Building
-        case 2: {
+		//MODE : Delivery to Target Place
+		case 2: {
+            this->setupTargetQueue(robot);
+	  		break;
+        }
+        //MODE : Going and Come Back to This Place
+		case 3: {
+            if(this->isFinishQueue) {
+                this->setupTargetQueue(robot);
+            }
+            else {
+                state = "GOING";
+                robot.addTargetQueue(robot.getStartPosition());
+                robot.sendStateRequest(state);
+                this->isFinishQueue = true;
+            }
             break;
         }
+        // //MODE : Going and Come Back to Base Station
+	    // case 4: {
+        //     if(this->isFinishQueue) {
+        //         this->setupTargetQueue(robot);
+        //     }
+        //     else {
+        //         state = "BACKTOBASE"; 
+        //         robot.addTargetQueue(this->targets[0]);
+        //         robot.sendStateRequest(state);
+        //         this->isFinishQueue = true;
+        //     }
+        //     break;
+        // }
+        // //MODE : Going to n Places and Send Supplies in 1 Place
+	    // case 5: {
+        //     if(robot.target_queue.size() == 0) {
+        //         if(this->isFinishQueue) {
+        //             this->setupTargetQueue(robot);
+        //         }
+        //         else {
+        //             state = "SENDSUPPLIES";
+        //             selected_point = this->showWaypointMenu();
+        //             if(selected_point == 99) {
+        //                 return false;
+        //             }
+        //             robot.addTargetQueue(this->targets[selected_point]);
+        //             this->isFinishQueue = true;
+        //         }
+        //     }
+        //     else {
+        //         state = "GOING";
+        //     }
+        //     robot.sendStateRequest(state);
+        //     break;
+        // }
+        // //MODE : Going 1 Place and Send Supplies in n Places
+	    // case 6: {
+        //     if(robot.target_queue.size() == 0) {
+        //         if(this->isFinishQueue) {
+        //             this->setupTargetQueue(robot);
+        //         }
+        //         else {
+        //             while(ros::ok()) {
+        //                 std::cout << "Please insert point !!!" << std::endl;
+        //                 selected_point = this->showWaypointMenu();
+        //                 if(selected_point == 99) {
+        //                     break;
+        //                 }
+        //                 robot.addTargetQueue(this->targets[selected_point]);
+        //             }
+        //             this->isFinishQueue = true;
+        //         }   
+        //     }
+        //     else {
+        //         state = "SENDSUPPLIES";
+        //     }
+        //     robot.sendStateRequest(state);
+        //     break;
+        // }
+        // //MODE : Going n Places and Send Supplies in n Places
+	    // case 7: {
+        //     if(robot.target_queue.size() != 0 && !this->isFinishQueue) {
+        //         state = "GOING";
+        //     }
+        //     else if(robot.target_queue.size() != 0 && this->isFinishQueue) {
+        //         state = "SENDSUPPLIES";
+        //     }
+        //     else {
+        //         if(this->isFinishQueue) {
+        //             this->setupNavigationQueue(robot);
+        //         }
+        //         else {
+        //             while(ros::ok()) {
+        //                 std::cout << "Please insert point !!!" << std::endl;
+        //                 selected_point = this->showWaypointMenu();
+        //                 if(selected_point == 99) {
+        //                     break;
+        //                 }
+        //                 robot.addTargetQueue(this->targets[selected_point]);
+        //             }
+        //             this->isFinishQueue = true;
+        //         }
+        //         state = "SENDSUPPLIES";
+        //     }
+        //     robot.sendStateRequest(state);
+        //     break;
+        // }
+	  	// //MODE : Execute The Memorized Sequence
+		// case 10: {
+        //     ROS_WARN("Cannot Use This Mode Now");
+        //     return false; 
+        //     // continue;
+        // }
+        default:
+            ROS_WARN("Wrong Selected Navigation Mode");
+	        std::cout << "Please Try Again" << std::endl;
+            return false; 
     }
     return true;
 }
 
 void MultiNavigation::runLiftNavigation(Robot &robot) {
+    //navigation_case == 1 อยู่คนละชั้น 
+    //// มี 3 step ย่อย ๑เดินไปที่จุดรอลิฟต์ ๒รอรับค่าลิฟต์ที่มาถึง มาแล้วให้หุ่นไปหยุดที่หน้าลิฟต์ 
+    //// ๓เช็คว่าประตูลิฟต์เปิดรึยัง ถ้ายังรอต่อจนลิฟต์เปิด ถ้าเปิดแล้วสั่งรัน service gmapping
+    //// แล้วสั่งหุ่นเดินเข้าลิฟต์ ๔หุ่นหมุนตัวในลิฟต์ ๕หุ่นเดินออกจากลิฟต์ 
     switch(this->lift_navigation_step) {
         case 0: {
-            ROS_INFO("SAx3 %d %ld", this->nav_idx, this->navigations_[this->nav_idx].lifts.size() );
+            // ROS_INFO("SAx3 %d %ld", this->nav_idx, this->navigations_[this->nav_idx].lifts.size() );
             MoveBaseGoalData data = this->navigations_[this->nav_idx].lifts.back();
             robot.target_queue.insert(robot.target_queue.begin(), data);
+            robot.sendStateRequest("USINGLIFT");
+            this->navigations_[this->nav_idx].requestToSetNewGoal = true;
             break;
         }
         case 1: {
             int liftNumber = waitForIncomingLift();
             robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[liftNumber]);
+            robot.sendStateRequest("USINGLIFT");
+            this->navigations_[this->nav_idx].requestToSetNewGoal = true;
             break;
         }
         case 2: {
             bool flag;
             while(ros::ok()) {
-                if(!verifyLiftDoor()) {
-                    continue;
+                if(!this->verifyLiftDoor()) {
+                    int liftNumber = waitForIncomingLift();
+                    robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[liftNumber]);
+                    robot.sendStateRequest("USINGLIFT");
+                    this->navigations_[this->nav_idx].requestToSetNewGoal = true;
                 }
                 // ros::ServiceClient client = nh_.serviceClient<miltbot_map::SetMapServer>(set_map_service_name_);
                 // miltbot_map::SetMapServer set_map_srv;
@@ -257,11 +386,11 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
                 srv.request.task = "open";
                 if(client.call(srv)) {
                     flag = srv.response.success;
-                    break;
                 }
                 else {
                     ROS_WARN("Failed to run gmapping");
                 }
+                break;
             }
             if(flag) {
                 float x_position = 2.3;
@@ -270,27 +399,55 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
                 new_point.target_pose.pose.orientation.w = 1;
                 MoveBaseGoalData data("Going To Lift", new_point,"Building 4", "Floor 20 Lift");
                 robot.target_queue.insert(robot.target_queue.begin(),data);
+                this->navigations_[this->nav_idx].requestToSetNewGoal = true;
             }
             break;
         }
         case 3: {
-            move_base_msgs::MoveBaseGoal new_point;
-            new_point.target_pose.pose.orientation.z = -1.0;
-            new_point.target_pose.pose.orientation.w = 0.0;
-            MoveBaseGoalData data("Rotate In Lift", new_point,"Building 4", "Floor 20 Lift");
-            robot.target_queue.insert(robot.target_queue.begin(),data);
+            bool flag;
+            ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
+            icreate_navigation::RunGmappingService srv;
+            srv.request.task = "close";
+            if(client.call(srv)) {
+                flag = srv.response.success;
+                break;
+            }
+            else {
+                ROS_WARN("Failed to run gmapping");
+            }
+            if(flag) {
+                move_base_msgs::MoveBaseGoal new_point;
+                new_point.target_pose.pose.orientation.z = -1.0;
+                new_point.target_pose.pose.orientation.w = 0.0;
+                MoveBaseGoalData data("Rotate In Lift", new_point,"Building 4", "Floor 20 Lift");
+                robot.target_queue.insert(robot.target_queue.begin(),data);
+                this->navigations_[this->nav_idx].requestToSetNewGoal = true;
+            }
             break;
         }
         case 4: {
             std::cout << "Wait For Get Out Of Lift : " ;
             std::string in;
             std::cin >> in;
-            float x_position = 2.3;
-            move_base_msgs::MoveBaseGoal new_point;
-            new_point.target_pose.pose.position.x = x_position;
-            new_point.target_pose.pose.orientation.w = 1;
-            MoveBaseGoalData data("Going Out Lift", new_point,"Building 4", "Floor 20 Lift");
-            robot.target_queue.insert(robot.target_queue.begin(),data);
+            bool flag;
+            ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
+            icreate_navigation::RunGmappingService srv;
+            srv.request.task = "open";
+            if(client.call(srv)) {
+                flag = srv.response.success;
+            }
+            else {
+                ROS_WARN("Failed to run gmapping");
+            }
+            if(flag) {
+                float x_position = 2.3;
+                move_base_msgs::MoveBaseGoal new_point;
+                new_point.target_pose.pose.position.x = x_position;
+                new_point.target_pose.pose.orientation.w = 1;
+                MoveBaseGoalData data("Going Out Lift", new_point,"Building 4", "Floor 20 Lift");
+                robot.target_queue.insert(robot.target_queue.begin(),data);
+                this->navigations_[this->nav_idx].requestToSetNewGoal = true;
+            }
         }
         case 5: {
             bool flag;
@@ -305,11 +462,19 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
                 ROS_WARN("Failed to run gmapping");
             }
             this->navigation_case = 0;
+            client = nh_.serviceClient<miltbot_map::SetMapServer>("set_map_service");
+            miltbot_map::SetMapServer srv2;
+            srv2.request.floor = robot.target_queue[0].building_floor;
+            if(client.call(srv2)) {
+                flag = srv2.response.flag;
+            }
+            else {
+                ROS_WARN("Failed to run set map");
+            }
             break;
         }
 
     }
-    this->lift_navigation_step++;
 }
 
 std::pair<int, int> MultiNavigation::showWaypointMenu() {
@@ -346,7 +511,7 @@ int MultiNavigation::waitForIncomingLift() {
             continue;
         }
         this->navigations_[this->nav_idx].displayLiftWaypoints();
-        std::cout << "[AGENT] Wait For Number of Lift" <<std::endl;
+        std::cout << "[AGENT] Wait For Number of Lift : " <<std::endl;
         std::string liftNumber;
         std::cin >> liftNumber;
         std::cout << "[AGENT] Lift Number " + liftNumber + " is on the floor" <<std::endl;
@@ -367,8 +532,14 @@ int MultiNavigation::waitForIncomingLift() {
 }
 
 bool MultiNavigation::verifyLiftDoor() {
+    std::cout << "Wait For Verifying Lift Door" << std::endl;
+    std::cout << "Press c to cancel or any key to continue" << std::endl;
+    std::cout << "Your input : ";
     std::string in;
     std::cin >> in;
+    if(in == "c") {
+        return false;
+    }
     return true;
 }
 

@@ -6,6 +6,7 @@
 
 #include "icreate_navigation/single_navigation_new.h"
 #include "icreate_navigation/RunGmappingService.h"
+#include "miltbot_map/SetMapServer.h"
 
 namespace icreate {
 
@@ -70,6 +71,8 @@ class MultiNavigation {
         ros::NodeHandle nh_;
 
         int floor_count_;
+
+        bool isFinishQueue;
 
         std::string run_gmapping_service_name_;
         std::string set_map_service_name_;
