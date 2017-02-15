@@ -10,6 +10,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     int idx = val/2;
     std::vector<float> store;
     store = msg->ranges;
+    mid_range = store[idx];
     // ROS_WARN("%ld",store.size());
     ROS_INFO("Middle Range: %f",store[idx]);
 }
@@ -30,10 +31,8 @@ int main(int argc, char** argv) {
     nh.param("laser_scan_sub_topic",laser_scan_sub_topic_name,laser_scan_sub_topic_name);
     nh.param("get_middle_range_service",get_middle_range_service_name,get_middle_range_service_name);
 
-    ros::Subscriber scan_sub = nh.subscribe(laser_scan_sub_topic_name, 1000, scanCallback);
+    ros::Subscriber scan_sub = nh.subscribe(laser_scan_sub_topic_name, 1, scanCallback);
     ros::ServiceServer service = nh.advertiseService(get_middle_range_service_name, getMiddleRangeService);
-    while(ros::ok()) {
-        ros::spinOnce();
-    }
+    ros::spin();
     return 0;
 }

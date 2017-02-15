@@ -15,6 +15,7 @@ bool requestToSetupRobot;
 int count;
 
 int doneGoalNumber;
+float mid_range;
 
 icreate::MoveBaseGoalData forward_goal;
 
@@ -26,22 +27,35 @@ void initializeSimpleRotateMoveBase(std::string goal_name) {
     forward_goal.setGoalName(goal_name);
 }
 
+void initializeForwardOutMoveBaseTarget(std::string goal_name) {
+    //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
+    //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
+    // float x_position = -1.0;
+    mid_range += 0.3;
+    move_base_msgs::MoveBaseGoal new_point;
+    new_point.target_pose.pose.position.x = mid_range;
+    new_point.target_pose.pose.orientation.w = 1;
+    forward_goal.setGoal(new_point);
+    forward_goal.setGoalName(goal_name);
+}
+
 void initializeSimpleForwardMoveBaseTarget(ros::NodeHandle &nh,std::string goal_name) {
     //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
     //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
-    float x_position = 0;
+    // float x_position = -1.0;
     ros::ServiceClient client = nh.serviceClient<icreate_lift_navigation::GetMiddleRange>("get_middle_range");
     icreate_lift_navigation::GetMiddleRange srv;
     if(client.call(srv)) {
-        x_position = srv.response.mid_range;
+        mid_range = srv.response.mid_range;
+        ROS_INFO("Get Mid Range data: %f",mid_range);
     }
     else {
         ROS_ERROR("Fail to call Service get_depth_distance");
     }
     // x_position = 2.5;
-    x_position -= 0.3;
+    mid_range -= 0.3;
     move_base_msgs::MoveBaseGoal new_point;
-    new_point.target_pose.pose.position.x = x_position;
+    new_point.target_pose.pose.position.x = mid_range;
     new_point.target_pose.pose.orientation.w = 1;
     forward_goal.setGoal(new_point);
     forward_goal.setGoalName(goal_name);
@@ -235,7 +249,8 @@ int main(int argc, char** argv) {
                 isNextStep = true;
 			}
             else {
-                Start();
+                if(!Start())
+                    break;
             }
 		}
 
