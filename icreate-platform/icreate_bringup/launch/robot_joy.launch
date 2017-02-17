@@ -1,5 +1,0 @@
-<launch>
-    <include file="$(find icreate_base)/launch/icreate_base.launch" />
-
-    <include file="$(find miltbot_teleop)/launch/joy_icreate.launch" />
-</launch>

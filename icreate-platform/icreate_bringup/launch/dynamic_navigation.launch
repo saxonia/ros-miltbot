@@ -1,0 +1,8 @@
+<launch>
+    <include file="$(find miltbot_map)/launch/miltbot_map_server.launch" />
+
+    <include file="$(find icreate_lift_navigation)/launch/modules/dynamic_navigation_gmapping_only.launch" />
+
+    <include file="$(find icreate_state)/launch/icreate_state.launch" />
+
+</launch>

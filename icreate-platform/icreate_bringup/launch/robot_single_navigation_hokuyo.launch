@@ -1,10 +1,10 @@
 <launch>
     <include file="$(find icreate_bringup)/launch/robot_joy_hokuyo.launch" />
 
-    <include file="$(find icreate_navigation)/launch/waypoint_navigation.launch" />
+    <!--<include file="$(find icreate_navigation)/launch/waypoint_navigation.launch" />-->
 
     <include file="($find icreate_state)/launch/icreate_state.launch" />
 
-    <include file="($find icreate_transportation)/launch/single_transportation.launch">
+    <!--<include file="($find icreate_transportation)/launch/single_transportation.launch">-->
 
 </launch>
