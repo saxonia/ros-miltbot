@@ -1,12 +1,11 @@
 <launch>
     <!--SLAM Gmapping-->
-    <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
-    </node>
+    <include file="$(find icreate_lift_navigation)/launch/modules/gmapping.launch" />
 
     <!--Move Base-->
     <include file="$(find icreate_lift_navigation)/launch/modules/move_base.launch" />
 
     <!--Velocity Smoother-->
-    <include file="$(find icreate_navigation)/launch/modules/velocity_smoother.launch">
+    <include file="$(find icreate_lift_navigation)/launch/modules/velocity_smoother.launch">
     </include>
 </launch>

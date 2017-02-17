@@ -1,6 +1,9 @@
 <launch>
     <!--SLAM Gmapping-->
-    <include file="$(find icreate_lift_navigation)/launch/modules/gmapping.launch" />
+    <include file="$(find icreate_lift_navigation)/launch/modules/gmapping.launch">
+        <arg name="map_topic" default="map_dynamic"/>
+    </include>
+
 
     <!--Move Base-->
     <include file="$(find icreate_lift_navigation)/launch/modules/move_base.launch" />

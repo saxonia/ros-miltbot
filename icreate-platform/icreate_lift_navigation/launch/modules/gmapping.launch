@@ -1,7 +1,9 @@
 <launch>
+    <arg name="map_topic" default="map" />
+
     <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
       <remap from="scan" to="scan"/>
-      <remap from="map" to="map_dynamic"/>
+      <remap from="map" to="$(arg map_topic)"/>
       <param name="base_frame" value="base_footprint"/>
       <param name="map_frame" value="map"/>
       <param name="odom_frame" value="odom"/>
