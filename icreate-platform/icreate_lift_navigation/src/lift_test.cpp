@@ -31,7 +31,7 @@ void initializeForwardOutMoveBaseTarget(std::string goal_name) {
     //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
     //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
     // float x_position = -1.0;
-    mid_range += 0.3;
+    mid_range += 0.5;
     move_base_msgs::MoveBaseGoal new_point;
     new_point.target_pose.pose.position.x = mid_range;
     new_point.target_pose.pose.orientation.w = 1;
@@ -53,7 +53,7 @@ void initializeSimpleForwardMoveBaseTarget(ros::NodeHandle &nh,std::string goal_
         ROS_ERROR("Fail to call Service get_depth_distance");
     }
     // x_position = 2.5;
-    mid_range -= 0.3;
+    mid_range -= 0.5;
     move_base_msgs::MoveBaseGoal new_point;
     new_point.target_pose.pose.position.x = mid_range;
     new_point.target_pose.pose.orientation.w = 1;
@@ -144,7 +144,7 @@ bool getNextStep(ros::NodeHandle &nh, icreate::SingleNavigation &single_navigati
         if(!flag) {
             return false;
         }
-        initializeSimpleForwardMoveBaseTarget(nh, "Going Out Lift");
+        initializeForwardOutMoveBaseTarget("Going Out Lift");
         setupToRunRobot(single_navigation, robot);
         return true;
     }
@@ -208,7 +208,7 @@ int main(int argc, char** argv) {
     nh.param("move_base_topic", move_base_topic, move_base_topic);
     nh.param("polling_rate", polling_rate, polling_rate);
 
-    icreate::Robot robot("Building 4", "Floor 20");
+    icreate::Robot robot("Building 4", "Floor 20""/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
     icreate::SingleNavigation single_navigation("Building 4", "Floor 20");
 
     MoveBaseClient ac(move_base_topic, true);
