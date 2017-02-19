@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
     nh.param("polling_rate", polling_rate, polling_rate);
 
     // Class
-    icreate::Robot robot(building_name, building_floor_name);
+    icreate::Robot robot(building_name, building_floor_name, base_frame_id, robot_frame_id);
     icreate::SingleNavigation navigation(building_name, building_floor_name);
 
     MoveBaseClient ac(move_base_topic_name, true);

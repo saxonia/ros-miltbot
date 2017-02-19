@@ -6,7 +6,7 @@
 int main(int argc, char** argv) {
     ros::init(argc, argv, "single_navigation_test");
     icreate::MultiNavigation multi;
-    icreate::Robot robot("Building 4", "Floor 20");
+    icreate::Robot robot("Building 4", "Floor 20", "map", "base_footprint");
     multi.addSingleNavigation("Building 4", "Floor 20");
     std::cout << multi.getCountNavigation() << std::endl;
     multi.addSingleNavigation("Building 4", "Floor 17");

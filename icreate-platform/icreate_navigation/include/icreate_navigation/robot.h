@@ -49,7 +49,7 @@ class MoveBaseGoalData {
 
 class Robot {
     public:
-        Robot(std::string building, std::string building_floor);
+        Robot(std::string building, std::string building_floor, std::string base_frame_id, std::string robot_frame_id);
 
         ~Robot(void);
 
@@ -92,6 +92,9 @@ class Robot {
 
         std::string building;
         std::string building_floor;
+
+        std::string base_frame_id;
+        std::string robot_frame_id;
 
     private:
         //NodeHandle

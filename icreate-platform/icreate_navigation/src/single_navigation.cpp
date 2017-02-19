@@ -11,6 +11,7 @@ SingleNavigation::SingleNavigation(std::string building, std::string building_fl
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->building = building;
     this->building_floor = building_floor;
+    this->building_floor_lift = building_floor + " Lift";
     this->building_floor_num = this->toint(this->substrBuildingFloor(building_floor));
     this->targets.reserve(0);
     this->lifts.reserve(0);
@@ -20,6 +21,7 @@ SingleNavigation::SingleNavigation(std::string building, std::string building_fl
     this->base_frame_id = "";
     this->robot_frame_id = "";
     this->sendWaypointRequest(building, building_floor);
+    this->sendWaypointRequest(building, building_floor + " Lift");
 }
 
 SingleNavigation::~SingleNavigation(void) {
@@ -31,22 +33,12 @@ void SingleNavigation::setRobotTarget(MoveBaseGoalData data) {
     this->target = data;
 }
 
-// void SingleNavigation::setRobotTarget() {
-//     ROS_INFO("setRobotTarget: %s",this->targets[selected_point].getGoalName().c_str());
-//     this->target = this->targets[selected_point];
-// }
-
 MoveBaseGoalData SingleNavigation::getRobotTarget() {
     ROS_INFO("get Robot Target: %s",this->target.getGoalName().c_str());
     return this->target;
 }
 
-// void SingleNavigation::setRobotGoal(std::string frame_id) {
-    // ROS_WARN("Start");
-// }
-
 void SingleNavigation::setRobotGoal(std::string frame_id) {
-    ROS_WARN("Start");
     // ROS_WARN("%lf",this->target.getGoal().target_pose.pose.position.x); 
     
     this->goal = this->target.getGoal(); 
@@ -80,12 +72,15 @@ void SingleNavigation::doneRobotGoal(Robot &robot) {
     else if(robot.current_state == "SINGLERUN") {
         state_request = "IDLE";
     }
+    else if(robot.current_state == "USINGLIFT") {
+        state_request = "USINGLIFT";
+    }
     robot.sendStateRequest(state_request);
-    ROS_INFO("State Request: %s",state_request.c_str());
+    // ROS_INFO("State Request: %s",state_request.c_str());
 }
 
 bool SingleNavigation::sendWaypointRequest(std::string building, std::string building_floor) {
-    ros::ServiceClient client = nh_.serviceClient<miltbot_map::GetWaypointList>(get_waypoint_list_service_name_);
+    ros::ServiceClient client = nh_.serviceClient<miltbot_map::GetWaypointList>(this->get_waypoint_list_service_name_);
     miltbot_map::GetWaypointList srv;
     srv.request.building = building;
     srv.request.floor = building_floor;
@@ -93,8 +88,8 @@ bool SingleNavigation::sendWaypointRequest(std::string building, std::string bui
     if(client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
-            this->building = building;
-            this->building_floor_num = this->toint(this->substrBuildingFloor(building_floor));
+            // this->building = building;
+            // this->building_floor_num = this->toint(this->substrBuildingFloor(building_floor));
             this->setWaypoint(waypoints, building_floor);
         }
         else {
@@ -396,7 +391,7 @@ void SingleNavigation::setWaypoint(std::vector<miltbot_map::Waypoint> waypoints,
            }
            else {
                this->targets.push_back(data);
-               this->building_floor = building_floor;
+            //    this->building_floor = building_floor;
            }
     } 
 }

@@ -7,6 +7,7 @@
 #include "icreate_navigation/single_navigation.h"
 #include "icreate_navigation/RunGmappingService.h"
 #include "miltbot_map/SetMapServer.h"
+#include "icreate_lift_navigation/GetMiddleRange.h"
 
 namespace icreate {
 
@@ -52,8 +53,10 @@ class MultiNavigation {
 
         bool verifyLiftDoor();
 
-        void initializeSimpleForwardMoveBaseTarget(std::string goal_name);        
+        void initializeSimpleForwardMoveBaseTarget(Robot &robot, std::string goal_name);        
 
+        bool waitUserInputLift();
+        
         bool static comparator (SingleNavigation i,SingleNavigation j);
 
     public:
@@ -76,6 +79,8 @@ class MultiNavigation {
 
         std::string run_gmapping_service_name_;
         std::string set_map_service_name_;
+
+        float mid_range;
 };
 
 }

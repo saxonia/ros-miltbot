@@ -47,7 +47,7 @@ std::string MoveBaseGoalData::getBuildingFloor() {
     return this->building_floor;
 }
 
-Robot::Robot(std::string building, std::string building_floor):
+Robot::Robot(std::string building, std::string building_floor, std::string base_frame_id, std::string robot_frame_id):
     state_sub_topic_name_("/state"),
     set_robot_state_service_name_("/set_robot_state")
 {
@@ -58,7 +58,10 @@ Robot::Robot(std::string building, std::string building_floor):
     this->current_state = "IDLE";
     this->building = building;
     this->building_floor = building_floor;
+    this->base_frame_id = base_frame_id;
+    this->robot_frame_id = robot_frame_id;
     this->navigation_mode = -1;
+    this->setCurrentPosition(base_frame_id, robot_frame_id, building, building_floor);
     ROS_INFO("Create Robot Class");
 }
 

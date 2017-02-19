@@ -85,6 +85,7 @@ int main(int argc, char** argv) {
     int timer_duration(10);
     nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
     nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
+    nh.param("/waypoint_navigation/robot_frame_id", robot_frame_id, robot_frame_id);
     nh.param("/waypoint_navigation/package_name", package_name, package_name); 
 	nh.param("/waypoint_navigation/polling_rate", polling_rate, polling_rate);
     nh.param("/waypoint_navigation/timer_duration", timer_duration, timer_duration);
@@ -93,8 +94,7 @@ int main(int argc, char** argv) {
 
     //Initialize Class
     icreate::SingleNavigation single_navigation(building_name, building_floor_name);
-    icreate::Robot robot(building_name, building_floor_name);
-    robot.setCurrentPosition(base_frame_id, robot_frame_id, "Building 4", "Floor 20");
+    icreate::Robot robot(building_name, building_floor_name, base_frame_id, robot_frame_id);
     
     MoveBaseClient ac(move_base_topic_name, true);
 

@@ -70,6 +70,7 @@ class SingleNavigation {
     public:
         std::string building;
         std::string building_floor;
+        std::string building_floor_lift;
         int building_floor_num;
 
         std::vector<MoveBaseGoalData> targets;
