@@ -13,4 +13,9 @@
         <remap from="map_metadata" to="$(arg map2)/map_metadata" />
     </node>
 
+    <!--Map Server-->
+    <arg name="map" default="build4_f20" />
+        <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
+    </node>
+
 </launch>

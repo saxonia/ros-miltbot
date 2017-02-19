@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
 
     std::string base_frame_id("map");
     std::string robot_frame_id("base_footprint");
+    std::string building_name("Building 4");
+    std::string building_floor_name("Floor 20");
     int polling_rate(30);
     int timer_duration(10);
     std::string move_base_topic_name("/move_base");
@@ -84,7 +86,7 @@ int main(int argc, char** argv) {
     nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
     nh.param("/waypoint_navigation/polling_rate", polling_rate, polling_rate);
 
-    icreate::Robot robot("Building 4", "Floor 20");
+    icreate::Robot robot(building_name, building_floor_name, base_frame_id, base_frame_id);
     robot.setCurrentPosition(base_frame_id, robot_frame_id, "Building 4", "Floor 20");
     icreate::MultiNavigation multi_navigation;
     multi_navigation.addSingleNavigation("Building 4", "Floor 20");
