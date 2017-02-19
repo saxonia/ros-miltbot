@@ -84,26 +84,6 @@ void setupToRunRobot(icreate::SingleNavigation &single_navigation,icreate::Robot
     ROS_INFO("Setup Robot: %s",forward_goal.getGoalName().c_str());
 }
 
-bool Start() {
-    bool flag;
-    while(true) {
-        std::cout << "Start Lift Navigation" << std::endl;
-        std::cout << "Please press \"y\" to start navigation " << std::endl;
-        std::cout << "or Please press \"n\" to stop navigation " << std::endl;
-        std::string input;
-        std::cin >> input;
-        if(input == "y" || input == "Y") {
-            flag = true;
-            break;
-        }
-        else if(input == "n" || input == "N") {
-            flag = false;
-            break;
-        }
-    }
-    return flag;
-}
-
 bool waitUserInputLift() {
     bool flag;
     while(ros::ok()) {
@@ -125,6 +105,10 @@ bool waitUserInputLift() {
         }
     }
     return flag;
+}
+
+bool Start() {
+    return waitUserInputLift();
 }
 
 bool getNextStep(ros::NodeHandle &nh, icreate::SingleNavigation &single_navigation,icreate::Robot &robot) {
