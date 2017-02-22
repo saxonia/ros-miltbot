@@ -219,6 +219,7 @@ int main(int argc, char** argv) {
 
     initializeSimpleForwardMoveBaseTarget(nh, "Going To Lift");
     setupToRunRobot(single_navigation, robot);
+	single_navigation.createTimer(10);
 
     while(ros::ok()) {
         ros::spinOnce();
@@ -253,10 +254,6 @@ int main(int argc, char** argv) {
                 boost::bind(&goalActiveCallback), 
                 boost::bind(&goalFeedbackCallback, _1));
         }
-
-        if(single_navigation.requestToCreateTimer) {
-			single_navigation.createTimer(10);
-		}
     }
 
     return 0;
