@@ -134,6 +134,8 @@ CATKIN_DEPENDS message_runtime
 ## Build ##
 ###########
 
+add_definitions(-std=c++11)
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
@@ -158,6 +160,8 @@ add_executable(waypoint_server src/waypoint_server.cpp)
 add_executable(get_path_test src/get_path_test.cpp)
 add_executable(map_server src/map_server.cpp)
 
+add_executable(maps_server_test test/maps_server_test.cpp)
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(miltbot_map_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -169,6 +173,8 @@ add_executable(map_server src/map_server.cpp)
 target_link_libraries(waypoint_server ${catkin_LIBRARIES} map)
 target_link_libraries(map_server ${catkin_LIBRARIES})
 target_link_libraries(get_path_test ${catkin_LIBRARIES})
+
+target_link_libraries(maps_server_test ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -217,5 +223,3 @@ target_link_libraries(get_path_test ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-add_definitions(-std=c++11)
