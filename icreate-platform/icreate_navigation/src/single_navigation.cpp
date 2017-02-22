@@ -16,7 +16,6 @@ SingleNavigation::SingleNavigation(std::string building, std::string building_fl
     this->targets.reserve(0);
     this->lifts.reserve(0);
     this->requestToSetNewGoal = false;
-    this->requestToCreateTimer = false;
     this->isFinishQueue = false;
     this->base_frame_id = "";
     this->robot_frame_id = "";
@@ -353,7 +352,6 @@ bool SingleNavigation::runRecoveryMode() {
 }
 
 void SingleNavigation::createTimer(int duration) {
-    this->requestToCreateTimer = false;
     ROS_INFO("Create Timer");
     timer_ = nh_.createTimer(ros::Duration(duration), &SingleNavigation::timerCallback, this);
 }

@@ -214,7 +214,8 @@ int main(int argc, char** argv) {
 
     userInput(robot, navigation); 
 
-    setupToRunRobot(navigation, robot);   
+    setupToRunRobot(navigation, robot); 
+    navigation.createTimer(10);  
 
     while(ros::ok()) {
         ros::spinOnce();
@@ -262,10 +263,6 @@ int main(int argc, char** argv) {
                         boost::bind(&goalDoneCallback_state, _1, _2), 
                         boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
         }
-        
-        if(navigation.requestToCreateTimer) {
-			navigation.createTimer(10);
-		}
     }
 
     ROS_INFO("Exiting MultiFloor Test Navigation");

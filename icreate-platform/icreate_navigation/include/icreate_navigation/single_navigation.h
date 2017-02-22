@@ -77,7 +77,6 @@ class SingleNavigation {
         std::vector<MoveBaseGoalData> lifts;
 
         bool requestToSetNewGoal;
-        bool requestToCreateTimer;
 
     private:
         //NodeHandle

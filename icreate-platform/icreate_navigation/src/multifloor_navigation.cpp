@@ -58,10 +58,11 @@ void goalDoneCallback_state(const actionlib::SimpleClientGoalState &state,
 }
 
 void goalActiveCallback(){
-
+    ROS_INFO("B");
 }
 
 void goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){
+    ROS_INFO("A");
 }
 
 void setGoalSucceedEvent(icreate::MultiNavigation &multi_navigation, icreate::Robot &robot) {
@@ -79,31 +80,38 @@ int main(int argc, char** argv) {
     std::string building_floor_name("Floor 20");
     int polling_rate(30);
     int timer_duration(10);
-    std::string move_base_topic_name("/move_base");
+    float move_base_wait(5.0);
+    std::string move_base_topic_name("move_base");
     
 
-    nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
-    nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
-    nh.param("/waypoint_navigation/polling_rate", polling_rate, polling_rate);
+    nh.param("/multifloor_navigation/base_frame_id", base_frame_id, base_frame_id);
+    nh.param("/multifloor_navigation/robot_frame_id", robot_frame_id, robot_frame_id);
+    nh.param("/multifloor_navigation/building_name", building_name, building_name);
+    nh.param("/multifloor_navigation/building_floor_name", building_floor_name, building_floor_name);
+    nh.param("/multifloor_navigation/polling_rate", polling_rate, polling_rate);
+    nh.param("/multifloor_navigation/timer_duration", timer_duration, timer_duration);
+    nh.param("/multifloor_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
 
     icreate::Robot robot(building_name, building_floor_name, base_frame_id, base_frame_id);
-    robot.setCurrentPosition(base_frame_id, robot_frame_id, "Building 4", "Floor 20");
     icreate::MultiNavigation multi_navigation;
     multi_navigation.addSingleNavigation("Building 4", "Floor 20");
     multi_navigation.addSingleNavigation("Building 4", "Floor 17");
 
     MoveBaseClient ac(move_base_topic_name, true);
-    waitMoveBaseServer(ac, 5.0);
+    waitMoveBaseServer(ac, move_base_wait);
 
     ros::Rate r(polling_rate);
 
-    multi_navigation.setupTargetQueue(robot);
-    multi_navigation.verifyTarget(robot);
+    if(!multi_navigation.setupTargetQueue(robot))
+        return -2;
+    // multi_navigation.verifyTarget(robot);
+    
     multi_navigation.setupRobotToRun(robot, base_frame_id, robot_frame_id);
     isDoneGoal = false;
     doneGoalNumber = -1;
     isNextStep = false;
-    multi_navigation.navigations_[multi_navigation.nav_idx].requestToCreateTimer = true;
+	multi_navigation.createTimer(timer_duration);
+
     
     while(ros::ok()) {
         ros::spinOnce();
@@ -144,14 +152,10 @@ int main(int argc, char** argv) {
                 multi_navigation.navigations_[multi_navigation.nav_idx].setRobotGoal(base_frame_id);
             }
             ROS_WARN("%lf",multi_navigation.navigations_[multi_navigation.nav_idx].getRobotGoal().target_pose.pose.position.x);
-            ac.sendGoal(multi_navigation.navigations_[multi_navigation.nav_idx].getRobotGoal(), 
+            ac.sendGoal(multi_navigation.navigations_[multi_navigation.nav_idx].getRobotGoal(),
                       boost::bind(&goalDoneCallback_state, _1, _2), 
                       boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
         }
-
-        if(multi_navigation.navigations_[multi_navigation.nav_idx].requestToCreateTimer) {
-			multi_navigation.navigations_[multi_navigation.nav_idx].createTimer(timer_duration);
-		}
     }
 
     return 0;

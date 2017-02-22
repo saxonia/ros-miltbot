@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     isDoneGoal = false;
     doneGoalNumber = -1;
     isNextStep = false;
-    single_navigation.requestToCreateTimer = true;
+    single_navigation.createTimer(timer_duration);
     while(ros::ok()) {
         ros::spinOnce();
         r.sleep();
@@ -144,10 +144,6 @@ int main(int argc, char** argv) {
                       boost::bind(&goalDoneCallback_state, _1, _2), 
                       boost::bind(&goalActiveCallback), boost::bind(&goalFeedbackCallback, _1));
         }
-
-        if(single_navigation.requestToCreateTimer) {
-			single_navigation.createTimer(timer_duration);
-		}
 
     }
     ROS_INFO("Exiting Waypoint Navigation");
