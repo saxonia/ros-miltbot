@@ -6,11 +6,11 @@
     <arg name="initial_pose_a" default="0.0" />
 
     <!--Localizer : AMCL Algorithm-->
-    <include file="$(find icreate_navigation)/launch/modules/amcl.launch">
+    <!--<include file="$(find icreate_navigation)/launch/modules/amcl.launch">
         <arg name="initial_pose_x" default="$(arg initial_pose_x)" />
         <arg name="initial_pose_y" default="$(arg initial_pose_y)" />
         <arg name="initial_pose_a" default="$(arg initial_pose_a)" />
-    </include>
+    </include>-->
 
     <!--Velocity Smoother-->
     <include file="$(find icreate_navigation)/launch/modules/velocity_smoother.launch">

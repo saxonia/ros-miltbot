@@ -7,10 +7,10 @@ from icreate_navigation.srv import RunGmappingService
 from miltbot_map.srv import SetMapServer
 
 ROOT_PATH = "/home/saxonia/miltbot_catkin_ws/src/ros-miltbot/icreate-platform/"
-# gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/gmapping.launch"
-gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/dynamic_navigation_gmapping.launch"
-# amcl_file_path = ROOT_PATH + "icreate_navigation/launch/modules/amcl.launch"
-amcl_file_path = ROOT_PATH + "icreate_navigation/launch/modules/icreate_navigation_stack.launch"
+gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/gmapping.launch"
+# gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/dynamic_navigation_gmapping.launch"
+amcl_file_path = ROOT_PATH + "icreate_navigation/launch/modules/amcl.launch"
+# amcl_file_path = ROOT_PATH + "icreate_navigation/launch/modules/icreate_navigation_stack.launch"
 set_map_service_name_ = ""
 gmapping_launch = None
 amcl_launch = None
@@ -18,7 +18,7 @@ gmapping_flag = False
 amcl_flag = False
 
 def start_set_map():
-    rospy.wait_for_service(set_map_service_name_, timeout=1)
+    rospy.wait_for_service(set_map_service_name_, timeout=2)
     try:
         set_map = rospy.ServiceProxy(set_map_service_name_, SetMapServer)
         resp = set_map("Lift")
@@ -31,9 +31,31 @@ def gmapping_start():
     global gmapping_flag
     gmapping_flag = True
 
+    #Set Parameter Server
+    rospy.set_param('/move_base/NavfnROS/allow_unknown',True)
+    rospy.set_param('/move_base/NavfnROS/default_tolerance',0.2)
+    rospy.set_param('/move_base/DWAPlannerROS/max_vel_x',0.8)
+    rospy.set_param('/move_base/DWAPlannerROS/min_vel_x',0.5)
+    rospy.set_param('/move_base/DWAPlannerROS/acc_lim_x',1.2)
+    rospy.set_param('/velocity_smoother/accel_lim_v',0.4)
+    rospy.set_param('/move_base/global_costmap/global_frame',"odom")
+    rospy.set_param('/move_base/local_costmap/inflation_layer/inflation_radius',0.1)
+    
+
 def amcl_start():
     global amcl_flag
     amcl_flag = True
+
+    #Set Parameter Server
+    rospy.set_param('/move_base/NavfnROS/allow_unknown',False)
+    rospy.set_param('/move_base/NavfnROS/default_tolerance',0.0)
+    rospy.set_param('/move_base/DWAPlannerROS/max_vel_x',0.3)
+    rospy.set_param('/move_base/DWAPlannerROS/min_vel_x',0.1)
+    rospy.set_param('/move_base/DWAPlannerROS/acc_lim_x',1.0)
+    rospy.set_param('/velocity_smoother/accel_lim_v',0.2)
+    rospy.set_param('/move_base/global_costmap/global_frame',"map")
+    rospy.set_param('/move_base/local_costmap/inflation_layer/inflation_radius',0.3)
+
 
 def gmapping_shutdown():
     "Return the pathname of the KOS root directory."
@@ -54,6 +76,10 @@ def gmapping_callback(msg):
     elif task == 'close':
         gmapping_shutdown()
         amcl_start()
+        return True
+    elif task == 'restart':
+        gmapping_shutdown()
+        gmapping_start()
         return True
     else:
         print("Wrong Task Request")
