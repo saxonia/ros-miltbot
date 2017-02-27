@@ -1,0 +1,5 @@
+miltbot_map/Waypoint waypoint
+string task
+int32 priority
+---
+bool success
