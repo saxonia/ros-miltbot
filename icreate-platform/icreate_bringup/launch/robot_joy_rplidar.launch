@@ -1,5 +1,5 @@
 <launch>
     <include file="$(find icreate_base)/launch/icreate_base_rplidar.launch" />
 
-    <include file="$(find miltbot_teleop)/launch/joy_icreate.launch" />
+    <include file="$(find miltbot_teleop)/launch/joy.launch" />
 </launch>
