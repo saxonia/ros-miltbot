@@ -53,7 +53,7 @@ Robot::Robot(std::string building, std::string building_floor, std::string base_
 {
     nh_.param("state_sub_topic", state_sub_topic_name_, state_sub_topic_name_);
     nh_.param("set_robot_state_service", set_robot_state_service_name_, set_robot_state_service_name_);
-    this->client = nh_.serviceClient<icreate_state::SetRobotState>(set_robot_state_service_name_);
+    this->client = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
     this->target_queue.reserve(0);
     this->current_state = "IDLE";
     this->building = building;
@@ -227,7 +227,7 @@ int Robot::getNavigationMode() {
 
 void Robot::sendStateRequest(std::string state_request) {
     ROS_INFO("Send State Request: %s",state_request.c_str());
-    icreate_state::SetRobotState srv;
+    miltbot_state::SetRobotState srv;
     srv.request.req = state_request;
     if (this->client.call(srv))
     {

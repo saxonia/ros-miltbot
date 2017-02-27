@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   icreate_navigation
-  icreate_state
+  miltbot_state
   message_generation
 )
 

@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib
     roslib
     icreate_transportation
-    icreate_state
+    miltbot_state
     miltbot_map
     message_generation
 )
