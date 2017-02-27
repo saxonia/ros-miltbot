@@ -71,11 +71,10 @@ void setGoalSucceedEvent(icreate::SingleNavigation &single_navigation, icreate::
 }
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "waypoint_navigation_new");
+    ros::init(argc, argv, "waypoint_navigation");
     ros::NodeHandle nh;
 
-    std::string move_base_topic_name("/move_base");
-    // std::string base_frame_id("/map");
+    std::string move_base_topic_name("move_base");
     std::string base_frame_id("map");
     std::string robot_frame_id("base_footprint");
     std::string package_name("icreate_navigation");

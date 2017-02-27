@@ -47,6 +47,8 @@ class MultiNavigation {
 
         std::pair<int, int> showWaypointMenu();
 
+        void createTimer(int duration);
+
 
     private:
         int waitForIncomingLift();
