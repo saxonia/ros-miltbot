@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(icreate_state)
+project(miltbot_state)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -76,7 +76,6 @@ add_service_files(
 # )
 generate_messages(
   DEPENDENCIES
-  std_msgs
 )
 
 ################################################
@@ -110,7 +109,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES icreate_state
+#  LIBRARIES miltbot_state
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -127,30 +126,28 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(icreate_state
-#   src/${PROJECT_NAME}/icreate_state.cpp
+# add_library(miltbot_state
+#   src/${PROJECT_NAME}/miltbot_state.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(icreate_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(miltbot_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(icreate_state_node src/icreate_state_node.cpp)
+# add_executable(miltbot_state_node src/miltbot_state_node.cpp)
 add_executable(state_publisher src/state_publisher.cpp)
-
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(icreate_state_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(miltbot_state_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(icreate_state_node
+# target_link_libraries(miltbot_state_node
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(state_publisher ${catkin_LIBRARIES})
-
 
 #############
 ## Install ##
@@ -167,7 +164,7 @@ target_link_libraries(state_publisher ${catkin_LIBRARIES})
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS icreate_state icreate_state_node
+# install(TARGETS miltbot_state miltbot_state_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -192,7 +189,7 @@ target_link_libraries(state_publisher ${catkin_LIBRARIES})
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_icreate_state.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_miltbot_state.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

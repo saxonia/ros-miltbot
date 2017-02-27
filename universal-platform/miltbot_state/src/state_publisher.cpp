@@ -1,8 +1,7 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
-// #include <string>
 
-#include <icreate_state/SetRobotState.h>
+#include <miltbot_state/SetRobotState.h>
 
 class robotState {
     public:
@@ -31,8 +30,8 @@ class robotState {
         int getState();
         void setState(std::string s);
 
-        bool setRobotStateService(icreate_state::SetRobotState::Request &req,
-                                  icreate_state::SetRobotState::Response &res);
+        bool setRobotStateService(miltbot_state::SetRobotState::Request &req,
+                                  miltbot_state::SetRobotState::Response &res);
 
 
     private:
@@ -48,9 +47,9 @@ robotState::robotState():
     state_req_sub_topic_name_("state_req"),
     set_robot_state_service_name_("set_robot_state")
 {   
-    nh_.param("/icreate_state/state_pub_topic",state_pub_topic_name_,state_pub_topic_name_);
-    nh_.param("/icreate_state/state_req_sub_topic",state_req_sub_topic_name_,state_req_sub_topic_name_);
-    nh_.param("/icreate_state/set_robot_state_service", set_robot_state_service_name_, set_robot_state_service_name_);
+    nh_.param("/miltbot_state/state_pub_topic",state_pub_topic_name_,state_pub_topic_name_);
+    nh_.param("/miltbot_state/state_req_sub_topic",state_req_sub_topic_name_,state_req_sub_topic_name_);
+    nh_.param("/miltbot_state/set_robot_state_service", set_robot_state_service_name_, set_robot_state_service_name_);
     //Initialize Publisher
     state_pub_ = nh_.advertise<std_msgs::String>(state_pub_topic_name_,1);
 
@@ -131,8 +130,8 @@ void robotState::setState(std::string s) {
     }
 }
 
-bool robotState::setRobotStateService(icreate_state::SetRobotState::Request &req,
-                                  icreate_state::SetRobotState::Response &res) {
+bool robotState::setRobotStateService(miltbot_state::SetRobotState::Request &req,
+                                  miltbot_state::SetRobotState::Response &res) {
     setState(req.req);
     ROS_INFO("robot state request: %s",req.req.c_str());
     ROS_INFO("robot state : %s",convertToStateName(state).c_str());
@@ -143,7 +142,7 @@ bool robotState::setRobotStateService(icreate_state::SetRobotState::Request &req
 int main(int argc, char** argv) {
     
     //Initialize Node
-    ros::init(argc, argv, "icreate_state");
+    ros::init(argc, argv, "miltbot_state");
 
     robotState robotState;
 
