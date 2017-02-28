@@ -69,8 +69,8 @@ class MultiNavigation {
         int nav_idx;
 
         int navigation_case;
-
         int lift_navigation_step;
+        int lift_number;
 
     private:
         ros::NodeHandle nh_;

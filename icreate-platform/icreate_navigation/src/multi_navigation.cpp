@@ -13,6 +13,7 @@ MultiNavigation::MultiNavigation(void):
     this->nav_idx = -1;
     this->navigation_case = -1;
     this->lift_navigation_step = -1;
+    this->lift_number = -1;
     this->floor_count_ = 0;
     this->isFinishQueue = false;
     this->mid_range = 0.0;
@@ -370,8 +371,8 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
         }
         //Step 1: Wait & Move to in front of the inncoming lift
         case 1: {
-            int liftNumber = waitForIncomingLift();
-            robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[liftNumber]);
+            lift_number = waitForIncomingLift();
+            robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[lift_number]);
             robot.sendStateRequest("USINGLIFT");
             this->navigations_[this->nav_idx].requestToSetNewGoal = true;
             break;
@@ -381,8 +382,8 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
             bool flag;
             while(ros::ok()) {
                 if(!this->verifyLiftDoor()) {
-                    int liftNumber = waitForIncomingLift();
-                    robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[liftNumber]);
+                    lift_number = waitForIncomingLift();
+                    robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[lift_number]);
                     robot.sendStateRequest("USINGLIFT");
                     this->navigations_[this->nav_idx].requestToSetNewGoal = true;
                     this->lift_navigation_step--;
@@ -406,7 +407,6 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
             break;
         }
         case 3: {
-            ROS_ERROR("Come 3");
             move_base_msgs::MoveBaseGoal new_point;
             new_point.target_pose.pose.orientation.z = -1.0;
             new_point.target_pose.pose.orientation.w = 0.0;
@@ -464,6 +464,7 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
                 client = nh_.serviceClient<miltbot_map::SetMapServer>("set_map_service");
                 miltbot_map::SetMapServer srv2;
                 srv2.request.floor = robot.target_queue[0].building_floor;
+                srv2.request.lift_number = this->lift_number;
                 if(client.call(srv2)) {
                     bool flag2 = srv2.response.flag;
                 }

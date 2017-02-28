@@ -100,7 +100,6 @@ bool SingleNavigation::sendWaypointRequest(std::string building, std::string bui
         ROS_ERROR("Failed to call service get_waypoint_list");
         return false;
     }
-
 }
 
 void SingleNavigation::displayWaypoints() {
