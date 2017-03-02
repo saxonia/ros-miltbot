@@ -7,6 +7,15 @@ MoveBaseGoalData::MoveBaseGoalData(void) {
 }
 
 MoveBaseGoalData::MoveBaseGoalData(std::string goal_name, move_base_msgs::MoveBaseGoal goal, 
+                                    std::string building, std::string building_floor) {
+    this->goal_name = goal_name;
+    this->goal = goal;
+    this->building = building;
+    this->building_floor = building_floor;
+    this->task = "";
+}
+
+MoveBaseGoalData::MoveBaseGoalData(std::string goal_name, move_base_msgs::MoveBaseGoal goal, 
                                     std::string building, std::string building_floor, std::string task) {
     this->goal_name = goal_name;
     this->goal = goal;

@@ -7,6 +7,8 @@ class MoveBaseGoalData {
     public:
         MoveBaseGoalData(void);
 
+        MoveBaseGoalData(std::string goal_name, move_base_msgs::MoveBaseGoal goal, std::string building, std::string building_floor);
+
         MoveBaseGoalData(std::string goal_name, move_base_msgs::MoveBaseGoal goal, std::string building, std::string building_floor, std::string task);
 
         ~MoveBaseGoalData(void);
