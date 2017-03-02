@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
     move_base_msgs
     actionlib_msgs
     geometry_msgs
+    miltbot_navigation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -71,7 +72,7 @@ add_service_files(
     GetWaypoint.srv
     GetWaypointName.srv
     GetWaypointList.srv
-    SetMapServer.srv
+    SetMap.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -171,7 +172,7 @@ add_executable(maps_server_test test/maps_server_test.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(waypoint_server ${catkin_LIBRARIES} map)
-target_link_libraries(map_server ${catkin_LIBRARIES})
+target_link_libraries(map_server ${catkin_LIBRARIES} navigation)
 target_link_libraries(get_path_test ${catkin_LIBRARIES})
 
 target_link_libraries(maps_server_test ${catkin_LIBRARIES})

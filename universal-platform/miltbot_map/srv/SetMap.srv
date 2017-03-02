@@ -1,3 +1,4 @@
 string floor
+int32 target_number
 ---
 bool flag
