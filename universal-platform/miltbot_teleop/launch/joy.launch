@@ -13,7 +13,6 @@
     <param name="scale_linear" value="0.50" type="double"/>
     <param name="scale_angular" value="1.78" type="double"/>
     <param name="twist_pub_topic" value="cmd_vel" type="string"/>
-    <!--<param name="twist_pub_topic" value="/ros_dumbobot/cmd_vel" type="string"/>-->
     <param name="joy_sub_topic" value="joy" type="string"/>
     <param name="auto_stop_pub_topic" value="move_base/cancel" type="string"/>
 

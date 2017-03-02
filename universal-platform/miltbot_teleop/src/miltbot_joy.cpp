@@ -12,7 +12,7 @@ private:
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
 
     ros::NodeHandle nh_;
-    ros::Publisher twist_pub_, auto_stop_pub_;
+    ros::Publisher twist_pub_, auto_stop_pub_, stop_pub_;
     ros::Subscriber joy_sub_;
 
     std::string twist_pub_topic_name_,joy_sub_topic_name_, auto_stop_pub_topic_name_;
@@ -23,9 +23,9 @@ private:
 };
 
 MiltbotJoy::MiltbotJoy():
-    twist_pub_topic_name_("/miltbot/cmd_vel"),
+    twist_pub_topic_name_("/cmd_vel"),
     joy_sub_topic_name_("joy"),
-    auto_stop_pub_topic_name_("/miltbot/move_base/cancel"),
+    auto_stop_pub_topic_name_("/move_base/cancel"),
     linear_(1),
     angular_(3),
     deadman_(2),
@@ -49,6 +49,7 @@ MiltbotJoy::MiltbotJoy():
 
     //Navigation Stopper
     auto_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>(auto_stop_pub_topic_name_, 1);
+    stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel",1);
 
     trigger_button = false;
 }
@@ -70,7 +71,10 @@ void MiltbotJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     deadman_triggered = joy->axes[deadman_];
     goal_cancel_button = joy->buttons[cancel_];
 
-    if (deadman_triggered == -1)
+    if(goal_cancel_button == 1) {
+        stop_pub_.publish(*new actionlib_msgs::GoalID());
+    }
+    else if (deadman_triggered == -1)
     {
         twist_pub_.publish(twist);
         trigger_button = false;
