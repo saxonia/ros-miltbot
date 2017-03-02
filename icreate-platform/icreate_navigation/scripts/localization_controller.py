@@ -4,7 +4,7 @@ import roslaunch
 import rospy
 
 from icreate_navigation.srv import RunGmappingService
-from miltbot_map.srv import SetMapServer
+from miltbot_map.srv import SetMap
 
 ROOT_PATH = "/home/saxonia/miltbot_catkin_ws/src/ros-miltbot/icreate-platform/"
 gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/gmapping.launch"
@@ -20,8 +20,8 @@ amcl_flag = False
 def start_set_map():
     rospy.wait_for_service(set_map_service_name_, timeout=2)
     try:
-        set_map = rospy.ServiceProxy(set_map_service_name_, SetMapServer)
-        resp = set_map("Lift")
+        set_map = rospy.ServiceProxy(set_map_service_name_, SetMap)
+        resp = set_map("Lift", -1)
         return resp.flag
     except rospy.ServiceException as e:
         print ("Service call failed: %s"%e)
@@ -39,6 +39,7 @@ def gmapping_start():
     rospy.set_param('/move_base/DWAPlannerROS/acc_lim_x',1.2)
     rospy.set_param('/velocity_smoother/accel_lim_v',0.4)
     rospy.set_param('/move_base/global_costmap/global_frame',"odom")
+    rospy.set_param('/move_base/global_costmap/inflation_layer/inflation_radius',0.1)
     rospy.set_param('/move_base/local_costmap/inflation_layer/inflation_radius',0.1)
     
 
@@ -54,6 +55,7 @@ def amcl_start():
     rospy.set_param('/move_base/DWAPlannerROS/acc_lim_x',1.0)
     rospy.set_param('/velocity_smoother/accel_lim_v',0.2)
     rospy.set_param('/move_base/global_costmap/global_frame',"map")
+    rospy.set_param('/move_base/global_costmap/inflation_layer/inflation_radius',0.3)
     rospy.set_param('/move_base/local_costmap/inflation_layer/inflation_radius',0.3)
 
 

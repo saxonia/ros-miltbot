@@ -12,6 +12,12 @@
         <arg name="initial_pose_a" default="$(arg initial_pose_a)" />
     </include>-->
 
+    <node pkg="icreate_navigation" type="localization_controller.py" name="localization_controller" output="screen">
+        <!--<param name="amcl/allow_unknown" value="false"/>-->
+        <!--<param name="amcl/default_tolerance" value="0.0"/>-->
+        <!--<param name="amcl/default_tolerance" value="0.0"/>-->
+    </node>
+
     <!--Velocity Smoother-->
     <include file="$(find icreate_navigation)/launch/modules/velocity_smoother.launch">
     </include>

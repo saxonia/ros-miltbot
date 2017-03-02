@@ -6,7 +6,7 @@
 
 #include "icreate_navigation/single_navigation.h"
 #include "icreate_navigation/RunGmappingService.h"
-#include "miltbot_map/SetMapServer.h"
+#include "miltbot_map/SetMap.h"
 #include "icreate_lift_navigation/GetMiddleRange.h"
 
 namespace icreate {
