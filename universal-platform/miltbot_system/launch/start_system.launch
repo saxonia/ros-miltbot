@@ -1,0 +1,5 @@
+<launch>
+    <machine name="sax-MacBookAir" address="192.168.1.25" env-loader="/opt/ros/kinetic/env.sh" user="sax" default="true" />
+
+    <machine name="miltbot-nuc" address="192.168.1.35" env-loader="/opt/ros/kinetic/env.sh" user="miltbot" default="true" />
+</launch>
