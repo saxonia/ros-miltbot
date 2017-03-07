@@ -12,17 +12,29 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     add_target_service_name_("add_target"),
     fail_goal_value_(2),
     set_robot_state_service_name_("/set_robot_state"),
+    run_gmapping_service_name_("run_gmapping"),
+    set_map_service_name_("set_map_service"),
+    get_middle_range_service_name_("get_middle_range"),
+    add_default_target_service_name_("add_default_target"),
+    run_system_service_name_("run_system"),
     ac("move_base", true) 
 {
     nh_.param("clear_costmap_service", clear_costmap_service_name_, clear_costmap_service_name_);
     nh_.param("get_waypoint_list_service", get_waypoint_list_service_name_, get_waypoint_list_service_name_);
     nh_.param("move_base_wait_time_", move_base_wait_time_, move_base_wait_time_);
+    nh_.param("run_gmapping_service", run_gmapping_service_name_, run_gmapping_service_name_);
+    nh_.param("set_map_service", set_map_service_name_, set_map_service_name_);
+    nh_.param("get_middle_range_service", get_middle_range_service_name_, get_middle_range_service_name_);
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->set_robot_state_client_ = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
+    this->run_gmapping_client_ = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
+    this->get_middle_range_client_ = nh_.serviceClient<icreate_lift_navigation::GetMiddleRange>(get_middle_range_service_name_);
+    this->set_map_service_client_ = nh_.serviceClient<miltbot_map::SetMap>(set_map_service_name_);
     this->base_frame_id = base_frame_id;
     this->robot_frame_id = robot_frame_id;
     this->building = building;
     this->building_floor = building_floor;
+    this->building_floor_lift = building_floor + " Lift";
     this->requestToSetNewGoal = false;
     this->current_state = "IDLE";
     this->navigation_case = -1;
@@ -32,11 +44,15 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->done_goal_number = -1;
     this->fail_goal_count = 0;
     this->lift_navigation_step = 0;
-    this->lifts.reserve(0);
+    this->mid_range = 0;
+    this->lifts.clear();
+    this->default_queue.clear();
     this->waitMoveBaseServer(move_base_wait_time_);
     this->setCurrentPosition("Current Position");
     this->sendWaypointRequest(building,building_floor + " Lift");
     this->add_target_service_server = nh_.advertiseService(this->add_target_service_name_, &Navigation::addTargetService, this);
+    this->add_default_target_service_server = nh_.advertiseService(this->add_default_target_service_name_, &Navigation::addDefaultTargetService, this);
+    this->run_system_service_server = nh_.advertiseService(this->run_system_service_name_, &Navigation::runSystemService, this);
 }
 
 Navigation::~Navigation(void) 
@@ -52,6 +68,11 @@ void Navigation::addTargetQueue(MoveBaseGoalData data) {
 void Navigation::deleteTargetQueue(int idx) {
     this->target_queue.erase(this->target_queue.begin() + idx);
     ROS_INFO("Target Queue: %ld", target_queue.size());
+}
+
+void Navigation::addDefaultTargetQueue(MoveBaseGoalData data) {
+    this->default_queue.push_back(data);
+    ROS_INFO("Default Queue: %ld", default_queue.size());
 }
 
 void Navigation::setBuilding(std::string building) {
@@ -172,6 +193,12 @@ bool Navigation::update() {
             }
             else if(this->target_queue.size() == 0) {
                 //สั่งให้หุ่นยนต์กลับไปยังจุด base station
+                if(this->default_queue.size() > 0) {
+                    this->target_queue = this->default_queue;
+                }
+                else {
+
+                }
                 this->isDoneGoal = true;
             }
             else {
@@ -184,7 +211,7 @@ bool Navigation::update() {
     }
     else {
         //ระบบหยุดทำงาน ทำอะไรต่อ ?
-        ROS_WARN("Navigation System is shuting down"); 
+        ROS_WARN("Navigation System is shuted down"); 
     }
     return true;
 }
@@ -211,7 +238,9 @@ void Navigation::runLiftNavigation() {
         //Step 1: Wait & Move to in front of the inncoming lift
         case 1: {
             int liftNumber = waitForIncomingLift();
-            this->target_queue.insert(this->target_queue.begin(),this->lifts[liftNumber]);
+            MoveBaseGoalData data = this->lifts[liftNumber];
+            data.task = "USINGLIFT";
+            this->target_queue.insert(this->target_queue.begin(), data);
             this->setRobotTarget(this->target_queue[0]);
             this->setRobotGoal(this->base_frame_id);
             this->sendStateRequest(this->target_queue[0].getTask());
@@ -224,7 +253,9 @@ void Navigation::runLiftNavigation() {
             while(ros::ok()) {
                 if(!this->verifyLiftDoor()) {
                     int liftNumber = waitForIncomingLift();
-                    this->target_queue.insert(this->target_queue.begin(),this->lifts[liftNumber]);
+                    MoveBaseGoalData data = this->lifts[liftNumber];
+                    data.setTask("USINGLIFT");
+                    this->target_queue.insert(this->target_queue.begin(), data);
                     this->setRobotTarget(this->target_queue[0]);
                     this->setRobotGoal(this->base_frame_id);
                     this->sendStateRequest(this->target_queue[0].getTask());
@@ -232,91 +263,71 @@ void Navigation::runLiftNavigation() {
                     this->lift_navigation_step--;
                     break;
                 }
-                // ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
-        //         icreate_navigation::RunGmappingService srv;
-        //         srv.request.task = "open";
-        //         if(client.call(srv)) {
-        //             flag = srv.response.success;
-        //         }
-        //         else {
-        //             ROS_WARN("Failed to run gmapping");
-        //             continue;
-        //         }
-                // break;
+                icreate_navigation::RunGmappingService srv;
+                srv.request.task = "open";
+                if(run_gmapping_client_.call(srv)) {
+                    flag = srv.response.success;
+                }
+                else {
+                    ROS_WARN("Failed to run gmapping");
+                    continue;
+                }
+                break;
             }
             if(flag) {
-                // initializeSimpleForwardMoveBaseTarget(robot, "Going To Lift");
+                initializeLiftForwardMoveBase();
             }
             break;
         }
-        // case 3: {
-        //     ROS_ERROR("Come 3");
-        //     move_base_msgs::MoveBaseGoal new_point;
-        //     new_point.target_pose.pose.orientation.z = -1.0;
-        //     new_point.target_pose.pose.orientation.w = 0.0;
-        //     MoveBaseGoalData data("Rotate In Lift", new_point, this->navigations_[this->nav_idx].building, this->navigations_[this->nav_idx].building_floor_lift);
-        //     robot.target_queue.insert(robot.target_queue.begin(),data);
-        //     robot.sendStateRequest("USINGLIFT");
-        //     this->navigations_[this->nav_idx].requestToSetNewGoal = true;
-        //     break;
-        // }
-        // case 4: {
-        //     ROS_ERROR("Come 4");
-        //     bool flag = waitUserInputLift();
-        //     if(!flag) {
-        //         //ไม่แน่ใจว่าใช้ได้มั้ย
-        //         return ;
-        //     }
-        //     while(ros::ok()) {
-        //         ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
-        //         icreate_navigation::RunGmappingService srv;
-        //         srv.request.task = "restart";
-        //         if(client.call(srv)) {
-        //             flag = srv.response.success;
-        //         }
-        //         else {
-        //             ROS_WARN("Failed to run gmapping");
-        //             continue;
-        //         }
-        //         break;
-        //     }
-        //     if(flag) {
-        //         mid_range += 0.5;
-        //         move_base_msgs::MoveBaseGoal new_point;
-        //         new_point.target_pose.pose.position.x = mid_range;
-        //         new_point.target_pose.pose.orientation.w = 1;
-        //         MoveBaseGoalData data("Going Out Lift", new_point,this->navigations_[this->nav_idx].building, this->navigations_[this->nav_idx].building_floor_lift);
-        //         robot.target_queue.insert(robot.target_queue.begin(),data);
-        //         this->navigations_[this->nav_idx].requestToSetNewGoal = true;
-        //     }
-        //     break;
-        // }
-        // case 5: {
-        //     bool flag = false;
-        //     ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
-        //     icreate_navigation::RunGmappingService srv;
-        //     srv.request.task = "close";
-        //     if(client.call(srv)) {
-        //         flag = srv.response.success;
-        //         // break;
-        //     }
-        //     else {
-        //         ROS_WARN("Failed to run gmapping");
-        //     }
-        //     if(flag) {
-        //         this->navigation_case = 0;
-        //         client = nh_.serviceClient<miltbot_map::SetMapServer>("set_map_service");
-        //         miltbot_map::SetMapServer srv2;
-        //         srv2.request.floor = robot.target_queue[0].building_floor;
-        //         if(client.call(srv2)) {
-        //             bool flag2 = srv2.response.flag;
-        //         }
-        //         else {
-        //            ROS_WARN("Failed to run set map");
-        //         }
-        //     }
-        //     break;
-        // }
+        case 3: {
+            initializeLiftRotateMoveBase();
+            break;
+        }
+        case 4: {
+            waitUserInputLift();
+            bool flag;
+            while(ros::ok()) {
+                icreate_navigation::RunGmappingService srv;
+                srv.request.task = "restart";
+                if(run_gmapping_client_.call(srv)) {
+                    flag = srv.response.success;
+                }
+                else {
+                    ROS_WARN("Failed to run gmapping");
+                    continue;
+                }
+                break;
+            }
+            if(flag) {
+                initializeLiftForwardOutMoveBase();
+            }
+            break;
+        }
+        case 5: {
+            bool flag = false;
+            icreate_navigation::RunGmappingService srv;
+            // srv.request.task = "close";
+            // if(run_gmapping_client_.call(srv)) {
+            //     flag = srv.response.success;
+            // }
+            // else {
+            //     ROS_WARN("Failed to run gmapping");
+            // }
+            // if(flag) {
+            //     this->navigation_case = 0;
+            //     miltbot_map::SetMap srv2;
+            //     //Set out lift position
+            //     srv2.request.floor = this->target_queue[0].building_floor + " Lift";
+            //     srv2.request.target_number = this->lift_number;
+            //     if(set_map_service_client_.call(srv2)) {
+            //         bool flag2 = srv2.response.flag;
+            //     }
+            //     else {
+            //        ROS_WARN("Failed to run set map");
+            //     }
+            // }
+            break;
+        }
     }
 }
 
@@ -421,6 +432,75 @@ bool Navigation::verifyLiftDoor() {
     return true;
 }
 
+bool Navigation::waitUserInputLift() {
+    bool flag;
+    while(ros::ok()) {
+        std::cout << "Waiting for lift stop on the target floor" << std::endl;
+        std::cout << "Please press \"y\" to start navigation " << std::endl;
+        // std::cout << "or Please press \"n\" to stop navigation " << std::endl;
+        std::string input;
+        std::cin >> input;
+        if(input == "y" || input == "Y") {
+            flag = true;
+            break;
+        }
+        // else if(input == "n" || input == "N") {
+        //     flag = false;
+        //     break;
+        // }
+        else {
+            std::cout << "Wrong Input Please Try Again" << std::endl;
+        }
+    }
+    return flag;
+}
+
+void Navigation::initializeLiftForwardMoveBase() {
+    icreate_lift_navigation::GetMiddleRange srv;
+    if(get_middle_range_client_.call(srv)) {
+        this->mid_range = srv.response.mid_range;
+        ROS_INFO("Get Mid Range data: %f",mid_range);
+        this->mid_range -= 0.5;
+        move_base_msgs::MoveBaseGoal new_point;
+        new_point.target_pose.pose.position.x = mid_range;
+        new_point.target_pose.pose.orientation.w = 1;
+        MoveBaseGoalData data("Going To Lift", new_point, this->building, this->building_floor_lift, "USINGLIFT");
+        this->target_queue.insert(this->target_queue.begin(),data);
+        this->setRobotTarget(this->target_queue[0]);
+        this->sendStateRequest(this->target_queue[0].getTask());
+        this->setRobotGoal(this->robot_frame_id);
+        this->runMoveBase();
+    }
+    else {
+        ROS_ERROR("Fail to call Service get_depth_distance");
+    }
+}
+
+void Navigation::initializeLiftRotateMoveBase() {
+    move_base_msgs::MoveBaseGoal new_point;
+    new_point.target_pose.pose.orientation.z = -1.0;
+    new_point.target_pose.pose.orientation.w = 0.0;
+    MoveBaseGoalData data("Rotate In Lift", new_point, this->building, this->building_floor_lift, "USINGLIFT");
+    this->target_queue.insert(this->target_queue.begin(), data);
+    this->setRobotTarget(this->target_queue[0]);
+    this->sendStateRequest(this->target_queue[0].getTask());
+    this->setRobotGoal(this->robot_frame_id);
+    this->runMoveBase();
+}
+
+void Navigation::initializeLiftForwardOutMoveBase() {
+    this->mid_range += 0.5;
+    move_base_msgs::MoveBaseGoal new_point;
+    new_point.target_pose.pose.position.x = mid_range;
+    new_point.target_pose.pose.orientation.w = 1;
+    MoveBaseGoalData data("Going Out Lift", new_point,this->building, this->building_floor_lift, "USINGLIFT");
+    this->target_queue.insert(this->target_queue.begin(),data);
+    this->setRobotTarget(this->target_queue[0]);
+    this->sendStateRequest(this->target_queue[0].getTask());
+    this->setRobotGoal(this->robot_frame_id);
+    this->runMoveBase();
+}
+
 void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state, 
   const move_base_msgs::MoveBaseResultConstPtr &result){
     ROS_INFO("Goal Done Now !!!!!");
@@ -481,6 +561,19 @@ bool Navigation::addTargetService(miltbot_system::AddTarget::Request &req,
     MoveBaseGoalData data(req.waypoint.name, req.waypoint.goal, req.waypoint.building, req.waypoint.floor, req.task);
     this->addTargetQueue(data);
     // req.priority;
+    return true;
+}
+
+bool Navigation::addDefaultTargetService(miltbot_system::AddTarget::Request &req,
+                            miltbot_system::AddTarget::Response &res) {
+    MoveBaseGoalData data(req.waypoint.name, req.waypoint.goal, req.waypoint.building, req.waypoint.floor, req.task);
+    this->addDefaultTargetQueue(data);
+    return true;
+}
+
+bool Navigation::runSystemService(miltbot_system::RunSystem::Request &req,
+                            miltbot_system::RunSystem::Response &res) {
+    this->isSystemWorking = req.status;
     return true;
 }
 

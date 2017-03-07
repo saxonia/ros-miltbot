@@ -8,6 +8,10 @@
 #include "miltbot_state/SetRobotState.h"
 #include "miltbot_system/AddTarget.h"
 #include "miltbot_map/GetWaypointList.h"
+#include "icreate_navigation/RunGmappingService.h"
+#include "icreate_lift_navigation/GetMiddleRange.h"
+#include "miltbot_map/SetMap.h"
+#include "miltbot_system/RunSystem.h"
 
 #ifndef __MILTBOT_NAVIGATION_NAVIGATION
 #define __MILTBOT_NAVIGATION_NAVIGATION
@@ -33,6 +37,8 @@ class Navigation {
         void addTargetQueue(MoveBaseGoalData data);
 
         void deleteTargetQueue(int idx);
+
+        void addDefaultTargetQueue(MoveBaseGoalData data);
 
         void setBuilding(std::string building);
 
@@ -83,6 +89,14 @@ class Navigation {
         int waitForIncomingLift();
 
         bool verifyLiftDoor();
+
+        bool waitUserInputLift();
+
+        void initializeLiftForwardMoveBase();
+
+        void initializeLiftRotateMoveBase();
+
+        void initializeLiftForwardOutMoveBase();
         
         void goalDoneCallback(const actionlib::SimpleClientGoalState &state, 
                             const move_base_msgs::MoveBaseResultConstPtr &result);
@@ -93,6 +107,12 @@ class Navigation {
 
         bool addTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res);
+
+        bool addDefaultTargetService(miltbot_system::AddTarget::Request &req,
+                            miltbot_system::AddTarget::Response &res);
+
+        bool runSystemService(miltbot_system::RunSystem::Request &req,
+                            miltbot_system::RunSystem::Response &res);
         
         void sendStateRequest(std::string state_request);  
 
@@ -106,6 +126,7 @@ class Navigation {
         bool isDoneGoal;
         bool isLiftNavigation;
 
+        std::vector<MoveBaseGoalData> default_queue;
         std::vector<MoveBaseGoalData> target_queue;
         std::vector<MoveBaseGoalData> lifts;
         MoveBaseGoalData    currentPosition;
@@ -115,12 +136,15 @@ class Navigation {
         std::string current_state;
         std::string building;
         std::string building_floor;
+        std::string building_floor_lift;
 
         int navigation_case;
         int lift_navigation_step;
         int fail_goal_value_;
 
         ros::ServiceServer add_target_service_server;
+        ros::ServiceServer add_default_target_service_server;
+        ros::ServiceServer run_system_service_server;
 
     private:
         //NodeHandle
@@ -131,6 +155,9 @@ class Navigation {
         //SeviceClient for clear costmap service
         ros::ServiceClient clear_costmap_client_;
         ros::ServiceClient set_robot_state_client_;
+        ros::ServiceClient run_gmapping_client_;
+        ros::ServiceClient get_middle_range_client_;
+        ros::ServiceClient set_map_service_client_;
 
         //Timer
         ros::Timer timer_;
@@ -143,12 +170,19 @@ class Navigation {
         int done_goal_number;
         int fail_goal_count;
 
+        float mid_range;
+
         std::string clear_costmap_service_name_;
         std::string get_waypoint_list_service_name_;
         std::string move_base_topic_name_;
         float move_base_wait_time_;
         std::string add_target_service_name_;
         std::string set_robot_state_service_name_;
+        std::string run_gmapping_service_name_;
+        std::string set_map_service_name_;
+        std::string get_middle_range_service_name_;
+        std::string add_default_target_service_name_;
+        std::string run_system_service_name_;
 
 };
 

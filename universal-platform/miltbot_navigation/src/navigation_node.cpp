@@ -31,8 +31,6 @@ int main(int argc, char** argv) {
 
     // start();
     navigation.createTimer(timer_duration);
-    // navigation.update();
-    // ros::spin();
 
     while(ros::ok()) {
         ros::spinOnce();
