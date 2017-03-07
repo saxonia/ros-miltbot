@@ -41,7 +41,6 @@ def gmapping_start():
     rospy.set_param('/move_base/global_costmap/global_frame',"odom")
     rospy.set_param('/move_base/global_costmap/inflation_layer/inflation_radius',0.1)
     rospy.set_param('/move_base/local_costmap/inflation_layer/inflation_radius',0.1)
-    
 
 def amcl_start():
     global amcl_flag
@@ -71,13 +70,13 @@ def gmapping_callback(msg):
     task = msg.task
     print(msg.task)
     if task == 'open':
-        start_set_map()
         gmapping_start()
         amcl_shutdown()
+        start_set_map()
         return True
     elif task == 'close':
-        gmapping_shutdown()
         amcl_start()
+        gmapping_shutdown()
         return True
     elif task == 'restart':
         gmapping_shutdown()

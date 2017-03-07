@@ -3,7 +3,7 @@
     <!--Map Server-->
     <arg name="map" default="build4_f17" />
     <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
-    <!--<node pkg="map_server" type="map_server" name="map_server" args="/home/saxonia/Map/Map1/map.yaml" output="screen">-->
+    <!--<node pkg="map_server" type="map_server" name="map_server" args="/home/saxonia/map.yaml" output="screen">-->
     </node>
 
     <include file="$(find icreate_navigation)/launch/modules/icreate_navigation_stack.launch" />
