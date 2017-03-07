@@ -8,6 +8,9 @@
 #include "miltbot_map/Waypoint.h"
 #include "miltbot_map/GetWaypointList.h"
 #include "miltbot_system/AddTarget.h"
+#include "miltbot_system/RunSystem.h"
+
+#include "miltbot_system/WaypointList.h"
 
 using namespace miltbot;
 
@@ -98,9 +101,28 @@ void addTarget(ros::NodeHandle &nh, MoveBaseGoalData data) {
     }
 }
 
+void addDefaultTarget(ros::NodeHandle &nh, MoveBaseGoalData data) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::AddTarget>("add_default_target");
+    miltbot_system::AddTarget srv;
+    miltbot_map::Waypoint waypoint;
+    waypoint.name = data.getGoalName();
+    waypoint.goal = data.getGoal();
+    waypoint.building = data.getBuilding();
+    waypoint.floor = data.getBuildingFloor();
+    srv.request.waypoint = waypoint;
+    srv.request.task = "SINGLERUN";
+    srv.request.priority = data.getPriority();
+    if(client.call(srv)) {
+        bool flag = srv.response.success;
+    }
+    else {
+        ROS_ERROR("Failed to call service add_default_target");
+    }
+}
+
 void setTargetPriority(MoveBaseGoalData &data) {
-    std::cout << "Please insert target priority";
-    std::cout << "Your Input: " << std::endl;
+    std::cout << "Please insert target priority" << std::endl;
+    std::cout << "Your Input: ";
     int priority;
     std::cin >> priority;
     data.priority = priority;
@@ -177,16 +199,55 @@ void runAddTarget(ros::NodeHandle &nh) {
     addTarget(nh,data);
 }
 
+void runDeleteTarget(ros::NodeHandle &nh) {
+    MoveBaseGoalData data;
+    showWaypointMenu(data);
+    addTarget(nh,data);
+}
+
+void runAddDefaultTarget(ros::NodeHandle &nh) {
+    MoveBaseGoalData data;
+    showWaypointMenu(data);
+    addDefaultTarget(nh,data);
+}
+
+void runStartSystem(ros::NodeHandle &nh) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::RunSystem>("run_system");
+    miltbot_system::RunSystem srv;
+    srv.request.status = true;
+    if(client.call(srv)) {
+        bool flag = srv.response.success;
+    }
+    else {
+        ROS_ERROR("Failed to call service run_system");
+    }
+}
+
+void runShutdownSystem(ros::NodeHandle &nh) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::RunSystem>("run_system");
+    miltbot_system::RunSystem srv;
+    srv.request.status = false;
+    if(client.call(srv)) {
+        bool flag = srv.response.success;
+    }
+    else {
+        ROS_ERROR("Failed to call service run_system");
+    }
+}
+
 void showFleetManagerMenu() {
     std::cout << "Start Simple Fleet Manager System" << std::endl;
     std::cout << "Please Select Your Command" << std::endl;
-    // std::cout << "[0] Add Robot To System" << std::endl;
-    // std::cout << "[1] Delete Robot From System" << std::endl;
-    std::cout << "[2] Add Target To Robot" << std::endl;
-    std::cout << "[3] Delete Target From Robot" << std::endl;
-    std::cout << "[4] Send Robot To Receive Supplies" << std::endl;
-    std::cout << "[5] Send Robot To Send Suoolies" << std::endl;
+    std::cout << "[0] View Current Queue of Robot" << std::endl;
+    std::cout << "[1] Add Robot To System" << std::endl;
+    std::cout << "[2] Delete Robot From System" << std::endl;
+    std::cout << "[3] Add Target To Robot" << std::endl;
+    std::cout << "[4] Delete Target From Robot" << std::endl;
+    std::cout << "[5] Send Robot To Receive Supplies" << std::endl;
+    std::cout << "[6] Send Robot To Send Supplies" << std::endl;
+    std::cout << "[7] Add Default Target To Robot" << std::endl;
     std::cout << "[10] Exit Program" << std::endl;
+    std::cout << "[98] Start System" << std::endl;
     std::cout << "[99] Stop System" << std::endl;
 }
 
@@ -198,22 +259,33 @@ bool runFleetManagerMenu(ros::NodeHandle &nh) {
     // std::cout << "Your Command is " << command << std::endl;
     std::cout << std::endl;
     switch(command) {
-        // case 0:
+        case 0:
+            break;
+        // case 1:
         //     std::cout << "0" << std::endl;
         //     addRobot(nh);
         //     break;
-        // case 1:
+        // case 2:
         //     std::cout << "1" << std::endl;
         //     break;
-        case 2:
+        case 3:
             runAddTarget(nh);
             break;
-        case 3:
-            std::cout << "3" << std::endl;
+        case 4:
+            runDeleteTarget(nh);
+            break;
+        case 7:
+            runAddDefaultTarget(nh);
             break;
         case 10:
             std::cout << "10" << std::endl;
             return false;
+        case 98:
+            runStartSystem(nh);
+            break;
+        case 99:
+            runShutdownSystem(nh);
+            break;
         default: 
             std::cout << "Wrong Command Please Try Again" << std::endl;
     }
@@ -224,12 +296,27 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "simple_fleet_manager");
     ros::NodeHandle nh;
 
+    ros::Publisher pub = nh.advertise<miltbot_system::WaypointList>("waypoint_list", 1);
+
     loadWaypoint(nh);
 
     while(ros::ok()) {
         if(!runFleetManagerMenu(nh)) {
             break;
         }
+        // miltbot_system::WaypointList msg;
+        // for(int i = 0; i < 3;i++) {
+        //     miltbot_map::Waypoint point;
+        //     point.name = "Point";
+        //     point.building = "4";
+        //     point.floor = "20";
+        //     msg.waypoints.push_back(point);
+        // }
+        
+        // pub.publish(msg);
+        // ros::spinOnce();
+
+
     }
     return 1;
 }

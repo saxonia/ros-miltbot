@@ -53,6 +53,10 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message1.msg
 #   Message2.msg
 # )
+add_message_files(
+  FILES
+  WaypointList.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -63,6 +67,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   AddTarget.srv
+  RunSystem.srv
 )
 
 ## Generate actions in the 'action' folder
