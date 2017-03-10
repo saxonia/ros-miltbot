@@ -12,7 +12,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     store = msg->ranges;
     mid_range = store[idx];
     // ROS_WARN("%ld",store.size());
-    // ROS_INFO("Middle Range: %f",store[idx]);
+    ROS_INFO("Middle Range: %f",store[idx]);
 }
 
 bool getMiddleRangeService(icreate_lift_navigation::GetMiddleRange::Request &req,
