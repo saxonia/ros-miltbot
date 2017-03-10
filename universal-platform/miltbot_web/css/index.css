@@ -1,0 +1,45 @@
+.header-section {
+    background-color: #E3DDDB;
+    padding: 2rem 1.5rem 0rem 1.5rem;
+}
+
+.header-section .container {
+    background-color: white;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+}
+
+.body-section {
+    padding: 1rem 1.5rem 3rem 1.5rem;
+    background-color: #E3DDDB;
+}
+
+.body-section .container {
+    background-color: white;
+    padding: 2rem 2rem;
+    border-radius: 5px;
+}
+
+.section {
+    padding: 3rem 1.5rem 3rem 1.5rem;
+    background-color: #E3DDDB;
+}
+
+.section .container {
+    background-color: white;
+    padding: 2rem 2rem;
+    border-radius: 5px;
+}
+
+.page-navigation {
+    padding: 1rem 1rem;
+}
+
+.robot-number {
+    background-color: green;
+    
+}
+
+.button {
+    width: 10rem
+}
