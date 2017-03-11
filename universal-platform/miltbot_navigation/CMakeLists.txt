@@ -63,7 +63,6 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 add_service_files(
   FILES
-  RunMoveBase.srv
   RunGmapping.srv
 )
 
@@ -147,7 +146,6 @@ add_library(navigation src/move_base_data.cpp src/navigation.cpp)
 
 ## Declare a C++ executable
 # add_executable(miltbot_navigation_node src/miltbot_navigation_node.cpp)
-add_executable(move_base src/move_base_node.cpp)
 add_executable(navigation_node src/navigation_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -158,7 +156,6 @@ add_executable(navigation_node src/navigation_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(navigation ${catkin_LIBRARIES})
-target_link_libraries(move_base ${catkin_LIBRARIES})
 target_link_libraries(navigation_node ${catkin_LIBRARIES} navigation)
 
 #############
