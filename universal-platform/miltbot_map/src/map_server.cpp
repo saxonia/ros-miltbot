@@ -163,11 +163,11 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "maps_server");
     ros::NodeHandle nh;
 
-    std::string map1_sub_topic_name("/build4_f17/map");
-    std::string map2_sub_topic_name("/build4_f20/map");
-    std::string map_dynamic_sub_topic_name("/map_dynamic");
+    std::string map1_sub_topic_name("build4_f17/map");
+    std::string map2_sub_topic_name("build4_f20/map");
+    std::string map_dynamic_sub_topic_name("map_dynamic");
     std::string set_map_server_service_name("set_map_service");
-    std::string set_map_client_service_name("/set_map");
+    std::string set_map_client_service_name("set_map");
     std::string map_pub_topic_name("map");
     std::string get_waypoint_list_client_service_name("get_waypoint_list");
     // std::string initialpose_sub_topic_name();

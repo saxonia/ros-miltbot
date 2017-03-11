@@ -13,7 +13,7 @@ MultiNavigation::MultiNavigation(void):
     this->nav_idx = -1;
     this->navigation_case = -1;
     this->lift_navigation_step = -1;
-    this->lift_number = -1;
+    this->lift_number = 0;
     this->floor_count_ = 0;
     this->isFinishQueue = false;
     this->mid_range = 0.0;
@@ -142,7 +142,7 @@ bool MultiNavigation::setupTargetQueue(Robot &robot) {
     int navigation_mode = robot.getNavigationMode();
     int selected_point = -1;
     // this->requestToSetNewGoal = false;
-    this->lift_navigation_step = 0;
+    this->lift_navigation_step = 5;
     if(navigation_mode >= 0 && navigation_mode < 10) {
         std::pair<int, int> selected = this->showWaypointMenu();
         if(selected.first == 99 || selected.second == 99) {
@@ -371,7 +371,7 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
         }
         //Step 1: Wait & Move to in front of the inncoming lift
         case 1: {
-            lift_number = waitForIncomingLift();
+            this->lift_number = waitForIncomingLift();
             robot.target_queue.insert(robot.target_queue.begin(),this->navigations_[this->nav_idx].lifts[lift_number]);
             robot.sendStateRequest("USINGLIFT");
             this->navigations_[this->nav_idx].requestToSetNewGoal = true;
@@ -379,6 +379,7 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
         }
         //Step 2: Wait Lift Door Open & Move inside the lift
         case 2: {
+            ROS_ERROR("Come 2");
             bool flag;
             while(ros::ok()) {
                 if(!this->verifyLiftDoor()) {
@@ -407,6 +408,7 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
             break;
         }
         case 3: {
+            ROS_ERROR("Come 3");
             move_base_msgs::MoveBaseGoal new_point;
             new_point.target_pose.pose.orientation.z = -1.0;
             new_point.target_pose.pose.orientation.w = 0.0;
@@ -448,33 +450,35 @@ void MultiNavigation::runLiftNavigation(Robot &robot) {
             break;
         }
         case 5: {
+            this->lift_number = 0;
             bool flag = false;
             ros::ServiceClient client = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
-            icreate_navigation::RunGmappingService srv;
-            srv.request.task = "close";
-            if(client.call(srv)) {
-                flag = srv.response.success;
-                // break;
-            }
-            else {
-                ROS_WARN("Failed to run gmapping");
-            }
-            if(flag) {
+            // icreate_navigation::RunGmappingService srv;
+            // srv.request.task = "close";
+            // if(client.call(srv)) {
+            //     flag = srv.response.success;
+            //     // break;
+            // }
+            // else {
+            //     ROS_WARN("Failed to run gmapping");
+            // }
+            // if(flag) {
                 this->navigation_case = 0;
-                client = nh_.serviceClient<miltbot_map::SetMapServer>("set_map_service");
-                miltbot_map::SetMapServer srv2;
-                srv2.request.floor = robot.target_queue[0].building_floor;
-                srv2.request.lift_number = this->lift_number;
+                client = nh_.serviceClient<miltbot_map::SetMap>("set_map_service");
+                miltbot_map::SetMap srv2;
+                srv2.request.floor = robot.target_queue[0].building_floor + " Lift";
+                srv2.request.target_number = this->lift_number;
                 if(client.call(srv2)) {
                     bool flag2 = srv2.response.flag;
+                    robot.building = robot.target_queue[0].building;
+                    robot.building_floor = robot.target_queue[0].building_floor;
                 }
                 else {
                    ROS_WARN("Failed to run set map");
                 }
-            }
+            // }
             break;
         }
-
     }
 }
 
@@ -560,7 +564,7 @@ void MultiNavigation::initializeSimpleForwardMoveBaseTarget(Robot &robot, std::s
         ROS_INFO("Get Mid Range data: %f",mid_range);
         this->mid_range -= 0.5;
         move_base_msgs::MoveBaseGoal new_point;
-        new_point.target_pose.pose.position.x = mid_range;
+        new_point.target_pose.pose.position.x = this->mid_range;
         new_point.target_pose.pose.orientation.w = 1;
         MoveBaseGoalData data("Going To Lift", new_point, this->navigations_[this->nav_idx].building, this->navigations_[this->nav_idx].building_floor_lift);
         robot.target_queue.insert(robot.target_queue.begin(),data);
