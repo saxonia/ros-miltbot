@@ -23,25 +23,25 @@ private:
 };
 
 MiltbotJoy::MiltbotJoy():
-    twist_pub_topic_name_("/cmd_vel"),
+    twist_pub_topic_name_("cmd_vel"),
     joy_sub_topic_name_("joy"),
-    auto_stop_pub_topic_name_("/move_base/cancel"),
+    auto_stop_pub_topic_name_("move_base/cancel"),
     linear_(1),
     angular_(3),
     deadman_(2),
     cancel_(4)
 {
     //param ("NAME" , VAR , VAR );
-    nh_.param("/axis_linear", linear_, linear_);
-    nh_.param("/axis_angular", angular_, angular_);
-    nh_.param("/button_deadman_switch", deadman_, deadman_ );
-    nh_.param("/scale_angular", a_scale_, a_scale_);
-    nh_.param("/scale_linear", l_scale_, l_scale_);
-    nh_.param("/twist_pub_topic", twist_pub_topic_name_,twist_pub_topic_name_);
-    nh_.param("/joy_sub_topic", joy_sub_topic_name_,joy_sub_topic_name_);
+    nh_.param("axis_linear", linear_, linear_);
+    nh_.param("axis_angular", angular_, angular_);
+    nh_.param("button_deadman_switch", deadman_, deadman_ );
+    nh_.param("scale_angular", a_scale_, a_scale_);
+    nh_.param("scale_linear", l_scale_, l_scale_);
+    nh_.param("twist_pub_topic", twist_pub_topic_name_,twist_pub_topic_name_);
+    nh_.param("joy_sub_topic", joy_sub_topic_name_,joy_sub_topic_name_);
     std::cout << twist_pub_topic_name_ << std::endl;
     std::cout << l_scale_ << std::endl;
-    nh_.param("/auto_stop_pub_topic", auto_stop_pub_topic_name_,auto_stop_pub_topic_name_);
+    nh_.param("auto_stop_pub_topic", auto_stop_pub_topic_name_,auto_stop_pub_topic_name_);
 
     //Publisher and Subscriber
     twist_pub_  = nh_.advertise<geometry_msgs::Twist>(twist_pub_topic_name_, 1);
@@ -49,7 +49,7 @@ MiltbotJoy::MiltbotJoy():
 
     //Navigation Stopper
     auto_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>(auto_stop_pub_topic_name_, 1);
-    stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel",1);
+    stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>(auto_stop_pub_topic_name_,1);
 
     trigger_button = false;
 }

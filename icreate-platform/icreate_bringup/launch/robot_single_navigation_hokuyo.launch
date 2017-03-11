@@ -1,10 +1,21 @@
 <launch>
-    <include file="$(find icreate_bringup)/launch/robot_joy_hokuyo.launch" />
+    <arg name="ns" default="/" />
+    <group ns="$(arg ns)">
+    <include file="$(find icreate_bringup)/launch/robot_joy_hokuyo.launch" >
+        <arg name="ns" default="$(arg ns)" />
+    </include>
 
     <!--<include file="$(find icreate_navigation)/launch/waypoint_navigation.launch" />-->
 
-    <include file="($find miltbot_state)/launch/miltbot_state.launch" />
+    <include file="$(find icreate_navigation)/launch/modules/icreate_navigation_stack.launch" >
+        <arg name="ns" default="$(arg ns)" />
+    </include>
+
+    <include file="$(find miltbot_state)/launch/miltbot_state.launch" />
+
+    <include file="$(find icreate_navigation)/launch/modules/map_server.launch" />
 
     <!--<include file="($find icreate_transportation)/launch/single_transportation.launch">-->
+    </group>
 
 </launch>

@@ -1,5 +1,8 @@
 <launch>
+    <arg name="ns" default="" />
     <include file="$(find icreate_base)/launch/icreate_base_hokuyo.launch" />
 
-    <include file="$(find miltbot_teleop)/launch/joy.launch" />
+    <include file="$(find miltbot_teleop)/launch/joy.launch" >
+        <!--<arg name="ns" default="$(arg ns)" />-->
+    </include>
 </launch>

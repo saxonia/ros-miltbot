@@ -1,23 +1,24 @@
 <launch>
 
+    <arg name="ns" default="" />
+    <!--<group ns="$(arg ns)">-->
     <!--Initial pose of Robot for Localization-->
     <arg name="initial_pose_x" default="0.0" />
     <arg name="initial_pose_y" default="0.0" />
     <arg name="initial_pose_a" default="0.0" />
-    <arg name="ns" default="" />
 
     <!--Localizer : AMCL Algorithm-->
-    <include file="$(find icreate_navigation)/launch/modules/amcl.launch">
+    <!--<include file="$(find icreate_navigation)/launch/modules/amcl.launch">
         <arg name="initial_pose_x" default="$(arg initial_pose_x)" />
         <arg name="initial_pose_y" default="$(arg initial_pose_y)" />
         <arg name="initial_pose_a" default="$(arg initial_pose_a)" />
-    </include>
+    </include>-->
 
-    <!--<node pkg="icreate_navigation" type="localization_controller.py" name="localization_controller" output="screen">-->
+    <node pkg="icreate_navigation" type="localization_controller.py" name="localization_controller" output="screen">
         <!--<param name="amcl/allow_unknown" value="false"/>-->
         <!--<param name="amcl/default_tolerance" value="0.0"/>-->
         <!--<param name="amcl/default_tolerance" value="0.0"/>-->
-    <!--</node>-->
+    </node>
 
     <!--Velocity Smoother-->
     <include file="$(find icreate_navigation)/launch/modules/velocity_smoother.launch">
@@ -27,4 +28,5 @@
     <include file="$(find icreate_navigation)/launch/modules/move_base.launch">
         <arg name="ns" default="$(arg ns)" />
     </include>
+    <!--</group>-->
 </launch>

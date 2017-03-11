@@ -9,7 +9,7 @@
   <arg name="initial_pose_a"  default="0.0"/>
   <arg name="odom_frame_id"   default="odom"/>
   <arg name="base_frame_id"   default="base_footprint"/>
-  <arg name="global_frame_id" default="/map"/>
+  <arg name="global_frame_id" default="map"/>
   
   <!--
     Odometery model parameters
@@ -24,11 +24,11 @@
 
     <!-- ~odom_alpha1 (double, default: 0.2)
     Specifies the expected noise in odometry's rotation estimate from the rotational component of the robot's motion. -->
-    <param name="odom_alpha1"               value="0.2"/>
+    <param name="odom_alpha1"               value="1.5"/>
 
     <!-- ~odom_alpha2 (double, default: 0.2)
     Specifies the expected noise in odometry's rotation estimate from translational component of the robot's motion. -->
-    <param name="odom_alpha2"               value="1.5"/>
+    <param name="odom_alpha2"               value="2.0"/>
 
     <!-- ~odom_alpha3 (double, default: 0.2)
     Specifies the expected noise in odometry's translation estimate from the translational component of the robot's motion. -->
@@ -47,7 +47,7 @@
     <!-- Maximum scan range to be considered; -1.0 will cause the laser's reported maximum range to be used. -->
     <param name="laser_max_range"           value="12.0"/>
     <param name="min_particles"             value="100"/>
-    <param name="max_particles"             value="200"/>
+    <param name="max_particles"             value="500"/>
     <param name="kld_err"                   value="0.01"/>
     <param name="kld_z"                     value="0.99"/>
     
@@ -61,8 +61,8 @@
     <param name="laser_model_type"          value="likelihood_field"/>
 
     <param name="laser_likelihood_max_dist" value="2.0"/>
-    <param name="update_min_d"              value="0.2"/>
-    <param name="update_min_a"              value="0.5"/>
+    <param name="update_min_d"              value="0.15"/>
+    <param name="update_min_a"              value="0.35"/>
     <param name="odom_frame_id"             value="$(arg odom_frame_id)"/>
     <param name="base_frame_id"             value="$(arg base_frame_id)"/>
     <param name="global_frame_id"           value="$(arg global_frame_id)"/>

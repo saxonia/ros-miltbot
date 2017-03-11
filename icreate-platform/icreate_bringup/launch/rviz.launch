@@ -1,7 +1,10 @@
 <launch>
+    <arg name="ns" default="/" />
+    <group ns="$(arg ns)">
     <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find icreate_bringup)/config/icreate-platform.rviz">
     </node>
 
     <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen">
     </node>
+    </group>
 </launch>
