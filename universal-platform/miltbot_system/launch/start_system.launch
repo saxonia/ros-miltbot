@@ -1,5 +1,11 @@
 <launch>
-    <machine name="sax-MacBookAir" address="192.168.1.25" env-loader="/opt/ros/kinetic/env.sh" user="sax" default="true" />
+    <!--<machine name="sax-MacBookAir" address="192.168.1.25" env-loader="/opt/ros/kinetic/env.sh" user="saxonia" default="true" />-->
 
-    <machine name="miltbot-nuc" address="192.168.1.35" env-loader="/opt/ros/kinetic/env.sh" user="miltbot" default="true" />
+    <!--<machine name="miltbot-nuc" address="192.168.1.35" env-loader="/opt/ros/kinetic/env.sh" user="miltbot" default="true" />-->
+
+    <!--<machine name="miltbot-nuc2" address="192.168.1.36" env-loader="/opt/ros/kinetic/env.sh" user="miltbot" default="true" />-->
+
+    <node pkg="miltbot_system" type="simple_fleet_manager" name="simple_fleet_manager" output="screen" >
+    </node>
+
 </launch>

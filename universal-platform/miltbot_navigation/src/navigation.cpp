@@ -5,13 +5,13 @@ namespace miltbot {
 Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, std::string building, std::string building_floor):
     base_frame_id("map"),
     robot_frame_id("base_footprint"),
-    clear_costmap_service_name_("/move_base/clear_costmaps"),
+    clear_costmap_service_name_("move_base/clear_costmaps"),
     get_waypoint_list_service_name_("get_waypoint_list"),
     move_base_topic_name_("move_base"),
     move_base_wait_time_(2.0), 
     add_target_service_name_("add_target"),
     fail_goal_value_(2),
-    set_robot_state_service_name_("/set_robot_state"),
+    set_robot_state_service_name_("set_robot_state"),
     run_gmapping_service_name_("run_gmapping"),
     set_map_service_name_("set_map_service"),
     get_middle_range_service_name_("get_middle_range"),
@@ -20,11 +20,13 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     ac("move_base", true) 
 {
     nh_.param("clear_costmap_service", clear_costmap_service_name_, clear_costmap_service_name_);
-    nh_.param("get_waypoint_list_service", get_waypoint_list_service_name_, get_waypoint_list_service_name_);
-    nh_.param("move_base_wait_time_", move_base_wait_time_, move_base_wait_time_);
+    nh_.param("/get_waypoint_list_service", get_waypoint_list_service_name_, get_waypoint_list_service_name_);
+    nh_.param("navigation_node/move_base_wait_time", move_base_wait_time_, move_base_wait_time_);
     nh_.param("run_gmapping_service", run_gmapping_service_name_, run_gmapping_service_name_);
     nh_.param("set_map_service", set_map_service_name_, set_map_service_name_);
     nh_.param("get_middle_range_service", get_middle_range_service_name_, get_middle_range_service_name_);
+    nh_.param("add_default_target_service", add_default_target_service_name_, add_default_target_service_name_);
+    
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->set_robot_state_client_ = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
     this->run_gmapping_client_ = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
@@ -35,10 +37,9 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->building = building;
     this->building_floor = building_floor;
     this->building_floor_lift = building_floor + " Lift";
-    this->requestToSetNewGoal = false;
     this->current_state = "IDLE";
     this->navigation_case = -1;
-    this->isSystemWorking = true;
+    this->isSystemWorking = false;
     this->isDoneGoal = true;
     this->isLiftNavigation = false;
     this->done_goal_number = -1;
@@ -211,7 +212,7 @@ bool Navigation::update() {
     }
     else {
         //ระบบหยุดทำงาน ทำอะไรต่อ ?
-        ROS_WARN("Navigation System is shuted down"); 
+        // ROS_WARN("Navigation System is shuted down"); 
     }
     return true;
 }
@@ -506,7 +507,8 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
     ROS_INFO("Goal Done Now !!!!!");
     this->clearCostmap();
     if(state.state_ == actionlib::SimpleClientGoalState::SUCCEEDED){
-		done_goal_number = 1;
+		ROS_INFO("SUCCEEDED");
+        done_goal_number = 1;
         if(this->target_queue.size() > 0) {
             // robot.setStartPosition(robot.target_queue[0]);
             this->setCurrentPosition(this->target_queue[0]);
@@ -546,6 +548,9 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
             this->fail_goal_count++;
         }
         
+    }
+    else {
+        ROS_WARN("UNKNOWN");
     }
 
     std::cout << "Goal Finished Or Cancelled by Joy" << std::endl;

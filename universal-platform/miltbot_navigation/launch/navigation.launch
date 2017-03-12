@@ -1,0 +1,20 @@
+<launch>
+    <arg name="ns" default="/" />
+    <group ns="$(arg ns)">
+    <node pkg="miltbot_navigation" type="navigation_node" name="navigation_node" output="screen">
+        <param name="move_base_topic" value="move_base"/>
+        <param name="base_frame_id" value="map"/>
+        <param name="robot_frame_id" value="base_footprint"/>
+        <param name="polling_rate" value="30"/>
+        <param name="timer_duration" value="10"/>
+        <param name="building" value="Building 4"/>
+        <param name="building_floor" value="Floor 20"/>
+        <param name="move_base_wait_time" value="2.0"/>
+    </node>
+
+    <param name="clear_costmap_service" value="move_base/clear_costmaps" />
+    <param name="run_gmapping_service" value="run_gmapping"/>
+    <param name="set_map_service" value="set_map_service"/>
+    <param name="get_middle_range_service" value="get_middle_range"/>
+    </group>
+</launch>

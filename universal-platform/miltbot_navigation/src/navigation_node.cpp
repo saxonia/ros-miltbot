@@ -15,14 +15,14 @@ int main(int argc, char** argv) {
     std::string building_floor_name("Floor 20");
 	int polling_rate(30);
     int timer_duration(10);
-    nh.param("/waypoint_navigation/move_base_topic", move_base_topic_name, move_base_topic_name);
-    nh.param("/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
-    nh.param("/waypoint_navigation/robot_frame_id", robot_frame_id, robot_frame_id);
-    nh.param("/waypoint_navigation/package_name", package_name, package_name); 
-	nh.param("/waypoint_navigation/polling_rate", polling_rate, polling_rate);
-    nh.param("/waypoint_navigation/timer_duration", timer_duration, timer_duration);
-    nh.param("/waypoint_navigation/building", building_name, building_name);
-    nh.param("/waypoint_navigation/building_floor", building_floor_name, building_floor_name);
+    // nh.param("navigation_node/move_base_topic", move_base_topic_name, move_base_topic_name);
+    nh.param("navigation_node/base_frame_id", base_frame_id, base_frame_id);
+    nh.param("navigation_node/robot_frame_id", robot_frame_id, robot_frame_id);
+    nh.param("navigation_node/package_name", package_name, package_name); 
+	nh.param("navigation_node/polling_rate", polling_rate, polling_rate);
+    nh.param("navigation_node/timer_duration", timer_duration, timer_duration);
+    nh.param("navigation_node/building", building_name, building_name);
+    nh.param("navigation_node/building_floor", building_floor_name, building_floor_name);
 
     miltbot::Navigation navigation(base_frame_id, robot_frame_id, building_name, building_floor_name);
 
