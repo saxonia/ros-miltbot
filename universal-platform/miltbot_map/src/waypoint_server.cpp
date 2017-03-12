@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
     std::string waypoint_list_file_name("waypoint_list.csv");
 
     nh.param("get_waypoint_list_service",get_waypoint_list_service_name, get_waypoint_list_service_name);
-    nh.param("/waypoint_server/waypoint_list_file",waypoint_list_file_name, waypoint_list_file_name);
+    nh.param("waypoint_list_file",waypoint_list_file_name, waypoint_list_file_name);
 
     loadWaypoint(map, waypoint_list_file_name);
     ros::ServiceServer service = nh.advertiseService(get_waypoint_list_service_name, getWaypointListService);

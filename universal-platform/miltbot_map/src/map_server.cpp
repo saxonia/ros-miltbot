@@ -163,8 +163,8 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "maps_server");
     ros::NodeHandle nh;
 
-    std::string map1_sub_topic_name("build4_f17/map");
-    std::string map2_sub_topic_name("build4_f20/map");
+    std::string map1_sub_topic_name("/build4_f17/map");
+    std::string map2_sub_topic_name("/build4_f20/map");
     std::string map_dynamic_sub_topic_name("map_dynamic");
     std::string set_map_server_service_name("set_map_service");
     std::string set_map_client_service_name("set_map");
@@ -183,7 +183,6 @@ int main(int argc, char** argv) {
     ros::Subscriber map_sub = nh.subscribe(map1_sub_topic_name, 1, mapCallback);
     ros::Subscriber map_sub2 = nh.subscribe(map2_sub_topic_name, 1, mapCallback2);
     ros::Subscriber map_dynamic_sub = nh.subscribe(map_dynamic_sub_topic_name, 1, mapDynamicCallback);
-    // ros::Subscriber initialpose_sub = nh.subscribe("/icreate/amcl_pose", 1000, initialposeCallback);
     // ros::Subscriber floor_sub = nh.subscribe("/icreate/building", 1000, floorCallback);
     ros::ServiceServer service = nh.advertiseService(set_map_server_service_name, setMapService);
     set_map_client = nh.serviceClient<nav_msgs::SetMap>(set_map_client_service_name);

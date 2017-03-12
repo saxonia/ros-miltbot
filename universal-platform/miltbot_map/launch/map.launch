@@ -1,0 +1,10 @@
+<launch>
+    <include file="$(find icreate_navigation)/launch/modules/map_server.launch" />
+
+    <param name="get_waypoint_list_service" value="/get_waypoint_list" type="string" />
+
+    <node pkg="miltbot_map" type="waypoint_server" name="waypoint_server" output="screen">
+        <param name="waypoint_list_file" value="waypoint_list.csv" type="string" />
+    </node>
+
+</launch>
