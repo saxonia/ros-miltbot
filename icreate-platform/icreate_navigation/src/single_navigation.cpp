@@ -83,7 +83,7 @@ bool SingleNavigation::sendWaypointRequest(std::string building, std::string bui
     miltbot_map::GetWaypointList srv;
     srv.request.building = building;
     srv.request.floor = building_floor;
-    std::vector<miltbot_map::Waypoint> waypoints;
+    std::vector<miltbot_common::Waypoint> waypoints;
     if(client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
@@ -375,13 +375,13 @@ int SingleNavigation::toint(std::string s) { //The conversion function
     return atoi(s.c_str());
 }
 
-void SingleNavigation::setWaypoint(std::vector<miltbot_map::Waypoint> waypoints, std::string building_floor) {
+void SingleNavigation::setWaypoint(std::vector<miltbot_common::Waypoint> waypoints, std::string building_floor) {
     std::size_t found = building_floor.find("Lift");
     for(int i = 0; i < waypoints.size(); i++) {
            MoveBaseGoalData data;
            data.setGoalName(waypoints[i].name);
            data.setBuilding(waypoints[i].building);
-           data.setBuildingFloor(waypoints[i].floor);
+           data.setBuildingFloor(waypoints[i].building_floor);
            data.setGoal(waypoints[i].goal);
            if (found != std::string::npos) {
                this->lifts.push_back(data);

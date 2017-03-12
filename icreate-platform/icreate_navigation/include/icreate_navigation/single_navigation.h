@@ -10,7 +10,7 @@
 
 #include "icreate_navigation/robot.h"
 #include "miltbot_map/GetWaypointList.h"
-#include "miltbot_map/Waypoint.h"
+#include "miltbot_common/Waypoint.h"
 // #include <icreate_transportation/RunTransportation.h>
 
 #ifndef __ICREATE_NAVIGATION_SINGLE_NAVIGATION
@@ -63,7 +63,7 @@ class SingleNavigation {
         // Convert String To Int
         int toint(std::string s); //The conversion function
 
-        void setWaypoint(std::vector<miltbot_map::Waypoint> waypoints, std::string building_floor);
+        void setWaypoint(std::vector<miltbot_common::Waypoint> waypoints, std::string building_floor);
 
         std::string substrBuildingFloor(std::string building_floor);
 

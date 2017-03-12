@@ -2,15 +2,17 @@
 
 import roslaunch
 import rospy
+import rospkg
 
 from icreate_navigation.srv import RunGmappingService
 from miltbot_map.srv import SetMap
 
-ROOT_PATH = "/home/saxonia/miltbot_catkin_ws/src/ros-miltbot/icreate-platform/"
-gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/gmapping.launch"
-# gmapping_file_path = ROOT_PATH + "icreate_lift_navigation/launch/modules/dynamic_navigation_gmapping.launch"
-amcl_file_path = ROOT_PATH + "icreate_navigation/launch/modules/amcl.launch"
-# amcl_file_path = ROOT_PATH + "icreate_navigation/launch/modules/icreate_navigation_stack.launch"
+rospack = rospkg.RosPack()
+ROOT_PATH = rospack.get_path('icreate_lift_navigation')
+# ROOT_PATH = "/~/miltbot_catkin_ws/src/ros-miltbot/icreate-platform/"
+gmapping_file_path = ROOT_PATH + "/launch/modules/gmapping.launch"
+ROOT_PATH = rospack.get_path('icreate_navigation')
+amcl_file_path = ROOT_PATH + "/launch/modules/amcl.launch"
 set_map_service_name_ = ""
 gmapping_launch = None
 amcl_launch = None
