@@ -1,0 +1,1 @@
+miltbot_common/Waypoint[] waypoints
