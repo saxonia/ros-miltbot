@@ -4,6 +4,7 @@
     <node pkg="map_server" type="map_server" name="$(arg map1)_map_server" args="$(find miltbot_map)/map/$(arg map1).yaml" output="screen">
         <remap from="map" to="$(arg map1)/map" />
         <remap from="map_metadata" to="$(arg map1)/map_metadata" />
+        <remap from="static_map" to="$(arg map1)/static_map" />
     </node>
 
     <!--Map Server-->
@@ -11,11 +12,12 @@
     <node pkg="map_server" type="map_server" name="$(arg map2)_map_server" args="$(find miltbot_map)/map/$(arg map2).yaml" output="screen">
         <remap from="map" to="$(arg map2)/map" />
         <remap from="map_metadata" to="$(arg map2)/map_metadata" />
+        <remap from="static_map" to="$(arg map2)/static_map" />
     </node>
 
     <!--Map Server-->
-    <arg name="map" default="build4_f20" />
-        <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
-    </node>
-
+    <!--<arg name="map" default="build4_f20" />-->
+        <!--<node ns="bot1" pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">-->
+    <!--</node>-->
+    
 </launch>

@@ -2,12 +2,12 @@ DWAPlannerROS:
 
 # Robot Configuration Parameters - Kobuki
   max_vel_x: 0.5 # 0.55
-  min_vel_x: 0.3
+  min_vel_x: 0.15
 
   max_vel_y: 0.0  # diff drive robot
   min_vel_y: 0.0  # diff drive robot
 
-  max_trans_vel: 0.3 # choose slightly less than the base's capability
+  max_trans_vel: 0.4 # choose slightly less than the base's capability
   min_trans_vel: 0.1  # this is the min trans velocity when there is negligible rotational velocity
   trans_stopped_vel: 0.01
 
@@ -37,7 +37,7 @@ DWAPlannerROS:
   # controller_frequency: 20
 
 # Trajectory Scoring Parameters
-  path_distance_bias: 32.0      # 32.0   - weighting for how much it should stick to the global path plan
+  path_distance_bias: 40.0      # 32.0   - weighting for how much it should stick to the global path plan
   goal_distance_bias: 24.0      # 24.0   - wighting for how much it should attempt to reach its goal
   occdist_scale: 0.1            # 0.01   - weighting for how much the controller should avoid obstacles
   forward_point_distance: 0.325 # 0.325  - how far along to place an additional scoring point
