@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib_msgs
     geometry_msgs
     miltbot_navigation
+    miltbot_common
 )
 
 ## System dependencies are found with CMake's conventions
@@ -57,7 +58,6 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 add_message_files(
     FILES
-    Waypoint.msg
     WaypointName.msg
 )
 
@@ -70,7 +70,6 @@ add_message_files(
 add_service_files(
     FILES
     GetWaypoint.srv
-    GetWaypointName.srv
     GetWaypointList.srv
     SetMap.srv
 )
@@ -92,6 +91,7 @@ generate_messages(
     std_msgs
     move_base_msgs
     miltbot_map
+    miltbot_common
 )
 
 ################################################

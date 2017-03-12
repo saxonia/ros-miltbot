@@ -2,7 +2,7 @@
 #include <map>
 #include <vector>
 
-#include "miltbot_map/Waypoint.h"
+#include "miltbot_common/Waypoint.h"
 
 // namespace icreate {
     typedef std::pair<std::string, std::string> Key;
@@ -29,7 +29,7 @@ class Map {
 
         MapData getMapData(Key id, int idx);
 
-        std::vector<miltbot_map::Waypoint> getWaypointList(std::string building, std::string building_floor);
+        std::vector<miltbot_common::Waypoint> getWaypointList(std::string building, std::string building_floor);
 
     private:
         std::string makeStringQuote(std::string data);

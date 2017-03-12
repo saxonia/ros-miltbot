@@ -4,52 +4,54 @@
 // #include <icreate_system/AddRobot.h>
 // #include <icreate_system/AddTarget.h>
 
-#include "miltbot_navigation/move_base_data.h"
-#include "miltbot_map/Waypoint.h"
+// #include "miltbot_navigation/move_base_data.h"
+#include "miltbot_common/Waypoint.h"
 #include "miltbot_map/GetWaypointList.h"
 #include "miltbot_system/AddTarget.h"
 #include "miltbot_system/RunSystem.h"
-
+#include "miltbot_system/ViewTargetQueue.h"
 #include "miltbot_system/WaypointList.h"
 
-using namespace miltbot;
+// using namespace miltbot;
 
-// std::vector<MoveBaseGoalData> lifts;
 typedef std::pair<std::string, std::string> Key;
 
-std::map<Key, std::vector<MoveBaseGoalData> > targets;
-// MoveBaseGoalData target;
+std::map<Key, std::vector<miltbot_common::Waypoint> > targets;
 
+std::string view_target_queue_service_name("view_target_queue");
 std::string get_waypoint_list_service_name("get_waypoint_list");
 std::string add_target_service_name("add_target");
 std::string delete_target_service_name("delete_target");
 std::string add_default_target_service_name("add_default_target");
 std::string run_system_service_name("run_system");
 
-void addTargetData(std::string building, std::string building_floor, std::vector<miltbot_map::Waypoint> waypoints) {
-    Key key = std::make_pair(building, building_floor);
-    std::vector<MoveBaseGoalData> data;
-    for(int i = 0; i < waypoints.size(); i++) {
-           MoveBaseGoalData one_data;
-           one_data.setGoalName(waypoints[i].name);
-           one_data.setBuilding(waypoints[i].building);
-           one_data.setBuildingFloor(waypoints[i].floor);
-           one_data.setGoal(waypoints[i].goal);
-           data.push_back(one_data);
-    }
-    targets[key] = data;
-}
+
+// void addTargetData(std::string building, std::string building_floor, std::vector<miltbot_common::Waypoint> waypoints) {
+//     Key key = std::make_pair(building, building_floor);
+//     std::vector<MoveBaseGoalData> data;
+//     for(int i = 0; i < waypoints.size(); i++) {
+//            MoveBaseGoalData one_data;
+//            one_data.setGoalName(waypoints[i].name);
+//            one_data.setBuilding(waypoints[i].building);
+//            one_data.setBuildingFloor(waypoints[i].building_floor);
+//            one_data.setGoal(waypoints[i].goal);
+//            data.push_back(one_data);
+//     }
+//     targets[key] = data;
+// }
 
 bool callGetWaypointService(ros::NodeHandle &nh, std::string building, std::string building_floor) {
     ros::ServiceClient client = nh.serviceClient<miltbot_map::GetWaypointList>("get_waypoint_list");
     miltbot_map::GetWaypointList srv;
     srv.request.building = building;
     srv.request.floor = building_floor;
-    std::vector<miltbot_map::Waypoint> waypoints;
+    std::vector<miltbot_common::Waypoint> waypoints;
     if(client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
-            addTargetData(building, building_floor, waypoints);
+            // addTargetData(building, building_floor, waypoints);
+            Key key = std::make_pair(building, building_floor);
+            targets[key] = waypoints;
         }
         else {
             ROS_WARN("Failed to receive waypoints");
@@ -91,18 +93,18 @@ void addRobot(ros::NodeHandle &nh) {
     // }
 }
 
-void callAddTargetService(ros::NodeHandle &nh, MoveBaseGoalData data, std::string service_namespace) {
+void callAddTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint data, std::string service_namespace) {
     ROS_ERROR("%s",(service_namespace + add_target_service_name).c_str());
     ros::ServiceClient client = nh.serviceClient<miltbot_system::AddTarget>(service_namespace + add_target_service_name);
     miltbot_system::AddTarget srv;
-    miltbot_map::Waypoint waypoint;
-    waypoint.name = data.getGoalName();
-    waypoint.goal = data.getGoal();
-    waypoint.building = data.getBuilding();
-    waypoint.floor = data.getBuildingFloor();
-    srv.request.waypoint = waypoint;
+    // miltbot_common::Waypoint waypoint;
+    // waypoint.name = data.getGoalName();
+    // waypoint.goal = data.getGoal();
+    // waypoint.building = data.getBuilding();
+    // waypoint.building_floor = data.getBuildingFloor();
+    srv.request.waypoint = data;
     srv.request.task = "SINGLERUN";
-    srv.request.priority = data.getPriority();
+    srv.request.priority = data.priority;
     if(client.call(srv)) {
         bool flag = srv.response.success;
     }
@@ -111,23 +113,27 @@ void callAddTargetService(ros::NodeHandle &nh, MoveBaseGoalData data, std::strin
     }
 }
 
-void callAddDefaultTargetService(ros::NodeHandle &nh, MoveBaseGoalData data, std::string service_namespace) {
+void callAddDefaultTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint data, std::string service_namespace) {
     ros::ServiceClient client = nh.serviceClient<miltbot_system::AddTarget>(service_namespace + add_default_target_service_name);
     miltbot_system::AddTarget srv;
-    miltbot_map::Waypoint waypoint;
-    waypoint.name = data.getGoalName();
-    waypoint.goal = data.getGoal();
-    waypoint.building = data.getBuilding();
-    waypoint.floor = data.getBuildingFloor();
-    srv.request.waypoint = waypoint;
+    // miltbot_common::Waypoint waypoint;
+    // waypoint.name = data.getGoalName();
+    // waypoint.goal = data.getGoal();
+    // waypoint.building = data.getBuilding();
+    // waypoint.building_floor = data.getBuildingFloor();
+    srv.request.waypoint = data;
     srv.request.task = "SINGLERUN";
-    srv.request.priority = data.getPriority();
+    srv.request.priority = data.priority;
     if(client.call(srv)) {
         bool flag = srv.response.success;
     }
     else {
         ROS_ERROR("Failed to call service add_default_target");
     }
+}
+
+void callViewTargetQueue(ros::NodeHandle &nh, std::string service_namespace) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::ViewTargetQueue>(service_namespace + view_target_queue_service_name);
 }
 
 void loadWaypoint(ros::NodeHandle &nh) {
@@ -139,7 +145,7 @@ void loadWaypoint(ros::NodeHandle &nh) {
     callGetWaypointService(nh, building, building_floor);
 }
 
-void setTargetPriority(MoveBaseGoalData &data) {
+void setTargetPriority(miltbot_common::Waypoint &data) {
     std::cout << "Please insert target priority" << std::endl;
     std::cout << "Your Input: ";
     int priority;
@@ -147,10 +153,10 @@ void setTargetPriority(MoveBaseGoalData &data) {
     data.priority = priority;
 }
 
-void displayWaypoints(std::vector<MoveBaseGoalData> data) {
+void displayWaypoints(std::vector<miltbot_common::Waypoint> data) {
     std::cout << "Please Select Waypoint" << std::endl;
     for(int i = 0 ; i < data.size() ; i++) {
-      std::cout <<"["<<i<<"] " << data[i].getGoalName() <<std::endl; 
+      std::cout <<"["<<i<<"] " << data[i].name <<std::endl; 
     }
     std::cout <<"["<<99<<"] " << "Cancel" << " " <<std::endl; 
 }
@@ -158,13 +164,13 @@ void displayWaypoints(std::vector<MoveBaseGoalData> data) {
 void displayBuildingFloor() {
     int i = 0;
     std::cout << "Please Select Floor" << std::endl;
-    for(std::map<Key, std::vector<MoveBaseGoalData> >::iterator it = targets.begin(); it != targets.end(); it++, i++) {
+    for(std::map<Key, std::vector<miltbot_common::Waypoint> >::iterator it = targets.begin(); it != targets.end(); it++, i++) {
         std::cout <<"["<<i<<"] " << (it->first).second <<std::endl; 
     }
     std::cout <<"["<<99<<"] " << "Cancel" <<std::endl;
 }
 
-bool showWaypointMenu(MoveBaseGoalData &target) {
+bool showWaypointMenu(miltbot_common::Waypoint &target) {
     int selected_floor;
     while(ros::ok()) {
         //แสดงเรียงลำดับตาม อาคาร ชั้น จุดหมาย
@@ -185,9 +191,9 @@ bool showWaypointMenu(MoveBaseGoalData &target) {
         break;
         // return std::make_pair(selected_floor, selected_point);
     }
-    std::map<Key, std::vector<MoveBaseGoalData> >::iterator it = targets.begin();
+    std::map<Key, std::vector<miltbot_common::Waypoint> >::iterator it = targets.begin();
     std::advance(it, selected_floor);
-    std::vector<MoveBaseGoalData> data = it->second;
+    std::vector<miltbot_common::Waypoint> data = it->second;
     while(ros::ok()) {
         displayWaypoints(data);
 	    // Ask for ID and wait user input
@@ -216,7 +222,7 @@ void displayRobot() {
     int i = 0;
     std::cout << "Please Select Robot" << std::endl;
     std::cout <<"["<<i<<"] " << "bot1" <<std::endl; 
-    // for(std::map<Key, std::vector<MoveBaseGoalData> >::iterator it = targets.begin(); it != targets.end(); it++, i++) {
+    // for(std::map<Key, std::vector<miltbot_common::Waypoint> >::iterator it = targets.begin(); it != targets.end(); it++, i++) {
         // std::cout <<"["<<i<<"] " << (it->first).second <<std::endl; 
     // }
     std::cout <<"["<<99<<"] " << "Cancel" <<std::endl;
@@ -244,19 +250,21 @@ bool showRobotMenu(std::string &service_namespace) {
 }
 
 void runViewQueue(ros::NodeHandle &nh) {
-    
+    std::string service_namespace;
+    if(!showRobotMenu(service_namespace)) return;
+    callViewTargetQueue(nh, service_namespace);
 }
 
 void runAddTarget(ros::NodeHandle &nh) {
     std::string service_namespace;
     if(!showRobotMenu(service_namespace)) return;
-    MoveBaseGoalData data;
+    miltbot_common::Waypoint data;
     if(!showWaypointMenu(data)) return;
     callAddTargetService(nh, data, service_namespace);
 }
 
 void runDeleteTarget(ros::NodeHandle &nh) {
-    // MoveBaseGoalData data;
+    // miltbot_common::Waypoint data;
     // showWaypointMenu(data);
     // addTarget(nh,data);
 }
@@ -264,7 +272,7 @@ void runDeleteTarget(ros::NodeHandle &nh) {
 void runAddDefaultTarget(ros::NodeHandle &nh) {
     std::string service_namespace;
     if(!showRobotMenu(service_namespace)) return;
-    MoveBaseGoalData data;
+    miltbot_common::Waypoint data;
     showWaypointMenu(data);
     callAddDefaultTargetService(nh,data, service_namespace);
 }

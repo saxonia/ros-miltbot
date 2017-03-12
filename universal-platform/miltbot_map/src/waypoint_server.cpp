@@ -108,7 +108,7 @@ void loadWaypoint(Map &map, std::string waypoint_list_file_name) {
 
 bool getWaypointListService(miltbot_map::GetWaypointList::Request &req, 
                             miltbot_map::GetWaypointList::Response &res) {
-    std::vector<miltbot_map::Waypoint> ret = map.getWaypointList(req.building, req.floor);
+    std::vector<miltbot_common::Waypoint> ret = map.getWaypointList(req.building, req.floor);
     res.waypoints = ret;
     return true;
 }

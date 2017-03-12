@@ -1,4 +1,4 @@
-miltbot_map/Waypoint waypoint
+miltbot_common/Waypoint waypoint
 string task
 int32 priority
 ---

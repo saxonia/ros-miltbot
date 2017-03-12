@@ -7,15 +7,15 @@
 #include "std_msgs/String.h"
 
 #include "miltbot_map/SetMap.h"
-#include "miltbot_map/Waypoint.h"
+#include "miltbot_common/Waypoint.h"
 #include "miltbot_map/GetWaypointList.h"
-#include "miltbot_navigation/move_base_data.h"
+// #include "miltbot_navigation/move_base_data.h"
 
 #include <iostream>
 
 // std::string building;
 std::string building_floor_req;
-std::vector<miltbot::MoveBaseGoalData> lifts;
+std::vector<miltbot_common::Waypoint> lifts;
 nav_msgs::OccupancyGrid *map;
 nav_msgs::OccupancyGrid mapb4_f17;
 nav_msgs::OccupancyGrid mapb4_20;
@@ -75,28 +75,29 @@ void initialposeCallback(const geometry_msgs::PoseWithCovarianceStamped &msg) {
 //     }
 // }
 
-void setWaypoint(std::vector<miltbot_map::Waypoint> waypoints) {
-    lifts.clear();
-    ROS_INFO("lifts size: %ld", lifts.size());
-    for(int i = 0; i < waypoints.size(); i++) {
-           miltbot::MoveBaseGoalData data;
-           data.setGoalName(waypoints[i].name);
-           data.setBuilding(waypoints[i].building);
-           data.setBuildingFloor(waypoints[i].floor);
-           data.setGoal(waypoints[i].goal);
-           lifts.push_back(data);
-    } 
-}
+// void setWaypoint(std::vector<miltbot_common::Waypoint> waypoints) {
+//     lifts.clear();
+//     ROS_INFO("lifts size: %ld", lifts.size());
+//     for(int i = 0; i < waypoints.size(); i++) {
+//            miltbot::MoveBaseGoalData data;
+//            data.setGoalName(waypoints[i].name);
+//            data.setBuilding(waypoints[i].building);
+//            data.setBuildingFloor(waypoints[i].building_floor);
+//            data.setGoal(waypoints[i].goal);
+//            lifts.push_back(data);
+//     } 
+// }
 
 bool callGetWaypointClientService() {
     miltbot_map::GetWaypointList srv;
     srv.request.building = "Building 4";
     srv.request.floor = building_floor_req;
-    std::vector<miltbot_map::Waypoint> waypoints;
+    std::vector<miltbot_common::Waypoint> waypoints;
     if(get_waypoint_list_client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
-            setWaypoint(waypoints);
+            // setWaypoint(waypoints);
+            lifts = waypoints;
         }
         else {
             ROS_WARN("Failed to receive waypoints");
@@ -116,7 +117,7 @@ bool callSetMapClientService() {
     header.frame_id = "map";
     if(!callGetWaypointClientService())
         return false;
-    move_base_msgs::MoveBaseGoal goal = lifts[target_number].getGoal();
+    move_base_msgs::MoveBaseGoal goal = lifts[target_number].goal;
     geometry_msgs::PoseWithCovariance pose;
     ROS_WARN("%lf", goal.target_pose.pose.position.x);
     pose.pose.position.x = goal.target_pose.pose.position.x;

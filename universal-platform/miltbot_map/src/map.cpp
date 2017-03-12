@@ -44,10 +44,10 @@ Map::MapData Map::getMapData(Key id, int idx) {
     return res;
 }
 
-std::vector<miltbot_map::Waypoint> Map::getWaypointList(std::string building, std::string building_floor) {
+std::vector<miltbot_common::Waypoint> Map::getWaypointList(std::string building, std::string building_floor) {
     std::cout << "Request: " <<  building << ", " << building_floor << std::endl;
     std::vector<MapData> map_data_list;
-    std::vector<miltbot_map::Waypoint> res;
+    std::vector<miltbot_common::Waypoint> res;
     
     Key key = std::make_pair(makeStringQuote(building) , makeStringQuote(building_floor));
     if(data.find(key) == data.end()) {
@@ -58,10 +58,10 @@ std::vector<miltbot_map::Waypoint> Map::getWaypointList(std::string building, st
         map_data_list = data[key];
     }
     for(int i = 0; i < map_data_list.size(); i++) {
-        miltbot_map::Waypoint waypoint;
+        miltbot_common::Waypoint waypoint;
         waypoint.name = map_data_list[i].name;
         waypoint.building = building;
-        waypoint.floor = building_floor;
+        waypoint.building_floor = building_floor;
         waypoint.goal = convertPointToMoveBaseGoal(map_data_list[i].point);
         res.push_back(waypoint);
     }

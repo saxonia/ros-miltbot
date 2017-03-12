@@ -61,7 +61,7 @@ Navigation::~Navigation(void)
 
 }
 
-void Navigation::addTargetQueue(MoveBaseGoalData data) {
+void Navigation::addTargetQueue(miltbot_common::Waypoint data) {
     this->target_queue.push_back(data);
     ROS_INFO("Target Queue: %ld", target_queue.size());
 }
@@ -71,7 +71,7 @@ void Navigation::deleteTargetQueue(int idx) {
     ROS_INFO("Target Queue: %ld", target_queue.size());
 }
 
-void Navigation::addDefaultTargetQueue(MoveBaseGoalData data) {
+void Navigation::addDefaultTargetQueue(miltbot_common::Waypoint data) {
     this->default_queue.push_back(data);
     ROS_INFO("Default Queue: %ld", default_queue.size());
 }
@@ -105,7 +105,7 @@ bool Navigation::setCurrentPosition(std::string current_position_name) {
         return false;
     }
 
-    this->currentPosition.goal_name = current_position_name;
+    this->currentPosition.name = current_position_name;
     this->currentPosition.goal.target_pose.pose.position.x    = transform.getOrigin().x();
     this->currentPosition.goal.target_pose.pose.position.y    = transform.getOrigin().y();
     this->currentPosition.goal.target_pose.pose.orientation.x = transform.getRotation().x();
@@ -121,26 +121,26 @@ bool Navigation::setCurrentPosition(std::string current_position_name) {
     return true;
 }
 
-bool Navigation::setCurrentPosition(MoveBaseGoalData current_position) {
+bool Navigation::setCurrentPosition(miltbot_common::Waypoint current_position) {
     this->currentPosition = current_position;
 }
 
- MoveBaseGoalData Navigation::getCurrentPosition() {
+ miltbot_common::Waypoint Navigation::getCurrentPosition() {
     return this->currentPosition;
 }
 
-void Navigation::setRobotTarget(MoveBaseGoalData data) {
+void Navigation::setRobotTarget(miltbot_common::Waypoint data) {
     // ROS_INFO("setRobotTarget: %s",data.getGoalName().c_str());
     this->target = data;
 }
 
-MoveBaseGoalData Navigation::getRobotTarget() {
+miltbot_common::Waypoint Navigation::getRobotTarget() {
     // ROS_INFO("get Robot Target: %s",this->target.getGoalName().c_str());
     return this->target;
 }
 
 void Navigation::setRobotGoal(std::string frame_id) {
-    this->goal = this->target.getGoal(); 
+    this->goal = this->target.goal; 
     this->goal.target_pose.header.frame_id = frame_id;
     this->goal.target_pose.header.stamp = ros::Time::now();
     std::cout << "[AGENT] SET NEW GOAL ! " << std::endl;
@@ -187,7 +187,7 @@ bool Navigation::update() {
                 else {
                     this->setRobotTarget(this->target_queue[0]);
                     this->setRobotGoal(this->base_frame_id);
-                    this->sendStateRequest(this->target_queue[0].getTask());
+                    this->sendStateRequest(this->target_queue[0].task);
                     this->runMoveBase();
                 }
                  
@@ -227,11 +227,11 @@ void Navigation::runLiftNavigation() {
     switch(this->lift_navigation_step) {
         //Step 0: Move to Lift Ground
         case 0: {
-            MoveBaseGoalData data = this->lifts.back();
+            miltbot_common::Waypoint data = this->lifts.back();
             data.task = "USINGLIFT";
             this->target_queue.insert(this->target_queue.begin(), data);
             this->setRobotTarget(this->target_queue[0]);
-            this->sendStateRequest(this->target_queue[0].getTask());
+            this->sendStateRequest(this->target_queue[0].task);
             this->setRobotGoal(this->base_frame_id);
             this->runMoveBase();
             break;
@@ -239,12 +239,12 @@ void Navigation::runLiftNavigation() {
         //Step 1: Wait & Move to in front of the inncoming lift
         case 1: {
             int liftNumber = waitForIncomingLift();
-            MoveBaseGoalData data = this->lifts[liftNumber];
+            miltbot_common::Waypoint data = this->lifts[liftNumber];
             data.task = "USINGLIFT";
             this->target_queue.insert(this->target_queue.begin(), data);
             this->setRobotTarget(this->target_queue[0]);
             this->setRobotGoal(this->base_frame_id);
-            this->sendStateRequest(this->target_queue[0].getTask());
+            this->sendStateRequest(this->target_queue[0].task);
             this->runMoveBase();
             break;
         }
@@ -254,12 +254,12 @@ void Navigation::runLiftNavigation() {
             while(ros::ok()) {
                 if(!this->verifyLiftDoor()) {
                     int liftNumber = waitForIncomingLift();
-                    MoveBaseGoalData data = this->lifts[liftNumber];
-                    data.setTask("USINGLIFT");
+                    miltbot_common::Waypoint data = this->lifts[liftNumber];
+                    data.task = "USINGLIFT";
                     this->target_queue.insert(this->target_queue.begin(), data);
                     this->setRobotTarget(this->target_queue[0]);
                     this->setRobotGoal(this->base_frame_id);
-                    this->sendStateRequest(this->target_queue[0].getTask());
+                    this->sendStateRequest(this->target_queue[0].task);
                     this->runMoveBase();
                     this->lift_navigation_step--;
                     break;
@@ -367,15 +367,15 @@ bool Navigation::waitMoveBaseServer(float wait_duration) {
 	return true;
 }
 
-bool Navigation::verifyTargetBuilding(MoveBaseGoalData current, MoveBaseGoalData target) {
-    if(current.getBuilding() == target.getBuilding())
+bool Navigation::verifyTargetBuilding(miltbot_common::Waypoint current, miltbot_common::Waypoint target) {
+    if(current.building == target.building)
         return true;
     else 
         return false;
 }
 
-bool Navigation::verifyTargetFloor(MoveBaseGoalData current, MoveBaseGoalData target) {
-    if(current.getBuildingFloor() == target.getBuildingFloor())
+bool Navigation::verifyTargetFloor(miltbot_common::Waypoint current, miltbot_common::Waypoint target) {
+    if(current.building_floor == target.building_floor)
         return true;
     else 
         return false;
@@ -383,7 +383,7 @@ bool Navigation::verifyTargetFloor(MoveBaseGoalData current, MoveBaseGoalData ta
 
 void Navigation::displayLiftWaypoints() {
     for(int i = 0 ; i < this->lifts.size() ; i++) {
-      std::cout <<"["<<i<<"] " << this->lifts[i].getGoalName() << " " <<std::endl; 
+      std::cout <<"["<<i<<"] " << this->lifts[i].name << " " <<std::endl; 
     }
     std::cout <<"["<<99<<"] " << "Cancel" << " " <<std::endl; 
 }
@@ -465,10 +465,15 @@ void Navigation::initializeLiftForwardMoveBase() {
         move_base_msgs::MoveBaseGoal new_point;
         new_point.target_pose.pose.position.x = mid_range;
         new_point.target_pose.pose.orientation.w = 1;
-        MoveBaseGoalData data("Going To Lift", new_point, this->building, this->building_floor_lift, "USINGLIFT");
+        miltbot_common::Waypoint data;
+        data.name = "Going To Lift";
+        data.building = this->building;
+        data.building_floor = this->building_floor_lift;
+        data.goal = new_point;
+        data.task = "USINGLIFT";
         this->target_queue.insert(this->target_queue.begin(),data);
         this->setRobotTarget(this->target_queue[0]);
-        this->sendStateRequest(this->target_queue[0].getTask());
+        this->sendStateRequest(this->target_queue[0].task);
         this->setRobotGoal(this->robot_frame_id);
         this->runMoveBase();
     }
@@ -481,10 +486,15 @@ void Navigation::initializeLiftRotateMoveBase() {
     move_base_msgs::MoveBaseGoal new_point;
     new_point.target_pose.pose.orientation.z = -1.0;
     new_point.target_pose.pose.orientation.w = 0.0;
-    MoveBaseGoalData data("Rotate In Lift", new_point, this->building, this->building_floor_lift, "USINGLIFT");
+    miltbot_common::Waypoint data;
+    data.name = "Rotate In Lift";
+    data.building = this->building;
+    data.building_floor = this->building_floor_lift;
+    data.goal = new_point;
+    data.task = "USINGLIFT";
     this->target_queue.insert(this->target_queue.begin(), data);
     this->setRobotTarget(this->target_queue[0]);
-    this->sendStateRequest(this->target_queue[0].getTask());
+    this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
     this->runMoveBase();
 }
@@ -494,10 +504,15 @@ void Navigation::initializeLiftForwardOutMoveBase() {
     move_base_msgs::MoveBaseGoal new_point;
     new_point.target_pose.pose.position.x = mid_range;
     new_point.target_pose.pose.orientation.w = 1;
-    MoveBaseGoalData data("Going Out Lift", new_point,this->building, this->building_floor_lift, "USINGLIFT");
+    miltbot_common::Waypoint data;
+    data.name = "Going Out Lift";
+    data.building = this->building;
+    data.building_floor = this->building_floor_lift;
+    data.goal = new_point;
+    data.task = "USINGLIFT";
     this->target_queue.insert(this->target_queue.begin(),data);
     this->setRobotTarget(this->target_queue[0]);
-    this->sendStateRequest(this->target_queue[0].getTask());
+    this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
     this->runMoveBase();
 }
@@ -563,15 +578,14 @@ void Navigation::goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackCons
 
 bool Navigation::addTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res) {
-    MoveBaseGoalData data(req.waypoint.name, req.waypoint.goal, req.waypoint.building, req.waypoint.floor, req.task);
+    miltbot_common::Waypoint data = req.waypoint;
     this->addTargetQueue(data);
-    // req.priority;
     return true;
 }
 
 bool Navigation::addDefaultTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res) {
-    MoveBaseGoalData data(req.waypoint.name, req.waypoint.goal, req.waypoint.building, req.waypoint.floor, req.task);
+    miltbot_common::Waypoint data = req.waypoint;
     this->addDefaultTargetQueue(data);
     return true;
 }
@@ -601,14 +615,15 @@ bool Navigation::sendWaypointRequest(std::string building, std::string building_
     miltbot_map::GetWaypointList srv;
     srv.request.building = building;
     srv.request.floor = building_floor;
-    std::vector<miltbot_map::Waypoint> waypoints;
+    std::vector<miltbot_common::Waypoint> waypoints;
     if(client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
             this->building = building;
             this->building_floor = building_floor;
             // this->building_floor_num = this->toint(this->substrBuildingFloor(building_floor));
-            this->setWaypoint(waypoints);
+            // this->setWaypoint(waypoints);
+            this->lifts = waypoints;
         }
         else {
             ROS_WARN("Failed to receive waypoints");
@@ -622,14 +637,14 @@ bool Navigation::sendWaypointRequest(std::string building, std::string building_
 
 }
 
-void Navigation::setWaypoint(std::vector<miltbot_map::Waypoint> waypoints) {
+void Navigation::setWaypoint(std::vector<miltbot_common::Waypoint> waypoints) {
     for(int i = 0; i < waypoints.size(); i++) {
-           MoveBaseGoalData data;
-           data.setGoalName(waypoints[i].name);
-           data.setBuilding(waypoints[i].building);
-           data.setBuildingFloor(waypoints[i].floor);
-           data.setGoal(waypoints[i].goal);
-           this->lifts.push_back(data);
+        //    miltbot_common::Waypoint data;
+        //    data.setGoalName(waypoints[i].name);
+        //    data.setBuilding(waypoints[i].building);
+        //    data.setBuildingFloor(waypoints[i].floor);
+        //    data.setGoal(waypoints[i].goal);
+        //    this->lifts.push_back(data);
     } 
 }
 

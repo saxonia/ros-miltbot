@@ -4,7 +4,7 @@
 #include <std_srvs/Empty.h>
 #include <tf/transform_listener.h>
 
-#include "miltbot_navigation/move_base_data.h"
+// #include "miltbot_navigation/move_base_data.h"
 #include "miltbot_state/SetRobotState.h"
 #include "miltbot_system/AddTarget.h"
 #include "miltbot_map/GetWaypointList.h"
@@ -34,11 +34,11 @@ class Navigation {
             ONDIFFBUILDING = 2
         };
 
-        void addTargetQueue(MoveBaseGoalData data);
+        void addTargetQueue(miltbot_common::Waypoint data);
 
         void deleteTargetQueue(int idx);
 
-        void addDefaultTargetQueue(MoveBaseGoalData data);
+        void addDefaultTargetQueue(miltbot_common::Waypoint data);
 
         void setBuilding(std::string building);
 
@@ -50,13 +50,13 @@ class Navigation {
 
         bool setCurrentPosition(std::string current_position_name);
 
-        bool setCurrentPosition(MoveBaseGoalData current_position);
+        bool setCurrentPosition(miltbot_common::Waypoint current_position);
 
-        MoveBaseGoalData getCurrentPosition();
+        miltbot_common::Waypoint getCurrentPosition();
 
-        void setRobotTarget(MoveBaseGoalData data);
+        void setRobotTarget(miltbot_common::Waypoint data);
         
-        MoveBaseGoalData getRobotTarget();
+        miltbot_common::Waypoint getRobotTarget();
 
         void setRobotGoal(std::string frame_id);
 
@@ -80,9 +80,9 @@ class Navigation {
 
         bool waitMoveBaseServer(float wait_duration);
 
-        bool verifyTargetBuilding(MoveBaseGoalData current, MoveBaseGoalData target);
+        bool verifyTargetBuilding(miltbot_common::Waypoint current, miltbot_common::Waypoint target);
 
-        bool verifyTargetFloor(MoveBaseGoalData current, MoveBaseGoalData target);
+        bool verifyTargetFloor(miltbot_common::Waypoint current, miltbot_common::Waypoint target);
 
         void displayLiftWaypoints();
         
@@ -118,7 +118,7 @@ class Navigation {
 
         bool sendWaypointRequest(std::string building, std::string building_floor);  
 
-        void setWaypoint(std::vector<miltbot_map::Waypoint> waypoints);
+        void setWaypoint(std::vector<miltbot_common::Waypoint> waypoints);
 
     public:
         bool requestToSetNewGoal;
@@ -126,10 +126,10 @@ class Navigation {
         bool isDoneGoal;
         bool isLiftNavigation;
 
-        std::vector<MoveBaseGoalData> default_queue;
-        std::vector<MoveBaseGoalData> target_queue;
-        std::vector<MoveBaseGoalData> lifts;
-        MoveBaseGoalData    currentPosition;
+        std::vector<miltbot_common::Waypoint> default_queue;
+        std::vector<miltbot_common::Waypoint> target_queue;
+        std::vector<miltbot_common::Waypoint> lifts;
+        miltbot_common::Waypoint    currentPosition;
 
         std::string base_frame_id;
         std::string robot_frame_id;
@@ -165,7 +165,7 @@ class Navigation {
         // Move base Goal
         move_base_msgs::MoveBaseGoal goal;
 
-        MoveBaseGoalData target;
+        miltbot_common::Waypoint target;
 
         int done_goal_number;
         int fail_goal_count;
