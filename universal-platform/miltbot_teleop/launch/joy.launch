@@ -12,11 +12,14 @@
     <param name="axis_linear" value="1" type="int"/>
     <param name="axis_angular" value="3" type="int"/>
     <param name="button_deadman_switch" value="2" type="int"/>
+    <param name="button_start" value="2" type="int" />
+    <param name="button_stop" value="1" type="int"/>
     <param name="scale_linear" value="0.50" type="double"/>
     <param name="scale_angular" value="1.78" type="double"/>
     <param name="twist_pub_topic" value="cmd_vel" type="string"/>
     <param name="joy_sub_topic" value="joy" type="string"/>
     <param name="auto_stop_pub_topic" value="move_base/cancel" type="string"/>
+    <param name="run_system_service" value="run_system" type="string" />
 
     <!--Miltbot Joy-->
     <node pkg="miltbot_teleop" type="miltbot_teleop_joy_node" name="teleop_joy_node" output="screen">
