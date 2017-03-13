@@ -1,3 +1,4 @@
+int64 id
 string name
 string building
 string building_floor

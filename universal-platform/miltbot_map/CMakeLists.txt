@@ -56,10 +56,10 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message1.msg
 #   Message2.msg
 # )
-add_message_files(
-    FILES
-    WaypointName.msg
-)
+# add_message_files(
+#     FILES
+    
+# )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
