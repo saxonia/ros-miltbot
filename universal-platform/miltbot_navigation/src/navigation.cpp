@@ -525,6 +525,12 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
 		ROS_INFO("SUCCEEDED");
         done_goal_number = 1;
         if(this->target_queue.size() > 0) {
+            if(this->target_queue[0].task == "GOING") {
+                
+            }
+            else if(this->target_queue[0].task == "SENDSUPPLIES") {
+
+            }
             // robot.setStartPosition(robot.target_queue[0]);
             this->setCurrentPosition(this->target_queue[0]);
             this->deleteTargetQueue(0);
@@ -532,6 +538,9 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
             std::string state_request;
             if(this->current_state == "SINGLERUN") {
                 state_request = "IDLE";
+            }
+            else if(this->current_state == "GOING") {
+                state_request = "WAITING";
             }
             else if(this->current_state == "USINGLIFT") {
                 state_request = "USINGLIFT";
@@ -580,6 +589,7 @@ bool Navigation::addTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res) {
     miltbot_common::Waypoint data = req.waypoint;
     this->addTargetQueue(data);
+    res.success = true;
     return true;
 }
 
@@ -587,12 +597,14 @@ bool Navigation::addDefaultTargetService(miltbot_system::AddTarget::Request &req
                             miltbot_system::AddTarget::Response &res) {
     miltbot_common::Waypoint data = req.waypoint;
     this->addDefaultTargetQueue(data);
+    res.success = true;
     return true;
 }
 
 bool Navigation::runSystemService(miltbot_system::RunSystem::Request &req,
                             miltbot_system::RunSystem::Response &res) {
     this->isSystemWorking = req.status;
+    res.success = true;
     return true;
 }
 

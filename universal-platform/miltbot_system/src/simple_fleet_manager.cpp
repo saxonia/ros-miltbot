@@ -103,8 +103,6 @@ void callAddTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint data, st
     // waypoint.building = data.getBuilding();
     // waypoint.building_floor = data.getBuildingFloor();
     srv.request.waypoint = data;
-    srv.request.task = "SINGLERUN";
-    srv.request.priority = data.priority;
     if(client.call(srv)) {
         bool flag = srv.response.success;
     }
@@ -114,6 +112,7 @@ void callAddTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint data, st
 }
 
 void callAddDefaultTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint data, std::string service_namespace) {
+    ROS_WARN("%s",(service_namespace + add_default_target_service_name).c_str());
     ros::ServiceClient client = nh.serviceClient<miltbot_system::AddTarget>(service_namespace + add_default_target_service_name);
     miltbot_system::AddTarget srv;
     // miltbot_common::Waypoint waypoint;
@@ -122,8 +121,6 @@ void callAddDefaultTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint d
     // waypoint.building = data.getBuilding();
     // waypoint.building_floor = data.getBuildingFloor();
     srv.request.waypoint = data;
-    srv.request.task = "SINGLERUN";
-    srv.request.priority = data.priority;
     if(client.call(srv)) {
         bool flag = srv.response.success;
     }
@@ -260,6 +257,7 @@ void runAddTarget(ros::NodeHandle &nh) {
     if(!showRobotMenu(service_namespace)) return;
     miltbot_common::Waypoint data;
     if(!showWaypointMenu(data)) return;
+    data.task = "SINGLERUN";
     callAddTargetService(nh, data, service_namespace);
 }
 
@@ -269,11 +267,21 @@ void runDeleteTarget(ros::NodeHandle &nh) {
     // addTarget(nh,data);
 }
 
+void runReceiveSupplies(ros::NodeHandle &nh) {
+    std::string service_namespace;
+    if(!showRobotMenu(service_namespace)) return;
+    miltbot_common::Waypoint data;
+    if(!showWaypointMenu(data)) return;
+    data.task = "GOING";
+    callAddTargetService(nh, data, service_namespace);
+}
+
 void runAddDefaultTarget(ros::NodeHandle &nh) {
     std::string service_namespace;
     if(!showRobotMenu(service_namespace)) return;
     miltbot_common::Waypoint data;
     showWaypointMenu(data);
+    data.task = "SINGLERUN";
     callAddDefaultTargetService(nh,data, service_namespace);
 }
 
@@ -297,7 +305,7 @@ void showFleetManagerMenu() {
     // std::cout << "[2] Delete Robot From System" << std::endl;
     std::cout << "[3] Add Target To Robot" << std::endl;
     // std::cout << "[4] Delete Target From Robot" << std::endl;
-    // std::cout << "[5] Send Robot To Receive Supplies" << std::endl;
+    std::cout << "[5] Send Robot To Receive Supplies" << std::endl;
     // std::cout << "[6] Send Robot To Send Supplies" << std::endl;
     std::cout << "[7] Add Default Target To Robot" << std::endl;
     std::cout << "[10] Exit Program" << std::endl;
@@ -328,6 +336,9 @@ bool runFleetManagerMenu(ros::NodeHandle &nh) {
             break;
         case 4:
             runDeleteTarget(nh);
+            break;
+        case 5:
+            runReceiveSupplies(nh);
             break;
         case 7:
             runAddDefaultTarget(nh);
