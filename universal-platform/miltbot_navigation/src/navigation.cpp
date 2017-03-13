@@ -8,15 +8,18 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     clear_costmap_service_name_("move_base/clear_costmaps"),
     get_waypoint_list_service_name_("get_waypoint_list"),
     move_base_topic_name_("move_base"),
-    move_base_wait_time_(2.0), 
+    move_base_wait_time_(2.0),
+    view_target_queue_service_name_("view_target_queue"), 
     add_target_service_name_("add_target"),
+    delete_target_service_name_("delete_target"),
+    add_default_target_service_name_("add_default_target"),
     fail_goal_value_(2),
     set_robot_state_service_name_("set_robot_state"),
     run_gmapping_service_name_("run_gmapping"),
     set_map_service_name_("set_map_service"),
     get_middle_range_service_name_("get_middle_range"),
-    add_default_target_service_name_("add_default_target"),
     run_system_service_name_("run_system"),
+    run_transportation_service_name_("run_transportation"),
     ac("move_base", true) 
 {
     nh_.param("clear_costmap_service", clear_costmap_service_name_, clear_costmap_service_name_);
@@ -25,13 +28,19 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     nh_.param("run_gmapping_service", run_gmapping_service_name_, run_gmapping_service_name_);
     nh_.param("set_map_service", set_map_service_name_, set_map_service_name_);
     nh_.param("get_middle_range_service", get_middle_range_service_name_, get_middle_range_service_name_);
+    nh_.param("view_target_queue_service", view_target_queue_service_name_, view_target_queue_service_name_);
+    nh_.param("add_target_service", add_target_service_name_, add_target_service_name_);
+    nh_.param("delete_target_service", delete_target_service_name_, delete_target_service_name_);
     nh_.param("add_default_target_service", add_default_target_service_name_, add_default_target_service_name_);
+    nh_.param("run_system_service", run_system_service_name_, run_system_service_name_);
+    nh_.param("run_transportation_service", run_transportation_service_name_, run_transportation_service_name_);
     
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->set_robot_state_client_ = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
     this->run_gmapping_client_ = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
     this->get_middle_range_client_ = nh_.serviceClient<icreate_lift_navigation::GetMiddleRange>(get_middle_range_service_name_);
     this->set_map_service_client_ = nh_.serviceClient<miltbot_map::SetMap>(set_map_service_name_);
+    this->run_transportation_client_ = nh_.serviceClient<miltbot_transportation::RunTransportation>(run_transportation_service_name_);
     this->base_frame_id = base_frame_id;
     this->robot_frame_id = robot_frame_id;
     this->building = building;
@@ -51,7 +60,9 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->waitMoveBaseServer(move_base_wait_time_);
     this->setCurrentPosition("Current Position");
     this->sendWaypointRequest(building,building_floor + " Lift");
+    this->view_target_queue_server = nh_.advertiseService(this->view_target_queue_service_name_, &Navigation::viewTargetQueueService, this);
     this->add_target_service_server = nh_.advertiseService(this->add_target_service_name_, &Navigation::addTargetService, this);
+    this->delete_target_service_server = nh_.advertiseService(this->delete_target_service_name_, &Navigation::deleteTargetService, this);
     this->add_default_target_service_server = nh_.advertiseService(this->add_default_target_service_name_, &Navigation::addDefaultTargetService, this);
     this->run_system_service_server = nh_.advertiseService(this->run_system_service_name_, &Navigation::runSystemService, this);
 }
@@ -63,12 +74,25 @@ Navigation::~Navigation(void)
 
 void Navigation::addTargetQueue(miltbot_common::Waypoint data) {
     this->target_queue.push_back(data);
+    ROS_WARN("%ld",data.id);
     ROS_INFO("Target Queue: %ld", target_queue.size());
 }
 
-void Navigation::deleteTargetQueue(int idx) {
-    this->target_queue.erase(this->target_queue.begin() + idx);
-    ROS_INFO("Target Queue: %ld", target_queue.size());
+void Navigation::deleteTargetQueue(long id) {
+    if(this->target.id == id) {
+        std::cout << "Cannot delete this queue. it already run" << std::endl;
+    }
+    else {
+        for(int i = 0;i < target_queue.size(); i++) {
+            ROS_WARN("%ld",this->target_queue[i].id);
+            if(target_queue[i].id == id) {
+                this->target_queue.erase(this->target_queue.begin() + i);
+                break;
+            }
+        }
+        ROS_INFO("Target Queue: %ld", target_queue.size());
+    }
+    
 }
 
 void Navigation::addDefaultTargetQueue(miltbot_common::Waypoint data) {
@@ -526,10 +550,10 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
         done_goal_number = 1;
         if(this->target_queue.size() > 0) {
             if(this->target_queue[0].task == "GOING") {
-                
+                this->callRunTransportationService("receive");
             }
             else if(this->target_queue[0].task == "SENDSUPPLIES") {
-
+                this->callRunTransportationService("send");
             }
             // robot.setStartPosition(robot.target_queue[0]);
             this->setCurrentPosition(this->target_queue[0]);
@@ -585,18 +609,29 @@ void Navigation::goalActiveCallback(){}
 
 void Navigation::goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback){}
 
+bool Navigation::viewTargetQueueService(miltbot_system::ViewTargetQueue::Request &req,
+                                miltbot_system::ViewTargetQueue::Response &res) {
+    res.target_queue = this->target_queue;
+    return true;
+}
+
 bool Navigation::addTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res) {
-    miltbot_common::Waypoint data = req.waypoint;
-    this->addTargetQueue(data);
+    this->addTargetQueue(req.waypoint);
+    res.success = true;
+    return true;
+}
+
+bool Navigation::deleteTargetService(miltbot_system::DeleteTarget::Request &req,
+                            miltbot_system::DeleteTarget::Response &res) {
+    this->deleteTargetQueue(req.id);
     res.success = true;
     return true;
 }
 
 bool Navigation::addDefaultTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res) {
-    miltbot_common::Waypoint data = req.waypoint;
-    this->addDefaultTargetQueue(data);
+    this->addDefaultTargetQueue(req.waypoint);
     res.success = true;
     return true;
 }
@@ -608,16 +643,25 @@ bool Navigation::runSystemService(miltbot_system::RunSystem::Request &req,
     return true;
 }
 
+void Navigation::callRunTransportationService(std::string mode) {
+    miltbot_transportation::RunTransportation srv;
+    srv.request.mode = mode;
+    if(run_transportation_client_.call(srv)) {
+        bool flag = srv.response.success;
+    } 
+    else {
+        ROS_ERROR("Failed to call service run_transportation");
+    }
+}
+
 void Navigation::sendStateRequest(std::string state_request) {
     ROS_INFO("Send State Request: %s",state_request.c_str());
     miltbot_state::SetRobotState srv;
     srv.request.req = state_request;
-    if (this->set_robot_state_client_.call(srv))
-    {
+    if (this->set_robot_state_client_.call(srv)) {
         this->current_state = srv.response.res;
     }
-    else
-    {
+    else {
         ROS_ERROR("Failed to call service set_robot_state");
     }
 }

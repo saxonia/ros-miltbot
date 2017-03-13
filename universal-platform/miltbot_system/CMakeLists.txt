@@ -66,6 +66,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   AddTarget.srv
+  DeleteTarget.srv
   RunSystem.srv
   ViewTargetQueue.srv
 )
