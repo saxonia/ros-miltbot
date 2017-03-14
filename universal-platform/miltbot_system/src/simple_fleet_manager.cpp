@@ -12,7 +12,7 @@
 #include "miltbot_system/DeleteTarget.h"
 #include "miltbot_system/RunSystem.h"
 #include "miltbot_system/ViewTargetQueue.h"
-#include "miltbot_system/WaypointList.h"
+#include "miltbot_common/WaypointList.h"
 
 // using namespace miltbot;
 

@@ -27,17 +27,25 @@
         console.log('Connection to websocket server closed.');
       });
 
+      var waypoints;
+      var task_id;
+      var robot_id = 0;
+      var floor_id = 0;
+      var target_id;
+
       function viewWaypoint(waypoints) {
         var x = "";
         for(var i = 0; i < waypoints.length; i++) {
           if(i == 0) {
             x = x + "<option disabled selected>Select Target</option>";
           }
-          x = x + "<option>";
-          x = x + waypoints[i].name;
-          x = x + "</option>";
+          else {
+            x = x + "<option value=\"" + i-1 + "\">";
+            x = x + waypoints[i].name;
+            x = x + "</option>";
+          }
         }
-          document.getElementById("waypoints_list").innerHTML = x;
+          document.getElementById("select-target").innerHTML = x;
       }
 
       var getWaypointListClient = new ROSLIB.Service({
@@ -51,8 +59,49 @@
       });
     
       getWaypointListClient.callService(request, function(result) {
+        waypoints = result.waypoints;
         viewWaypoint(result.waypoints);
       });
+
+      var addTargetClient = new ROSLIB.Service({
+        ros : ros,
+        name : '/bot1/add_target',
+        serviceType : 'miltbot_system/AddTarget'
+      });
+
+      function accept() {
+        task_id = document.getElementById("select-task").value;
+        target_id = document.getElementById("select-target").value;
+        var waypoint = waypoints[target_id];
+        var task;
+        if(task_id == 0) {
+          task = "SINGLERUN";
+        }
+        else if(task_id == 1) {
+          task = "GOING";
+        }
+        else if(task_id == 2) {
+          task = "SENDSUPPLIES";
+        }
+        else {
+          return;
+        }
+        waypoint.task = task;
+        // waypoint.
+
+        var request = new ROSLIB.ServiceRequest({
+          waypoint : 
+        // });
+        // addTargetClient.callService(request, function(result) {
+        //   console.log(result.success);
+        // });
+      }
+
+      function selectChange() {
+        var e = document.getElementById("select-task");
+        // console.log(e.value);
+        // document.getElementById("show").innerHTML = e.value;
+      }
     </script>
 
   </head>
@@ -74,17 +123,30 @@
 
     <section class="section">
       <div class="container">
-        <h1 class="title is-3">Overview</h1>
+        <h1 class="title is-3">Add Task</h1>
         <hr>
         <div class="box">
           <div class="columns">
+            <div class="column">
+              <label class="label">Task</label>
+              <p class="control">
+                <span class="select">
+                  <select id="select-task" onchange="selectChange()">
+                    <option disabled selected>Select Task</option>
+                    <option value="0">Go To Target</option>
+                    <option value="1">Receive Supplies</option>
+                    <option value="2">Send Supplies</option>
+                  </select>
+                </span>
+              </p>
+            </div>
             <div class="column"> 
               <label class="label">Robot</label>
               <p class="control">
                 <span class="select">
                   <select>
                     <option disabled selected>Select Robot</option>
-                    <option>Robot1</option>
+                    <option value="0">Robot1</option>
                   </select>
                 </span>
               </p>
@@ -95,7 +157,7 @@
                 <span class="select">
                   <select>
                     <option disabled selected>Select Floor</option>
-                    <option>Floor M</option>
+                    <option value="0">Floor M</option>
                     <!--<option>Floor 17</option>-->
                     <!--<option>Floor 20</option>-->
                   </select>
@@ -106,21 +168,8 @@
               <label class="label">Target</label>
               <p class="control">
                 <span class="select">
-                  <select id="waypoints_list">
+                  <select id="select-target">
                     <!--<option disabled selected>Select Target</option>-->
-                  </select>
-                </span>
-              </p>
-            </div>
-            <div class="column">
-              <label class="label">Task</label>
-              <p class="control">
-                <span class="select">
-                  <select>
-                    <option disabled selected>Select Task</option>
-                    <option>Go To Target</option>
-                    <option>Receive Supplies</option>
-                    <option>Send Supplies</option>
                   </select>
                 </span>
               </p>
@@ -129,16 +178,17 @@
           
           <div class="control is-grouped">
             <p class="control">
-              <a class="button is-primary" href="add-task.html">
+              <a class="button is-primary" onclick="accept()" >
                 Accept
               </a>
             </p>
             <p class="control">
-              <a class="button is-danger">
+              <a class="button is-danger" href="task-robot.html">
                 Cancel
               </a>
             </p>
           </div>
+          <p id="show"></p>
         </div>
       </div>
     </section>
