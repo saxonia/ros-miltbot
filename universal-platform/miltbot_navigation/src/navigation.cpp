@@ -6,7 +6,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     base_frame_id("map"),
     robot_frame_id("base_footprint"),
     clear_costmap_service_name_("move_base/clear_costmaps"),
-    get_waypoint_list_service_name_("get_waypoint_list"),
+    get_waypoint_list_service_name_("/get_waypoint_list"),
     move_base_topic_name_("move_base"),
     move_base_wait_time_(2.0),
     view_target_queue_service_name_("view_target_queue"), 
@@ -79,10 +79,10 @@ void Navigation::addTargetQueue(miltbot_common::Waypoint data) {
 }
 
 void Navigation::deleteTargetQueue(long id) {
-    if(this->target.id == id) {
-        std::cout << "Cannot delete this queue. it already run" << std::endl;
-    }
-    else {
+    // if(this->target.id == id) {
+    //     std::cout << "Cannot delete this queue. it already run" << std::endl;
+    // }
+    // else {
         for(int i = 0;i < target_queue.size(); i++) {
             ROS_WARN("%ld",this->target_queue[i].id);
             if(target_queue[i].id == id) {
@@ -91,7 +91,7 @@ void Navigation::deleteTargetQueue(long id) {
             }
         }
         ROS_INFO("Target Queue: %ld", target_queue.size());
-    }
+    // }
     
 }
 
@@ -178,10 +178,11 @@ bool Navigation::verifyTarget() {
     this->navigation_case = -1;
     bool flag1 = verifyTargetBuilding(this->currentPosition, this->target_queue[0]);
     bool flag2 = verifyTargetFloor(this->currentPosition, this->target_queue[0]);
-    return true;
+    ROS_INFO("%s %s",this->currentPosition, this->target_queue[0]);
     if(flag1 && flag2) {
         ROS_INFO("Verify Target : case 0");
         this->navigation_case = Navigation::ONSAMEFLOOR;
+        this->isLiftNavigation = false;
     }
     else if(flag1 && !flag2) {
         ROS_INFO("Verify Target : case 1");
@@ -204,11 +205,14 @@ bool Navigation::update() {
             this->isDoneGoal = false;
             if(this->target_queue.size() > 0) {
                 //เช็คว่าจุดหมายที่จะไปอยู่ชั้นเดียวกันมั้ย ถ้าอยู่ชั้นเดียวกันก็เซ็ตเลย ถ้าไม่ก็เซ็ต target ไปอยู่ที่ส่วนของ Lift
+                ROS_INFO("Before Check");
                 this->verifyTarget();
                 if(this->isLiftNavigation) {
+                    ROS_INFO("After Check Yes");
                     this->runLiftNavigation();
                 }
                 else {
+                    ROS_INFO("After Check Non");
                     this->setRobotTarget(this->target_queue[0]);
                     this->setRobotGoal(this->base_frame_id);
                     this->sendStateRequest(this->target_queue[0].task);
@@ -557,7 +561,7 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
             }
             // robot.setStartPosition(robot.target_queue[0]);
             this->setCurrentPosition(this->target_queue[0]);
-            this->deleteTargetQueue(0);
+            this->deleteTargetQueue(this->target_queue[0].id);
 
             std::string state_request;
             if(this->current_state == "SINGLERUN") {
@@ -588,7 +592,7 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
 		done_goal_number = 4;
         if(this->fail_goal_count >= this->fail_goal_value_) {
             this->setCurrentPosition(this->target_queue[0]);
-            this->deleteTargetQueue(0);
+            this->deleteTargetQueue(this->target_queue[0].id);
             this->fail_goal_count = 0;
         }
         else {

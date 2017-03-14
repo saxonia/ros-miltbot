@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     std::string transportation_service_name("run_transportation");
     int polling_rate(30);
     // std::string transportation_pub_name("cargo_list");
-    nh.param("transportation_service", transportation_service_name, transportation_service_name);
+    nh.param("transportation_node/transportation_service", transportation_service_name, transportation_service_name);
     // nh.param("/icreate_transportation/transportation_pub", transportation_pub_name, transportation_pub_name);
 
     ros::ServiceServer transportation_service = nh.advertiseService(transportation_service_name, runTransportationService);

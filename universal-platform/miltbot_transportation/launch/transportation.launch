@@ -1,0 +1,9 @@
+<launch>
+    <arg name="ns" default="/" />
+    <group ns="$(arg ns)">
+    <node pkg="miltbot_transportation" type="transportation_node" name="transportation_node" output="screen">
+        <param name="transportation_service" value="run_transportation"/>
+        
+    </node>
+    </group>
+</launch>
