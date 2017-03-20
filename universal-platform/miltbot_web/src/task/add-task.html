@@ -4,7 +4,8 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="../../libs/bulma.css">
     <link rel="stylesheet" href="../../css/index.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>-->
+    <script type="text/javascript" src="../../libs/jquery.js"></script>
     <script type="text/javascript" src="../../script/index.js" ></script>
 
     <script type="text/javascript" src="../../libs/eventemitter2.min.js"></script>
@@ -32,36 +33,40 @@
       var robot_id = 0;
       var floor_id = 0;
       var target_id;
+      var target_flag = false;
+      
+      
 
       function viewWaypoint(waypoints) {
         var x = "";
+        
         for(var i = 0; i < waypoints.length; i++) {
           if(i == 0) {
-            x = x + "<option disabled selected>Select Target</option>";
+            x = x + "<option disabled selected >Select Target</option>";
           }
-          else {
-            x = x + "<option value=\"" + i-1 + "\">";
-            x = x + waypoints[i].name;
-            x = x + "</option>";
-          }
+          x = x + "<option value=\"" + (i) + "\">";
+          x = x + waypoints[i].name;
+          x = x + "</option>";
         }
-          document.getElementById("select-target").innerHTML = x;
+        document.getElementById("select-target").innerHTML = x;
       }
 
-      var getWaypointListClient = new ROSLIB.Service({
-        ros : ros,
-        name : '/get_waypoint_list',
-        serviceType : 'miltbot_map/GetWaypointList'
-      });
-      var request = new ROSLIB.ServiceRequest({
-        building : "Building 4",
-        floor : "Floor 20"
-      });
-    
-      getWaypointListClient.callService(request, function(result) {
-        waypoints = result.waypoints;
-        viewWaypoint(result.waypoints);
-      });
+      function callGetWaypointList() {
+        var getWaypointListClient = new ROSLIB.Service({
+          ros : ros,
+          name : '/get_waypoint_list',
+          serviceType : 'miltbot_map/GetWaypointList'
+        });
+        var request = new ROSLIB.ServiceRequest({
+          building : "Building 100",
+          floor : "Floor M"
+        });
+      
+        getWaypointListClient.callService(request, function(result) {
+          waypoints = result.waypoints;
+          viewWaypoint(result.waypoints);
+        });
+      }
 
       var addTargetClient = new ROSLIB.Service({
         ros : ros,
@@ -87,20 +92,34 @@
           return;
         }
         waypoint.task = task;
-        // waypoint.
+        waypoint.id = (Math.random() * 10000000) | 0;
+        // console.log(waypoint.id);
 
         var request = new ROSLIB.ServiceRequest({
-          waypoint : 
-        // });
-        // addTargetClient.callService(request, function(result) {
-        //   console.log(result.success);
-        // });
+          waypoint : waypoint
+        });
+        addTargetClient.callService(request, function(result) {
+          console.log(result.success);
+        });
       }
 
       function selectChange() {
-        var e = document.getElementById("select-task");
-        // console.log(e.value);
-        // document.getElementById("show").innerHTML = e.value;
+        var task = document.getElementById("select-task");
+        var robot = document.getElementById("select-robot");
+        var floor = document.getElementById("select-floor");
+        var target = document.getElementById("select-target");
+        if(task != null && robot != null && floor != null && target != null
+          && task.value >= 0 
+          && robot.value >= 0 
+          && floor.value >= 0 
+          && target.value >= 0
+          ) {
+          $('#accept-button').removeClass('is-disabled');
+        }
+      }
+
+      function loadTarget() {
+        callGetWaypointList();
       }
     </script>
 
@@ -110,14 +129,14 @@
     <nav class="nav has-shadow">
       <div class="container" id="nav">
         <a class="nav-item">
-          <img src="http://bulma.io/images/bulma-logo.png" alt="Bulma logo">
-          <!--<h1>Miltbot</h1>-->
+          
+          <h1 class="title is-2">Miltbot</h1>
         </a>
         <a class="nav-item is-tab " href="../home.html">Home</a>
         <a class="nav-item is-tab is-active" href="task-manager.html">Task Manager</a>
-        <a class="nav-item is-tab" href="monitor.html">System Monitor</a>
-        <a class="nav-item is-tab" href="map-manager.html">Map Manager</a>
-        <a class="nav-item is-tab" href="about.html">About</a>
+        <!--<a class="nav-item is-tab" href="monitor.html">System Monitor</a>-->
+        <a class="nav-item is-tab" href="../map/map-manager.html">Map Manager</a>
+        <!--<a class="nav-item is-tab" href="../about.html">About</a>-->
       </div>
     </nav>
 
@@ -144,7 +163,7 @@
               <label class="label">Robot</label>
               <p class="control">
                 <span class="select">
-                  <select>
+                  <select id="select-robot" onchange="selectChange()">
                     <option disabled selected>Select Robot</option>
                     <option value="0">Robot1</option>
                   </select>
@@ -155,11 +174,9 @@
               <label class="label">Floor</label>
               <p class="control">
                 <span class="select">
-                  <select>
+                  <select id="select-floor" onchange="loadTarget(), selectChange()">
                     <option disabled selected>Select Floor</option>
                     <option value="0">Floor M</option>
-                    <!--<option>Floor 17</option>-->
-                    <!--<option>Floor 20</option>-->
                   </select>
                 </span>
               </p>
@@ -168,8 +185,8 @@
               <label class="label">Target</label>
               <p class="control">
                 <span class="select">
-                  <select id="select-target">
-                    <!--<option disabled selected>Select Target</option>-->
+                  <select id="select-target" onchange="selectChange()">
+                    <option disabled selected>Select Target</option>
                   </select>
                 </span>
               </p>
@@ -178,7 +195,7 @@
           
           <div class="control is-grouped">
             <p class="control">
-              <a class="button is-primary" onclick="accept()" >
+              <a id="accept-button" class="button is-primary is-disabled" onclick="accept()" href="task-robot.html">
                 Accept
               </a>
             </p>
@@ -188,7 +205,29 @@
               </a>
             </p>
           </div>
-          <p id="show"></p>
+
+          <!--<div id="modal-alert" class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-content">
+              <div class="box">
+                <p>Do you want to confirm task</p>
+              </div>
+            </div>
+            <button class="modal-close"></button>
+          </div>
+          <script>
+            var modal = document.getElementById("modal-alert");
+            var accept_button = document.getElementById("accept-button");
+            var modal_close = document.getElementsByClassName("modal-close");
+
+            accept_button.onclick = function() {
+                modal.style.display = "block";
+            }
+
+            modal_close.onclick = function() {
+              modal.style.display = "none";
+            }
+          </script>-->
         </div>
       </div>
     </section>

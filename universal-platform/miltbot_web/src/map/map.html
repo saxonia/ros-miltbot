@@ -88,31 +88,14 @@
           <h1 class="title is-2">Miltbot</h1>
         </a>
         <a class="nav-item is-tab " href="../home.html">Home</a>
-        <a class="nav-item is-tab is-active" href="task-manager.html">Task Manager</a>
+        <a class="nav-item is-tab is-active" href="../task/task-manager.html">Task Manager</a>
         <!--<a class="nav-item is-tab" href="../monitor.html">System Monitor</a>-->
-        <a class="nav-item is-tab" href="../map/map-manager.html">Map Manager</a>
+        <a class="nav-item is-tab" href="map-manager.html">Map Manager</a>
         <!--<a class="nav-item is-tab" href="../about.html">About</a>-->
       </div>
     </nav>
-
-    <section class="header-section">
-      <div class="container">
-         <div class="control is-grouped">
-          <p class="control">
-            <a id="add-task-button" class="button is-primary" href="add-task.html">
-              Add Task
-            </a>
-          </p>
-          <!--<p class="control">
-            <a class="button is-danger">
-              Delete Task
-            </a>
-          </p>-->
-        </div>
-      </div>
-    </section>
     
-    <section class="body-section">
+    <section class="section">
       <div class="container">
         <div class="page-navigation">
             <nav class="pagination">
@@ -128,38 +111,32 @@
               </ul>
             </nav>
         </div>
-        <h1 class="title is-3">Robot1 Task</h1>
+        <h1 class="title is-3">Building 100 Floor M Map</h1>
         <hr>
         <div class="columns">
           <div class="column task-list">
-            <table id="task-list-table" class="table">
+            <table id="target-list-table" class="table">
               <thead>
                 <tr>
                   <th>Order</th>
-                  <th>Task</th>
-                  <th>Building Floor</th>
-                  <th>Position</th>
-                  <th>Delete</th>
+                  <th>Target Name</th>
                 </tr>
               </thead>
               <tfoot>
                 <tr>
                   <th>Order</th>
-                  <th>Task</th>
-                  <th>Building Floor</th>
-                  <th>Position</th>
-                  <th>Delete</th>
+                  <th>Target Name</th>
                 </tr>
               </tfoot>
               <tbody id="target_queue_list">
               </tbody>
             </table>
           </div>
-          <!--<div class="column task-map">
+          <div class="column task-map">
             <div class="box">
               <img src="/home/saxonia/Pictures/Mapp.png" alt="Map1">
             </div>
-          </div>-->
+          </div>
         </div>
       </div>
     </section>
