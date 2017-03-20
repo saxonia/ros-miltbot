@@ -2,17 +2,17 @@
 #include <iostream>
 #include <map>
 #include <stdlib.h>
-// #include <icreate_system/AddRobot.h>
-// #include <icreate_system/AddTarget.h>
 
-// #include "miltbot_navigation/move_base_data.h"
 #include "miltbot_common/Waypoint.h"
+#include "miltbot_common/WaypointList.h"
 #include "miltbot_map/GetWaypointList.h"
+#include "miltbot_system/ViewTargetQueue.h"
+#include "miltbot_system/GetRobotList.h"
 #include "miltbot_system/AddTarget.h"
 #include "miltbot_system/DeleteTarget.h"
 #include "miltbot_system/RunSystem.h"
-#include "miltbot_system/ViewTargetQueue.h"
-#include "miltbot_common/WaypointList.h"
+
+
 
 // using namespace miltbot;
 

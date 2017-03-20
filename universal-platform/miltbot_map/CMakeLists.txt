@@ -128,7 +128,7 @@ catkin_package(
 #  LIBRARIES miltbot_map
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
-CATKIN_DEPENDS message_runtime   
+# CATKIN_DEPENDS message_runtime   
 )
 
 ###########

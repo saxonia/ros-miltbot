@@ -7,11 +7,13 @@ project(miltbot_system)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  roslib
   std_msgs
   move_base_msgs
   actionlib_msgs
   geometry_msgs
   miltbot_navigation
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -56,6 +58,10 @@ find_package(catkin REQUIRED COMPONENTS
 # add_message_files(
 #   FILES
 # )
+add_message_files(
+  FILES
+  RobotList.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -69,6 +75,7 @@ add_service_files(
   DeleteTarget.srv
   RunSystem.srv
   ViewTargetQueue.srv
+  GetRobotList.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -134,7 +141,7 @@ add_definitions(-std=c++11)
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  include ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -150,6 +157,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(miltbot_system_node src/miltbot_system_node.cpp)
 add_executable(simple_fleet_manager src/simple_fleet_manager.cpp)
+add_executable(robot_server src/robot_server.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -160,6 +168,7 @@ add_executable(simple_fleet_manager src/simple_fleet_manager.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(simple_fleet_manager ${catkin_LIBRARIES})
+target_link_libraries(robot_server ${catkin_LIBRARIES})
 
 #############
 ## Install ##
