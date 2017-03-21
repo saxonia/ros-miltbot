@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     std::string get_robot_list_service_name("get_robot_list");
     std::string robot_list_file_name("robot_list.csv");
 
-    nh.param("get_waypoint_list_service",get_robot_list_service_name, get_robot_list_service_name);
+    nh.param("get_robot_list_service",get_robot_list_service_name, get_robot_list_service_name);
     nh.param("robot_list_file",robot_list_file_name, robot_list_file_name);
 
     loadRobot(robot_list_file_name);
@@ -84,8 +84,6 @@ int main(int argc, char** argv) {
     while(ros::ok()) {
         ros::spinOnce();
         rate.sleep();
-
-
     }
 
     return 0;

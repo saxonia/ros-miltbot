@@ -430,7 +430,7 @@ int Navigation::waitForIncomingLift() {
             continue;
         }
         this->displayLiftWaypoints();
-        std::cout << "[AGENT] Wait For Number of Lift : " <<std::endl;
+        std::cout << "[AGENT] Wait For Number of Lift : ";
         std::string liftNumber;
         std::cin >> liftNumber;
         std::cout << "[AGENT] Lift Number " + liftNumber + " is on the floor" <<std::endl;
@@ -553,7 +553,10 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
 		ROS_INFO("SUCCEEDED");
         done_goal_number = 1;
         if(this->target_queue.size() > 0) {
-            if(this->target_queue[0].task == "GOING") {
+            if(this->target_queue[0].task == "USINGLIFT") {
+                this->lift_navigation_step++;
+            }
+            else if(this->target_queue[0].task == "GOING") {
                 this->callRunTransportationService("receive");
             }
             else if(this->target_queue[0].task == "SENDSUPPLIES") {
