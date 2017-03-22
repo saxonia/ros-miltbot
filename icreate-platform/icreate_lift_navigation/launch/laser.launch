@@ -1,0 +1,7 @@
+<launch>
+    <arg name="ns" default="/" />
+    <group ns="$(arg ns)">
+        <node pkg="icreate_lift_navigation" type="laser_test" name="laser_test" output="screen">
+        </node>
+    </group>
+</launch>

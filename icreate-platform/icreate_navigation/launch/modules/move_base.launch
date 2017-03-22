@@ -19,10 +19,10 @@
     <rosparam file="$(find icreate_navigation)/params/costmap/global_costmap_params.yaml" command="load" />
 
     <rosparam file="$(find icreate_navigation)/params/planner/dwa_local_planner_params.yaml" command="load" />
-    <rosparam file="$(find icreate_navigation)/params/planner/base_local_planner_params.yaml" command="load" />
+    <!--<rosparam file="$(find icreate_navigation)/params/planner/base_local_planner_params.yaml" command="load" />-->
     <rosparam file="$(find icreate_navigation)/params/move_base_params.yaml" command="load" />
 
-    <rosparam file="$(find icreate_navigation)/params/planner/global_planner_params.yaml" command="load" />
+    <!--<rosparam file="$(find icreate_navigation)/params/planner/global_planner_params.yaml" command="load" />-->
     <rosparam file="$(find icreate_navigation)/params/planner/navfn_global_planner_params.yaml" command="load" />
 
     <!-- external params file that could be loaded into the move_base namespace -->
