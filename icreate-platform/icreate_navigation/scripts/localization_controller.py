@@ -37,9 +37,12 @@ def gmapping_start():
     rospy.set_param('move_base/NavfnROS/allow_unknown',True)
     rospy.set_param('move_base/NavfnROS/default_tolerance',0.2)
     rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.8)
-    rospy.set_param('move_base/DWAPlannerROS/min_vel_x',0.5)
-    rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.2)
+    rospy.set_param('move_base/DWAPlannerROS/min_vel_x',0.3)
+    rospy.set_param('move_base/DWAPlannerROS/max_trans_vel',0.6)
+    rospy.set_param('move_base/DWAPlannerROS/min_trans_vel',0.3)
+    # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.5)
     rospy.set_param('velocity_smoother/accel_lim_v',0.4)
+    rospy.set_param('velocity_smoother/speed_lim_v',0.6)
     rospy.set_param('move_base/global_costmap/global_frame',"odom")
     rospy.set_param('move_base/global_costmap/inflation_layer/inflation_radius',0.1)
     rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius',0.1)
@@ -51,10 +54,13 @@ def amcl_start():
     #Set Parameter Server
     rospy.set_param('move_base/NavfnROS/allow_unknown',False)
     rospy.set_param('move_base/NavfnROS/default_tolerance',0.0)
-    rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.3)
-    rospy.set_param('move_base/DWAPlannerROS/min_vel_x',0.1)
-    rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.0)
+    rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.5)
+    rospy.set_param('move_base/DWAPlannerROS/min_vel_x',0.15)
+    rospy.set_param('move_base/DWAPlannerROS/max_trans_vel',0.4)
+    rospy.set_param('move_base/DWAPlannerROS/min_trans_vel',0.1)
+    # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.4)
     rospy.set_param('velocity_smoother/accel_lim_v',0.2)
+    rospy.set_param('velocity_smoother/speed_lim_v',0.3)
     rospy.set_param('move_base/global_costmap/global_frame',"map")
     rospy.set_param('move_base/global_costmap/inflation_layer/inflation_radius',0.3)
     rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius',0.3)
@@ -89,7 +95,7 @@ def gmapping_callback(msg):
         return False
 
 if __name__ == '__main__':
-    rospy.init_node('dynamic_map_launch', anonymous=True)
+    rospy.init_node('localization_controller', anonymous=True)
     set_map_service_name_ = "set_map_service"
     rospy.Service('run_gmapping', RunGmappingService, gmapping_callback)
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
