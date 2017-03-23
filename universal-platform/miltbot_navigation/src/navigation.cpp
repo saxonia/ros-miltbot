@@ -178,7 +178,10 @@ bool Navigation::verifyTarget() {
     this->navigation_case = -1;
     bool flag1 = verifyTargetBuilding(this->currentPosition, this->target_queue[0]);
     bool flag2 = verifyTargetFloor(this->currentPosition, this->target_queue[0]);
-    ROS_INFO("%s %s",this->currentPosition, this->target_queue[0]);
+    ROS_DEBUG("%s %s",this->currentPosition.name.c_str(), this->target_queue[0].name.c_str());
+    ROS_DEBUG("%s %s",this->currentPosition.building.c_str(), this->target_queue[0].building.c_str());
+    ROS_DEBUG("%s %s",this->currentPosition.building_floor.c_str(), this->target_queue[0].building_floor.c_str());
+    ROS_DEBUG("%s %s",this->currentPosition.task.c_str(), this->target_queue[0].task.c_str());
     if(flag1 && flag2) {
         ROS_INFO("Verify Target : case 0");
         this->navigation_case = Navigation::ONSAMEFLOOR;
@@ -594,11 +597,13 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
       	ROS_WARN("ABORTED : Failed to reach the goal...");
 		done_goal_number = 4;
         if(this->fail_goal_count >= this->fail_goal_value_) {
+            ROS_DEBUG("Change Task");
             this->setCurrentPosition(this->target_queue[0]);
             this->deleteTargetQueue(this->target_queue[0].id);
             this->fail_goal_count = 0;
         }
         else {
+            ROS_DEBUG("Still Do Task");
             this->setCurrentPosition("Current Position");
             this->fail_goal_count++;
         }

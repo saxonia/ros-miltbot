@@ -12,10 +12,6 @@
 #include "miltbot_system/DeleteTarget.h"
 #include "miltbot_system/RunSystem.h"
 
-
-
-// using namespace miltbot;
-
 typedef std::pair<std::string, std::string> Key;
 
 std::map<Key, std::vector<miltbot_common::Waypoint> > targets;
@@ -27,21 +23,6 @@ std::string add_target_service_name("add_target");
 std::string delete_target_service_name("delete_target");
 std::string add_default_target_service_name("add_default_target");
 std::string run_system_service_name("run_system");
-
-
-// void addTargetData(std::string building, std::string building_floor, std::vector<miltbot_common::Waypoint> waypoints) {
-//     Key key = std::make_pair(building, building_floor);
-//     std::vector<MoveBaseGoalData> data;
-//     for(int i = 0; i < waypoints.size(); i++) {
-//            MoveBaseGoalData one_data;
-//            one_data.setGoalName(waypoints[i].name);
-//            one_data.setBuilding(waypoints[i].building);
-//            one_data.setBuildingFloor(waypoints[i].building_floor);
-//            one_data.setGoal(waypoints[i].goal);
-//            data.push_back(one_data);
-//     }
-//     targets[key] = data;
-// }
 
 long generateTargetId() {
     return rand();
@@ -432,5 +413,6 @@ int main(int argc, char** argv) {
             break;
         }
     }
+    ROS_INFO("Exit System");
     return 0;
 }

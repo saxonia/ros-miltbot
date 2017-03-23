@@ -4,7 +4,10 @@ project(icreate_base)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  rospy
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -106,9 +109,14 @@ catkin_package(
 ## Build ##
 ###########
 
+add_definitions(-std=c++11)
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a C++ library
 # add_library(icreate_base
@@ -122,6 +130,7 @@ catkin_package(
 
 ## Declare a C++ executable
 # add_executable(icreate_base_node src/icreate_base_node.cpp)
+add_executable(bumper_node src/bumper_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -131,6 +140,8 @@ catkin_package(
 # target_link_libraries(icreate_base_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(bumper_node ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
