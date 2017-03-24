@@ -195,10 +195,10 @@ int main(int argc, char** argv) {
     get_map2 = true;
     while(ros::ok()) {
         ros::spinOnce();
-        if(pub_flag) {
-            map_pub.publish(*map);
-            pub_flag = false;
-        }
+        // if(pub_flag) {
+        map_pub.publish(*map);
+            // pub_flag = false;
+        // }
         r.sleep();
     }
     return 0;

@@ -42,7 +42,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->set_robot_state_client_ = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
     this->run_gmapping_client_ = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
-    this->get_middle_range_client_ = nh_.serviceClient<icreate_lift_navigation::GetMiddleRange>(get_middle_range_service_name_);
+    this->get_middle_range_client_ = nh_.serviceClient<miltbot_navigation::GetMiddleRange>(get_middle_range_service_name_);
     this->set_map_service_client_ = nh_.serviceClient<miltbot_map::SetMap>(set_map_service_name_);
     this->run_transportation_client_ = nh_.serviceClient<miltbot_transportation::RunTransportation>(run_transportation_service_name_);
     this->base_frame_id = base_frame_id;
@@ -495,7 +495,7 @@ bool Navigation::waitUserInputLift() {
 }
 
 void Navigation::initializeLiftForwardMoveBase() {
-    icreate_lift_navigation::GetMiddleRange srv;
+    miltbot_navigation::GetMiddleRange srv;
     if(get_middle_range_client_.call(srv)) {
         this->mid_range = srv.response.mid_range;
         ROS_INFO("Get Mid Range data: %f",mid_range);
@@ -604,13 +604,13 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
       	ROS_WARN("ABORTED : Failed to reach the goal...");
 		done_goal_number = 4;
         if(this->fail_goal_count >= this->fail_goal_value_) {
-            ROS_DEBUG("Change Task");
+            ROS_INFO("Change Task");
             this->setCurrentPosition(this->target_queue[0]);
             this->deleteTargetQueue(this->target_queue[0].id);
             this->fail_goal_count = 0;
         }
         else {
-            ROS_DEBUG("Still Do Task");
+            ROS_INFO("Still Do Task");
             this->setCurrentPosition("Current Position");
             this->fail_goal_count++;
         }
@@ -695,7 +695,7 @@ bool Navigation::sendWaypointRequest(std::string building, std::string building_
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
             this->building = building;
-            this->building_floor = building_floor;
+            // this->building_floor = building_floor;
             // this->building_floor_num = this->toint(this->substrBuildingFloor(building_floor));
             // this->setWaypoint(waypoints);
             this->lifts = waypoints;

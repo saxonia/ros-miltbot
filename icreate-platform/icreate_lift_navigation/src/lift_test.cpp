@@ -3,7 +3,7 @@
 #include <std_msgs/String.h>
 
 #include "icreate_navigation/single_navigation.h"
-#include "icreate_lift_navigation/GetMiddleRange.h"
+#include "miltbot_navigation/GetMiddleRange.h"
 
 //Client Service of move_base
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -43,8 +43,8 @@ void initializeSimpleForwardMoveBaseTarget(ros::NodeHandle &nh,std::string goal_
     //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
     //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
     // float x_position = -1.0;
-    ros::ServiceClient client = nh.serviceClient<icreate_lift_navigation::GetMiddleRange>("get_middle_range");
-    icreate_lift_navigation::GetMiddleRange srv;
+    ros::ServiceClient client = nh.serviceClient<miltbot_navigation::GetMiddleRange>("get_middle_range");
+    miltbot_navigation::GetMiddleRange srv;
     if(client.call(srv)) {
         mid_range = srv.response.mid_range;
         ROS_INFO("Get Mid Range data: %f",mid_range);

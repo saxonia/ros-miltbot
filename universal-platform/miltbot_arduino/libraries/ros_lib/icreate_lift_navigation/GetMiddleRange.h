@@ -8,7 +8,7 @@
 namespace icreate_lift_navigation
 {
 
-static const char GETMIDDLERANGE[] = "icreate_lift_navigation/GetMiddleRange";
+static const char GETMIDDLERANGE[] = "miltbot_navigation/GetMiddleRange";
 
   class GetMiddleRangeRequest : public ros::Msg
   {

@@ -7,7 +7,7 @@
 // #include "miltbot_navigation/move_base_data.h"
 
 #include "icreate_navigation/RunGmappingService.h"
-#include "icreate_lift_navigation/GetMiddleRange.h"
+#include "miltbot_navigation/GetMiddleRange.h"
 
 #include "miltbot_common/WaypointList.h"
 #include "miltbot_map/GetWaypointList.h"

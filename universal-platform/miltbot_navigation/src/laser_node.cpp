@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <iostream>
 #include "sensor_msgs/LaserScan.h"
-#include "icreate_lift_navigation/GetMiddleRange.h"
+#include "miltbot_navigation/GetMiddleRange.h"
 
 float mid_range;
 
@@ -15,8 +15,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     ROS_INFO("Middle Range: %f",store[idx]);
 }
 
-bool getMiddleRangeService(icreate_lift_navigation::GetMiddleRange::Request &req,
-                            icreate_lift_navigation::GetMiddleRange::Response &res) {
+bool getMiddleRangeService(miltbot_navigation::GetMiddleRange::Request &req,
+                            miltbot_navigation::GetMiddleRange::Response &res) {
     res.mid_range = mid_range;
     return true;
 }

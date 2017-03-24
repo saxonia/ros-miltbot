@@ -1,0 +1,7 @@
+<launch>
+    <arg name="ns" default="/" />
+    <group ns="$(arg ns)">
+        <node pkg="miltbot_navigation" type="laser_node" name="laser_node" output="screen">
+        </node>
+    </group>
+</launch>

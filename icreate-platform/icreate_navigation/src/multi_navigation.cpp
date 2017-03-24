@@ -557,8 +557,8 @@ bool MultiNavigation::verifyLiftDoor() {
 void MultiNavigation::initializeSimpleForwardMoveBaseTarget(Robot &robot, std::string goal_name) {
     //ต้องรู้จุดที่หุ่นยนต์ปัจจุบัน แล้วสั่งให้เดินไปทีละ 30 ซม. ???
     //รับค่าระยะมาจากกล้องแล้วใส่เป็น input position x
-    ros::ServiceClient client = nh_.serviceClient<icreate_lift_navigation::GetMiddleRange>("get_middle_range");
-    icreate_lift_navigation::GetMiddleRange srv;
+    ros::ServiceClient client = nh_.serviceClient<miltbot_navigation::GetMiddleRange>("get_middle_range");
+    miltbot_navigation::GetMiddleRange srv;
     if(client.call(srv)) {
         this->mid_range = srv.response.mid_range;
         ROS_INFO("Get Mid Range data: %f",mid_range);
