@@ -5,17 +5,19 @@
 #include <tf/transform_listener.h>
 
 // #include "miltbot_navigation/move_base_data.h"
-#include "miltbot_state/SetRobotState.h"
 
-#include "miltbot_map/GetWaypointList.h"
 #include "icreate_navigation/RunGmappingService.h"
 #include "icreate_lift_navigation/GetMiddleRange.h"
+
+#include "miltbot_common/WaypointList.h"
+#include "miltbot_map/GetWaypointList.h"
 #include "miltbot_map/SetMap.h"
-#include "miltbot_transportation/RunTransportation.h"
+#include "miltbot_state/SetRobotState.h"
 #include "miltbot_system/ViewTargetQueue.h"
 #include "miltbot_system/AddTarget.h"
 #include "miltbot_system/DeleteTarget.h"
 #include "miltbot_system/RunSystem.h"
+#include "miltbot_transportation/RunTransportation.h"
 
 #ifndef __MILTBOT_NAVIGATION_NAVIGATION
 #define __MILTBOT_NAVIGATION_NAVIGATION
@@ -128,7 +130,9 @@ class Navigation {
         
         void sendStateRequest(std::string state_request);  
 
-        bool sendWaypointRequest(std::string building, std::string building_floor);  
+        bool sendWaypointRequest(std::string building, std::string building_floor);
+
+        void sendMoveBaseCancel();  
 
         void setWaypoint(std::vector<miltbot_common::Waypoint> waypoints);
 
@@ -166,6 +170,10 @@ class Navigation {
 
         MoveBaseClient ac;     
 
+        //Publisher
+        ros::Publisher move_base_cancel_pub;
+        ros::Publisher target_queue_pub;
+
         //SeviceClient for clear costmap service
         ros::ServiceClient clear_costmap_client_;
         ros::ServiceClient set_robot_state_client_;
@@ -201,6 +209,8 @@ class Navigation {
         std::string add_default_target_service_name_;
         std::string run_system_service_name_;
         std::string run_transportation_service_name_;
+        std::string move_base_cancel_pub_topic_name_;
+        std::string target_queue_pub_topic_name_;
         
 
 };

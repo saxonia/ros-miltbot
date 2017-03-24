@@ -99,12 +99,9 @@ void callAddDefaultTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint d
     ROS_WARN("%s",(service_namespace + add_default_target_service_name).c_str());
     ros::ServiceClient client = nh.serviceClient<miltbot_system::AddTarget>(service_namespace + add_default_target_service_name);
     miltbot_system::AddTarget srv;
-    // miltbot_common::Waypoint waypoint;
-    // waypoint.name = data.getGoalName();
-    // waypoint.goal = data.getGoal();
-    // waypoint.building = data.getBuilding();
-    // waypoint.building_floor = data.getBuildingFloor();
+    long id = generateTargetId();
     srv.request.waypoint = data;
+    srv.request.waypoint.id = id;
     if(client.call(srv)) {
         bool flag = srv.response.success;
     }

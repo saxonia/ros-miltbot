@@ -20,6 +20,8 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     get_middle_range_service_name_("get_middle_range"),
     run_system_service_name_("run_system"),
     run_transportation_service_name_("run_transportation"),
+    move_base_cancel_pub_topic_name_("move_base/cancel"),
+    target_queue_pub_topic_name_("target_queue"),
     ac("move_base", true) 
 {
     nh_.param("clear_costmap_service", clear_costmap_service_name_, clear_costmap_service_name_);
@@ -34,6 +36,8 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     nh_.param("add_default_target_service", add_default_target_service_name_, add_default_target_service_name_);
     nh_.param("run_system_service", run_system_service_name_, run_system_service_name_);
     nh_.param("run_transportation_service", run_transportation_service_name_, run_transportation_service_name_);
+    nh_.param("move_base_cancel_pub_topic", move_base_cancel_pub_topic_name_, move_base_cancel_pub_topic_name_);
+    nh_.param("target_queue_pub_topic", target_queue_pub_topic_name_, target_queue_pub_topic_name_);
     
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->set_robot_state_client_ = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
@@ -65,6 +69,8 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->delete_target_service_server = nh_.advertiseService(this->delete_target_service_name_, &Navigation::deleteTargetService, this);
     this->add_default_target_service_server = nh_.advertiseService(this->add_default_target_service_name_, &Navigation::addDefaultTargetService, this);
     this->run_system_service_server = nh_.advertiseService(this->run_system_service_name_, &Navigation::runSystemService, this);
+    this->move_base_cancel_pub = nh_.advertise<actionlib_msgs::GoalID>(move_base_cancel_pub_topic_name_, 1);
+    this->target_queue_pub = nh_.advertise<miltbot_common::WaypointList>(target_queue_pub_topic_name_, 1);
 }
 
 Navigation::~Navigation(void) 
@@ -79,20 +85,18 @@ void Navigation::addTargetQueue(miltbot_common::Waypoint data) {
 }
 
 void Navigation::deleteTargetQueue(long id) {
-    // if(this->target.id == id) {
-    //     std::cout << "Cannot delete this queue. it already run" << std::endl;
-    // }
-    // else {
-        for(int i = 0;i < target_queue.size(); i++) {
-            ROS_WARN("%ld",this->target_queue[i].id);
-            if(target_queue[i].id == id) {
-                this->target_queue.erase(this->target_queue.begin() + i);
-                break;
-            }
+    if(this->target.id == id) {
+        std::cout << "Cannot delete this queue. it already run" << std::endl;
+        this->sendMoveBaseCancel();  
+    }
+    for(int i = 0;i < target_queue.size(); i++) {
+        ROS_WARN("%ld",this->target_queue[i].id);
+        if(target_queue[i].id == id) {
+            this->target_queue.erase(this->target_queue.begin() + i);
+            break;
         }
-        ROS_INFO("Target Queue: %ld", target_queue.size());
-    // }
-    
+    }
+    ROS_INFO("Target Queue: %ld", target_queue.size());
 }
 
 void Navigation::addDefaultTargetQueue(miltbot_common::Waypoint data) {
@@ -178,10 +182,10 @@ bool Navigation::verifyTarget() {
     this->navigation_case = -1;
     bool flag1 = verifyTargetBuilding(this->currentPosition, this->target_queue[0]);
     bool flag2 = verifyTargetFloor(this->currentPosition, this->target_queue[0]);
-    ROS_DEBUG("%s %s",this->currentPosition.name.c_str(), this->target_queue[0].name.c_str());
-    ROS_DEBUG("%s %s",this->currentPosition.building.c_str(), this->target_queue[0].building.c_str());
-    ROS_DEBUG("%s %s",this->currentPosition.building_floor.c_str(), this->target_queue[0].building_floor.c_str());
-    ROS_DEBUG("%s %s",this->currentPosition.task.c_str(), this->target_queue[0].task.c_str());
+    ROS_INFO("%s %s",this->currentPosition.name.c_str(), this->target_queue[0].name.c_str());
+    ROS_INFO("%s %s",this->currentPosition.building.c_str(), this->target_queue[0].building.c_str());
+    ROS_INFO("%s %s",this->currentPosition.building_floor.c_str(), this->target_queue[0].building_floor.c_str());
+    ROS_INFO("%s %s",this->currentPosition.task.c_str(), this->target_queue[0].task.c_str());
     if(flag1 && flag2) {
         ROS_INFO("Verify Target : case 0");
         this->navigation_case = Navigation::ONSAMEFLOOR;
@@ -201,6 +205,9 @@ bool Navigation::verifyTarget() {
 }
 
 bool Navigation::update() {
+    miltbot_common::WaypointList waypoint_list;
+    waypoint_list.waypoints = this->target_queue;
+    target_queue_pub.publish(waypoint_list);
     if(this->isSystemWorking) {
         // ROS_INFO("Navigation System is stil working");
         //เช็คว่าทำงานเสร็จรึยัง
@@ -703,6 +710,10 @@ bool Navigation::sendWaypointRequest(std::string building, std::string building_
         return false;
     }
 
+}
+
+void Navigation::sendMoveBaseCancel() {
+    move_base_cancel_pub.publish(*new actionlib_msgs::GoalID());
 }
 
 void Navigation::setWaypoint(std::vector<miltbot_common::Waypoint> waypoints) {
