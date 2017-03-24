@@ -13,7 +13,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 
 ros::ServiceClient run_system_client;
 ros::Publisher move_base_cancel_pub;
-MoveBaseClient ac("move_base", true);
+
 
 void initializeSimpleBackwardMoveBase(std::string frame_id) {
     move_base_msgs::MoveBaseGoal goal;
@@ -21,6 +21,7 @@ void initializeSimpleBackwardMoveBase(std::string frame_id) {
     goal.target_pose.pose.orientation.w = 1.0;
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
+    MoveBaseClient ac("move_base", true);
     ac.sendGoal(goal);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -35,6 +36,7 @@ void initializeSimpleRotateMoveBase(std::string frame_id) {
     goal.target_pose.pose.orientation.w = 1;
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
+    MoveBaseClient ac("move_base", true);
     ac.sendGoal(goal);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
