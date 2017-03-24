@@ -46,16 +46,30 @@
           document.getElementById("target_queue_list").innerHTML = x;
       }
 
-      var viewTargetQueueClient = new ROSLIB.Service({
-        ros : ros,
-        name : '/bot1/view_target_queue',
-        serviceType : 'miltbot_system/ViewTargetQueue'
-      });
-      var request;
+      // var viewTargetQueueClient = new ROSLIB.Service({
+      //   ros : ros,
+      //   name : '/bot1/view_target_queue',
+      //   serviceType : 'miltbot_system/ViewTargetQueue'
+      // });
+      // var request;
     
-      viewTargetQueueClient.callService(request, function(result) {
-        target_queue = result.target_queue;
-        showTargetQueue(result.target_queue);
+      // viewTargetQueueClient.callService(request, function(result) {
+      //   target_queue = result.target_queue;
+      //   showTargetQueue(result.target_queue);
+      // });
+
+      var target_queue_sub = new ROSLIB.Topic({
+        ros : ros,
+        name : '/bot1/target_queue',
+        messageType : 'miltbot_common/WaypointList',
+        throttle_rate: 1000
+      });
+    
+      target_queue_sub.subscribe(function(message) {
+        target_queue = message.waypoints;
+        console.log(target_queue);
+        showTargetQueue(target_queue)
+        // target_queue_sub.unsubscribe();
       });
 
       function deleteTask(x) {

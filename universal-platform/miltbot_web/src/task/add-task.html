@@ -58,8 +58,8 @@
           serviceType : 'miltbot_map/GetWaypointList'
         });
         var request = new ROSLIB.ServiceRequest({
-          building : "Building 100",
-          floor : "Floor M"
+          building : "Building 4",
+          floor : "Floor 20"
         });
       
         getWaypointListClient.callService(request, function(result) {
@@ -176,7 +176,7 @@
                 <span class="select">
                   <select id="select-floor" onchange="loadTarget(), selectChange()">
                     <option disabled selected>Select Floor</option>
-                    <option value="0">Floor M</option>
+                    <option value="0">Floor 20</option>
                   </select>
                 </span>
               </p>
