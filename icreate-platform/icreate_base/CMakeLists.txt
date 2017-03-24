@@ -7,6 +7,9 @@ project(icreate_base)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  miltbot_system
+  serial
+  actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -131,6 +134,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(icreate_base_node src/icreate_base_node.cpp)
 add_executable(bumper_node src/bumper_node.cpp)
+add_executable(imu_node src/imu_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -141,6 +145,7 @@ add_executable(bumper_node src/bumper_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(bumper_node ${catkin_LIBRARIES})
+target_link_libraries(imu_node ${catkin_LIBRARIES})
 
 
 #############
