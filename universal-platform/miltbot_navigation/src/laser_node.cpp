@@ -22,7 +22,7 @@ bool getMiddleRangeService(icreate_lift_navigation::GetMiddleRange::Request &req
 }
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "laser_test");
+    ros::init(argc, argv, "laser_node");
     ros::NodeHandle nh;
 
     std::string laser_scan_sub_topic_name("scan");

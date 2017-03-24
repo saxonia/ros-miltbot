@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   icreate_navigation
   miltbot_state
-  message_generation
 )
 
 
@@ -56,12 +55,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
+# add_service_files(
+  # FILES
 #   Service1.srv
 #   Service2.srv
-GetMiddleRange.srv
-)
+
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -71,10 +70,10 @@ GetMiddleRange.srv
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
+# generate_messages(
+  # DEPENDENCIES
   # std_msgs
-)
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -140,7 +139,7 @@ add_definitions(-std=c++11)
 ## Declare a C++ executable
 # add_executable(icreate_lift_navigation_node src/icreate_lift_navigation_node.cpp)
 add_executable(lift_test src/lift_test.cpp)
-add_executable(laser_test src/laser_test.cpp)
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -151,7 +150,7 @@ add_executable(laser_test src/laser_test.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(lift_test ${catkin_LIBRARIES} robot)
-target_link_libraries(laser_test ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##

@@ -64,6 +64,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   RunGmapping.srv
+  GetMiddleRange.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -147,6 +148,7 @@ add_library(navigation src/move_base_data.cpp src/navigation.cpp)
 ## Declare a C++ executable
 # add_executable(miltbot_navigation_node src/miltbot_navigation_node.cpp)
 add_executable(navigation_node src/navigation_node.cpp)
+add_executable(laser_node src/laser_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(miltbot_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -157,6 +159,7 @@ add_executable(navigation_node src/navigation_node.cpp)
 # )
 target_link_libraries(navigation ${catkin_LIBRARIES})
 target_link_libraries(navigation_node ${catkin_LIBRARIES} navigation)
+target_link_libraries(laser_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
