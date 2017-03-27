@@ -2,6 +2,13 @@
     <arg name="ns" default="/" />
     <group ns="$(arg ns)">
         <node pkg="icreate_base" type="bumper_node" name="bumper_node" output="screen">
+            <!--<param name="move_base_topic" value="move_base"/>-->
+            <param name="base_frame_id" value="map"/>
+            <param name="robot_frame_id" value="base_footprint"/>
         </node>
+        
+        <param name="turtlebot_state_sub_topic" value="icreate_node/sensor_state"/>
+        <param name="move_base_cancel_pub_topic" value="move_base/cancel"/>
+        <param name="run_system_service" value="run_system"/>
     </group>
 </launch>

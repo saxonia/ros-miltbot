@@ -11,17 +11,29 @@
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
+std::string base_frame_id("map");
+std::string robot_frame_id("base_footprint");
+
 ros::ServiceClient run_system_client;
 ros::Publisher move_base_cancel_pub;
 
 
 void initializeSimpleBackwardMoveBase(std::string frame_id) {
     move_base_msgs::MoveBaseGoal goal;
-    goal.target_pose.pose.position.x = -0.5;
+    goal.target_pose.pose.position.x = -1.5;
     goal.target_pose.pose.orientation.w = 1.0;
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
     MoveBaseClient ac("move_base", true);
+    int tries = 0;
+    while(!ac.waitForServer(ros::Duration(2))){
+      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
+      tries++;
+      if(tries == 3){
+        ROS_INFO("Failed to Start Waypoint Node");
+      }
+    }
+    ROS_INFO("Navigation Waypoint Node Initialized !");
     ac.sendGoal(goal);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -37,6 +49,15 @@ void initializeSimpleRotateMoveBase(std::string frame_id) {
     goal.target_pose.header.frame_id = frame_id;
     goal.target_pose.header.stamp = ros::Time::now();
     MoveBaseClient ac("move_base", true);
+    int tries = 0;
+    while(!ac.waitForServer(ros::Duration(2))){
+      ROS_INFO("Waiting for the move_base action server to come up %d",tries+1);
+      tries++;
+      if(tries == 3){
+        ROS_INFO("Failed to Start Waypoint Node");
+      }
+    }
+    ROS_INFO("Navigation Waypoint Node Initialized !");
     ac.sendGoal(goal);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -57,13 +78,13 @@ void callRunSystemService(bool status) {
 }
 
 void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
-    // ROS_DEBUG_STREAM(msg);
-    ROS_INFO("Bump Wheel Drops : %d",msg.bumps_wheeldrops);
     if(msg.bumps_wheeldrops > 0) {
+        ROS_INFO("Bump Wheel Drops : %d",msg.bumps_wheeldrops);
         callRunSystemService(false);
         move_base_cancel_pub.publish(*new actionlib_msgs::GoalID());
-        initializeSimpleBackwardMoveBase("base_footprint");
-        initializeSimpleRotateMoveBase("base_footprint");
+        // initializeSimpleBackwardMoveBase(robot_frame_id);
+        initializeSimpleBackwardMoveBase(base_frame_id);
+        // initializeSimpleRotateMoveBase("/base_footprint");
         callRunSystemService(true);
     }
 }
@@ -77,14 +98,20 @@ int main(int argc, char** argv) {
     std::string move_base_cancel_pub_topic_name("move_base/cancel");
     std::string run_system_service_name("run_system");
 
+    ROS_INFO("%s",run_system_service_name.c_str());
+
+    nh.param("bumper_node/base_frame_id", base_frame_id, base_frame_id);
+    nh.param("bumper_node/robot_frame_id", robot_frame_id, robot_frame_id);
     nh.param("turtlebot_state_sub_topic", turtlebot_state_sub_topic_name, turtlebot_state_sub_topic_name);
     nh.param("move_base_cancel_pub_topic", move_base_cancel_pub_topic_name, move_base_cancel_pub_topic_name);
     nh.param("run_system_service", run_system_service_name, run_system_service_name);
 
+    ROS_INFO("%s",run_system_service_name.c_str());
+
 
     ros::Subscriber turtlebot_sensor_sub = nh.subscribe(turtlebot_state_sub_topic_name, 10, turtlebotSensorCallback);
-    ros::Publisher move_base_cancel_pub = nh.advertise<actionlib_msgs::GoalID>(move_base_cancel_pub_topic_name, 1);
-    ros::ServiceClient run_system_client = nh.serviceClient<miltbot_system::RunSystem>(run_system_service_name);
+    move_base_cancel_pub = nh.advertise<actionlib_msgs::GoalID>(move_base_cancel_pub_topic_name, 1);
+    run_system_client = nh.serviceClient<miltbot_system::RunSystem>(run_system_service_name);
     ros::spin();
     return 0;
 }
