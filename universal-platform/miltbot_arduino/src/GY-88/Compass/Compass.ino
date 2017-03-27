@@ -94,7 +94,7 @@ void loop()
   // to run at 15Hz (default bandwidth for the HMC5883L).
   // However since we have a long serial out (104ms at 9600) we will let
   // it run at its natural speed.
-//   delay(66);
+  delay(100);
 //  delay(104);
 }
 
