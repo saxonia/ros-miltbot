@@ -192,6 +192,7 @@ class Navigation {
 
         int done_goal_number;
         int fail_goal_count;
+        int target_number;
 
         float mid_range;
 

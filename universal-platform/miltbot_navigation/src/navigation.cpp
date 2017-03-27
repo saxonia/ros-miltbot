@@ -345,26 +345,28 @@ void Navigation::runLiftNavigation() {
         case 5: {
             bool flag = false;
             icreate_navigation::RunGmappingService srv;
-            // srv.request.task = "close";
-            // if(run_gmapping_client_.call(srv)) {
-            //     flag = srv.response.success;
-            // }
-            // else {
-            //     ROS_WARN("Failed to run gmapping");
-            // }
-            // if(flag) {
-            //     this->navigation_case = 0;
-            //     miltbot_map::SetMap srv2;
-            //     //Set out lift position
-            //     srv2.request.floor = this->target_queue[0].building_floor + " Lift";
-            //     srv2.request.target_number = this->lift_number;
-            //     if(set_map_service_client_.call(srv2)) {
-            //         bool flag2 = srv2.response.flag;
-            //     }
-            //     else {
-            //        ROS_WARN("Failed to run set map");
-            //     }
-            // }
+            srv.request.task = "close";
+            if(run_gmapping_client_.call(srv)) {
+                flag = srv.response.success;
+            }
+            else {
+                ROS_WARN("Failed to run gmapping");
+            }
+            if(flag) {
+                this->navigation_case = 0;
+                miltbot_map::SetMap srv2;
+                //Set out lift position
+                srv2.request.floor = this->target_queue[0].building_floor + " Lift";
+                srv2.request.target_number = this->target_number;
+                if(set_map_service_client_.call(srv2)) {
+                    bool flag2 = srv2.response.flag;
+                    this->building = this->target_queue[0].building;
+                    this->building_floor = this->target_queue[0].building_floor;
+                }
+                else {
+                   ROS_WARN("Failed to run set map");
+                }
+            }
             break;
         }
     }
@@ -694,10 +696,6 @@ bool Navigation::sendWaypointRequest(std::string building, std::string building_
     if(client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
-            this->building = building;
-            // this->building_floor = building_floor;
-            // this->building_floor_num = this->toint(this->substrBuildingFloor(building_floor));
-            // this->setWaypoint(waypoints);
             this->lifts = waypoints;
         }
         else {
@@ -717,14 +715,14 @@ void Navigation::sendMoveBaseCancel() {
 }
 
 void Navigation::setWaypoint(std::vector<miltbot_common::Waypoint> waypoints) {
-    for(int i = 0; i < waypoints.size(); i++) {
+    // for(int i = 0; i < waypoints.size(); i++) {
         //    miltbot_common::Waypoint data;
         //    data.setGoalName(waypoints[i].name);
         //    data.setBuilding(waypoints[i].building);
         //    data.setBuildingFloor(waypoints[i].floor);
         //    data.setGoal(waypoints[i].goal);
         //    this->lifts.push_back(data);
-    } 
+    // } 
 }
 
 }
