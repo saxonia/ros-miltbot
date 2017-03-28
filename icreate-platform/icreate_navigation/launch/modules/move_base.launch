@@ -3,6 +3,10 @@
 
   <arg name="ns" default="" />
   <arg name="name" default=""/>
+  <!--<arg name="odom_frame_id"   default="d"/>-->
+  <!--<arg name="base_frame_id"   default="c"/>-->
+  <!--<arg name="global_frame_id" default="e"/>-->
+  <!--<arg name="laser_frame_id" default="a"/>-->
   <arg name="odom_frame_id"   default="odom"/>
   <arg name="base_frame_id"   default="base_footprint"/>
   <arg name="global_frame_id" default="map"/>

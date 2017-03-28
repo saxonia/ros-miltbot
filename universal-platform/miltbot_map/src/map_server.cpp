@@ -28,7 +28,9 @@ ros::ServiceClient get_waypoint_list_client;
 
 int target_number = 0;
 int floor_flag = 0;
-bool pub_flag = false;
+bool pub_flag1 = false;
+bool pub_flag2 = false;
+bool pub_flag3 = false;
 bool get_map1 = true;
 bool get_map2 = true;
 bool get_map3 = true;
@@ -37,7 +39,7 @@ void mapCallback(const nav_msgs::OccupancyGrid &msg) {
     if(get_map1) {
         mapb4_f17 = msg;
         ROS_INFO("Map1: %d",mapb4_f17.info.width);
-        pub_flag = true;
+        pub_flag1 = true;
         get_map1 = false;
     }
 }
@@ -46,7 +48,7 @@ void mapCallback2(const nav_msgs::OccupancyGrid &msg) {
     if(get_map2) {
         mapb4_20 = msg;
         ROS_INFO("Map2: %d",mapb4_20.info.width);
-        pub_flag = true;
+        pub_flag2 = true;
         get_map2 = false;
     }
 }
@@ -55,7 +57,7 @@ void mapDynamicCallback(const nav_msgs::OccupancyGrid &msg) {
     // if(get_map3) {
         map_dynamic = msg;
         ROS_INFO("Map Dynamic: %d",map_dynamic.info.width);
-        pub_flag = true;
+        pub_flag3 = true;
         // get_map3 = false;
     // }
 }
@@ -142,19 +144,21 @@ bool setMapService(miltbot_map::SetMap::Request &req, miltbot_map::SetMap::Respo
     if(building_floor_req == "Floor 20" || building_floor_req == "Floor 20 Lift") {
         map = &mapb4_20;
         callSetMapClientService();
+        pub_flag1 = true;
     }
     else if(building_floor_req == "Floor 17" || building_floor_req == "Floor 17 Lift") {
         map = &mapb4_f17;
         callSetMapClientService();
+        pub_flag2 = true;
     }
     else if(building_floor_req == "Lift") {
         map = &map_dynamic;
+        pub_flag3 = true;
     }
     else {
         res.flag = false;
         return false;
     }
-    pub_flag = true;
     building_floor_req = "";
     res.flag = true;
     return true;
@@ -195,8 +199,8 @@ int main(int argc, char** argv) {
     get_map2 = true;
     while(ros::ok()) {
         ros::spinOnce();
-        if(pub_flag) {
-        map_pub.publish(*map);
+        if(pub_flag1 && pub_flag2) {
+            map_pub.publish(*map);
             // pub_flag = false;
         }
         r.sleep();

@@ -25,8 +25,8 @@ obstacle_layer:
   publish_voxel_map: true
   observation_sources:  scan #bump
   scan:
-    topic: /scan
-    sensors_frame: /laser
+    topic: scan
+    sensors_frame: a
     expected_update_rate: 0.5
     data_type: LaserScan
     marking: true
@@ -53,7 +53,7 @@ static_layer:
   enabled: true
   unknown_cost_value: -1     #The value for which a cost should be considered unknown when reading in a map from the map server.
   lethal_cost_threshold: 100 #The threshold value at which to consider a cost lethal when reading in a map from the map server.
-  map_topic: /map    #The topic that the costmap subscribes to for the static map.
+  map_topic: e    #The topic that the costmap subscribes to for the static map.
   first_map_only: false #Only subscribe to the first message on the map topic, ignoring all subsequent messages
   subscribe_to_updates: false #In addition to map_topic, also subscribe to map_topic + "_updates"
   track_unknown_space: true #If true, unknown values in the map messages are translated directly to the layer. Otherwise, unknown values in the map message are translated as FREE_SPACE in the layer.

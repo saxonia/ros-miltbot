@@ -35,9 +35,10 @@ void initializeSimpleBackwardMoveBase(std::string frame_id) {
     }
     ROS_INFO("Navigation Waypoint Node Initialized !");
     ac.sendGoal(goal);
+    ROS_WARN("NAv poX: %f",goal.target_pose.pose.position.x);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      ROS_INFO("Hooray, the base moved 1 meter forward");
+      ROS_INFO("Hooray, the base moved 1 meter backward");
     else
       ROS_INFO("The base failed to move forward 1 meter for some reason");
 }
@@ -61,7 +62,7 @@ void initializeSimpleRotateMoveBase(std::string frame_id) {
     ac.sendGoal(goal);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      ROS_INFO("Hooray, the base moved 1 meter forward");
+      ROS_INFO("Hooray, the base moved rotated");
     else
       ROS_INFO("The base failed to move forward 1 meter for some reason");
 }
@@ -83,8 +84,8 @@ void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
         callRunSystemService(false);
         move_base_cancel_pub.publish(*new actionlib_msgs::GoalID());
         // initializeSimpleBackwardMoveBase(robot_frame_id);
-        initializeSimpleBackwardMoveBase(base_frame_id);
-        // initializeSimpleRotateMoveBase("/base_footprint");
+        // initializeSimpleBackwardMoveBase(base_frame_id);
+        initializeSimpleRotateMoveBase(robot_frame_id);
         callRunSystemService(true);
     }
 }

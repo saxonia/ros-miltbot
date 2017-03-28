@@ -1,7 +1,7 @@
 local_costmap:
 #    Coordinate frame and tf parameters
-   global_frame: odom
-   robot_base_frame: base_footprint
+   global_frame: d
+   robot_base_frame: c
    transform_tolerance: 1.5
 #    Rate parameters
    update_frequency: 15.0

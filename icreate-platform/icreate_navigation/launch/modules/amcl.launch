@@ -1,6 +1,7 @@
 <launch>
 
   <!--AMCL Parameters-->
+  <arg name="ns" default=""/>
   <arg name="name" default=""/>
   <arg name="use_map_topic"   default="false"/>
   <arg name="scan_topic"      default="scan"/>
@@ -10,6 +11,9 @@
   <arg name="odom_frame_id"   default="odom"/>
   <arg name="base_frame_id"   default="base_footprint"/>
   <arg name="global_frame_id" default="map"/>
+  <!--<arg name="odom_frame_id"   default="d"/>-->
+  <!--<arg name="base_frame_id"   default="c"/>-->
+  <!--<arg name="global_frame_id" default="e"/>-->
   
   <!--
     Odometery model parameters

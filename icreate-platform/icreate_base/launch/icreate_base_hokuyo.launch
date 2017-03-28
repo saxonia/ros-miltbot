@@ -1,11 +1,16 @@
 <launch>
-    <include file="$(find icreate_base)/launch/config/icreate_node.launch"/>
+    <arg name="ns" default="" />
+    <include file="$(find icreate_base)/launch/config/icreate_node.launch">
+        <arg name="ns" default="$(arg ns)" />
+    </include>
 
     <include file="$(find icreate_base)/launch/config/hokuyo.launch"/>
 
     <!--<include file="$(find icreate_base)/launch/config/rplidar.launch"/>-->
 
-    <include file="$(find icreate_base)/launch/config/tf_static_transform.launch"/>
+    <include file="$(find icreate_base)/launch/config/tf_static_transform.launch">
+        <arg name="ns" default="$(arg ns)" />
+    </include>
 
     <include file="$(find icreate_base)/launch/config/laser_filters.launch">
         <arg name="laser_path" default="$(find icreate_base)/params/laser_filters_hokuyo_config.yaml" />
