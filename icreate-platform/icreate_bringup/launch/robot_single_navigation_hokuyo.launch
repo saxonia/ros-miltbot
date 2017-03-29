@@ -17,6 +17,8 @@
 
     <arg name="map" default="build4_f20" />
     <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
+        <param name="frame_id" value="$(arg ns)/map"/>
+        <!--<param name="frame_id" value="map"/>-->
     </node>
 
     <!--<include file="($find icreate_transportation)/launch/single_transportation.launch">-->

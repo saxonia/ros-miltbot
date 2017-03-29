@@ -9,7 +9,7 @@
 
     <!--Localizer Controller : AMCL Algorithm & Gmapping Algorithm-->
     <node pkg="icreate_navigation" type="localization_controller.py" name="localization_controller" output="screen">
-        <!--<param name="ns" value="$(arg ns)" />-->
+        <param name="namespace" value="$(arg ns)" />
     </node>
 
     <!--Velocity Smoother-->

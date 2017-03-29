@@ -4,9 +4,9 @@
         <arg name="ns" default="$(arg ns)" />
     </include>
 
-    <include file="$(find icreate_base)/launch/config/hokuyo.launch"/>
-
-    <!--<include file="$(find icreate_base)/launch/config/rplidar.launch"/>-->
+    <include file="$(find icreate_base)/launch/config/hokuyo.launch">
+        <arg name="ns" default="$(arg ns)" />
+    </include>
 
     <include file="$(find icreate_base)/launch/config/tf_static_transform.launch">
         <arg name="ns" default="$(arg ns)" />

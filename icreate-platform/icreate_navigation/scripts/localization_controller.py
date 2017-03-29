@@ -8,16 +8,16 @@ from icreate_navigation.srv import RunGmappingService
 from miltbot_map.srv import SetMap
 
 rospack = rospkg.RosPack()
-ROOT_PATH = rospack.get_path('icreate_lift_navigation')
+ROOT_PATH = rospack.get_path('icreate_navigation')
 # ROOT_PATH = "/~/miltbot_catkin_ws/src/ros-miltbot/icreate-platform/"
 gmapping_file_path = ROOT_PATH + "/launch/modules/gmapping.launch"
-ROOT_PATH = rospack.get_path('icreate_navigation')
 amcl_file_path = ROOT_PATH + "/launch/modules/amcl.launch"
 set_map_service_name_ = ""
 gmapping_launch = None
 amcl_launch = None
 gmapping_flag = False
 amcl_flag = False
+namespace = ''
 
 def start_set_map():
     rospy.wait_for_service(set_map_service_name_, timeout=2)
@@ -30,10 +30,15 @@ def start_set_map():
 
 def gmapping_start():
     "Return the pathname of the KOS root directory."
-    global gmapping_flag
-    gmapping_flag = True
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+    gmapping_launch = roslaunch.parent.ROSLaunchParent(uuid, [gmapping_file_path])
+    gmapping_launch.start()
 
     #Set Parameter Server
+    rospy.set_param('slam_gmapping/odom_frame_id', namespace + '/odom')
+    rospy.set_param('slam_gmapping/base_frame_id', namespace + '/base_footprint')
+    rospy.set_param('slam_gmapping/map_frame_id', namespace + '/map')
     rospy.set_param('move_base/NavfnROS/allow_unknown',True)
     rospy.set_param('move_base/NavfnROS/default_tolerance',0.2)
     rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.8)
@@ -48,10 +53,15 @@ def gmapping_start():
     rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius',0.1)
 
 def amcl_start():
-    global amcl_flag
-    amcl_flag = True
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+    amcl_launch = roslaunch.parent.ROSLaunchParent(uuid, [amcl_file_path])
+    amcl_launch.start()
 
     #Set Parameter Server
+    rospy.set_param('amcl/odom_frame_id', namespace + '/odom')
+    rospy.set_param('amcl/base_frame_id', namespace + '/base_footprint')
+    rospy.set_param('amcl/global_frame_id', namespace + '/map')
     rospy.set_param('move_base/NavfnROS/allow_unknown',False)
     rospy.set_param('move_base/NavfnROS/default_tolerance',0.0)
     rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.5)
@@ -96,26 +106,13 @@ def gmapping_callback(msg):
 
 if __name__ == '__main__':
     rospy.init_node('localization_controller', anonymous=True)
+    rospy.get_param('localization_controller/namespace',namespace)
     set_map_service_name_ = "set_map_service"
     rospy.Service('run_gmapping', RunGmappingService, gmapping_callback)
-    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-    roslaunch.configure_logging(uuid)
-    amcl_launch = roslaunch.parent.ROSLaunchParent(uuid, [amcl_file_path])
-    amcl_launch.start()
-    gmapping_flag = False
-    amcl_flag = False 
-    r = rospy.Rate(10) # 10hz
-    while not rospy.is_shutdown():
-        r.sleep()
-        if gmapping_flag:
-            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-            roslaunch.configure_logging(uuid)
-            gmapping_launch = roslaunch.parent.ROSLaunchParent(uuid, [gmapping_file_path])
-            gmapping_launch.start()
-            gmapping_flag = False
-        elif amcl_flag:
-            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-            roslaunch.configure_logging(uuid)
-            amcl_launch = roslaunch.parent.ROSLaunchParent(uuid, [amcl_file_path])
-            amcl_launch.start()
-            amcl_flag = False
+    # uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    # roslaunch.configure_logging(uuid)
+    # amcl_launch = roslaunch.parent.ROSLaunchParent(uuid, [amcl_file_path])
+    # amcl_launch.start()
+    amcl_start()
+    rospy.spin()
+        

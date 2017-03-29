@@ -1,9 +1,12 @@
 <launch>
+    <arg name="ns" default="" />
     <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node" output="screen">
         <param name="port" value="/dev/ttyACM0" />
         <param name="min_range" value="0.3" />
         <param name="min_arg" value="-2.086"/>
         <param name="max_arg" value=" 2.092"/>
+        <!--<param name="frame_id" value="laser"/>-->
+        <param name="frame_id" value="$(arg ns)/laser"/>
         <remap from="/diagnostics" to="diagnostics" />
     </node> 
 </launch>
