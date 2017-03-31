@@ -13,7 +13,8 @@
 
 #include <iostream>
 
-// std::string building;
+std::string frame_id;
+std::string building;
 std::string building_floor_req;
 std::vector<miltbot_common::Waypoint> lifts;
 nav_msgs::OccupancyGrid *map;
@@ -54,12 +55,9 @@ void mapCallback2(const nav_msgs::OccupancyGrid &msg) {
 }
 
 void mapDynamicCallback(const nav_msgs::OccupancyGrid &msg) {
-    // if(get_map3) {
         map_dynamic = msg;
         ROS_INFO("Map Dynamic: %d",map_dynamic.info.width);
         pub_flag3 = true;
-        // get_map3 = false;
-    // }
 }
 
 void initialposeCallback(const geometry_msgs::PoseWithCovarianceStamped &msg) {
@@ -67,38 +65,14 @@ void initialposeCallback(const geometry_msgs::PoseWithCovarianceStamped &msg) {
     ROS_INFO("Initial Pose: %s",initial_pose.header.frame_id.c_str());
 }
 
-// void floorCallback(const std_msgs::String::ConstPtr &msg) {
-//     std::string floor_ = msg->data;
-//     if(floor_ == "Floor 20") {
-//         floor_flag = 1;
-//     }
-//     else if(floor_ == "Floor 17") {
-//         floor_flag = 2;
-//     }
-// }
-
-// void setWaypoint(std::vector<miltbot_common::Waypoint> waypoints) {
-//     lifts.clear();
-//     ROS_INFO("lifts size: %ld", lifts.size());
-//     for(int i = 0; i < waypoints.size(); i++) {
-//            miltbot::MoveBaseGoalData data;
-//            data.setGoalName(waypoints[i].name);
-//            data.setBuilding(waypoints[i].building);
-//            data.setBuildingFloor(waypoints[i].building_floor);
-//            data.setGoal(waypoints[i].goal);
-//            lifts.push_back(data);
-//     } 
-// }
-
 bool callGetWaypointClientService() {
     miltbot_map::GetWaypointList srv;
-    srv.request.building = "Building 4";
+    srv.request.building = building;
     srv.request.floor = building_floor_req;
     std::vector<miltbot_common::Waypoint> waypoints;
     if(get_waypoint_list_client.call(srv)) {
         waypoints = srv.response.waypoints;
         if(waypoints.size() > 0) {
-            // setWaypoint(waypoints);
             lifts = waypoints;
         }
         else {
@@ -116,7 +90,7 @@ bool callSetMapClientService() {
     nav_msgs::SetMap set_map_srv;
     set_map_srv.request.map = *map;
     std_msgs::Header header;
-    header.frame_id = "map";
+    header.frame_id = frame_id;
     if(!callGetWaypointClientService())
         return false;
     move_base_msgs::MoveBaseGoal goal = lifts[target_number].goal;
@@ -145,14 +119,18 @@ bool setMapService(miltbot_map::SetMap::Request &req, miltbot_map::SetMap::Respo
         map = &mapb4_20;
         callSetMapClientService();
         pub_flag1 = true;
+        pub_flag3 = false;
     }
     else if(building_floor_req == "Floor 17" || building_floor_req == "Floor 17 Lift") {
         map = &mapb4_f17;
         callSetMapClientService();
         pub_flag2 = true;
+        pub_flag3 = false;
     }
     else if(building_floor_req == "Lift") {
         map = &map_dynamic;
+        pub_flag1 = false;
+        pub_flag2 = false;
         pub_flag3 = true;
     }
     else {
@@ -177,6 +155,9 @@ int main(int argc, char** argv) {
     std::string get_waypoint_list_client_service_name("get_waypoint_list");
     // std::string initialpose_sub_topic_name();
 
+    building = "Building 4";
+    frame_id = "map";
+
     nh.param("map1_sub_topic", map1_sub_topic_name, map1_sub_topic_name);
     nh.param("map2_sub_topic", map2_sub_topic_name, map2_sub_topic_name);
     nh.param("map_dynamic_sub_topic", map_dynamic_sub_topic_name, map_dynamic_sub_topic_name);
@@ -184,11 +165,11 @@ int main(int argc, char** argv) {
     nh.param("set_map_client_service", set_map_client_service_name, set_map_client_service_name);
     nh.param("get_waypoint_list_client_service", get_waypoint_list_client_service_name, get_waypoint_list_client_service_name);
     nh.param("map_pub_topic", map_pub_topic_name, map_pub_topic_name);
+    nh.param("maps_server/map_frame_id", frame_id, frame_id);
     
     ros::Subscriber map_sub = nh.subscribe(map1_sub_topic_name, 1, mapCallback);
     ros::Subscriber map_sub2 = nh.subscribe(map2_sub_topic_name, 1, mapCallback2);
     ros::Subscriber map_dynamic_sub = nh.subscribe(map_dynamic_sub_topic_name, 1, mapDynamicCallback);
-    // ros::Subscriber floor_sub = nh.subscribe("/icreate/building", 1000, floorCallback);
     ros::ServiceServer service = nh.advertiseService(set_map_server_service_name, setMapService);
     set_map_client = nh.serviceClient<nav_msgs::SetMap>(set_map_client_service_name);
     get_waypoint_list_client = nh.serviceClient<miltbot_map::GetWaypointList>(get_waypoint_list_client_service_name);
@@ -202,6 +183,9 @@ int main(int argc, char** argv) {
         if(pub_flag1 && pub_flag2) {
             map_pub.publish(*map);
             // pub_flag = false;
+        }
+        else if(pub_flag3) {
+            map_pub.publish(*map);
         }
         r.sleep();
     }

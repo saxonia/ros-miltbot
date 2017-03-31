@@ -29,7 +29,7 @@ long generateTargetId() {
 }
 
 bool callGetWaypointService(ros::NodeHandle &nh, std::string building, std::string building_floor) {
-    ros::ServiceClient client = nh.serviceClient<miltbot_map::GetWaypointList>("get_waypoint_list");
+    ros::ServiceClient client = nh.serviceClient<miltbot_map::GetWaypointList>(get_waypoint_list_service_name);
     miltbot_map::GetWaypointList srv;
     srv.request.building = building;
     srv.request.floor = building_floor;

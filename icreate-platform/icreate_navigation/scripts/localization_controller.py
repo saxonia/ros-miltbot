@@ -106,7 +106,8 @@ def gmapping_callback(msg):
 
 if __name__ == '__main__':
     rospy.init_node('localization_controller', anonymous=True)
-    rospy.get_param('localization_controller/namespace',namespace)
+    namespace = rospy.get_param('localization_controller/namespace')
+    print('AAAAAAAAAAAAAAAAAAAAAA ' + namespace)
     set_map_service_name_ = "set_map_service"
     rospy.Service('run_gmapping', RunGmappingService, gmapping_callback)
     # uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)

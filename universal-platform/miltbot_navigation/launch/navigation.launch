@@ -3,8 +3,8 @@
     <group ns="$(arg ns)">
     <node pkg="miltbot_navigation" type="navigation_node" name="navigation_node" output="screen">
         <param name="move_base_topic" value="move_base"/>
-        <param name="base_frame_id" value="map"/>
-        <param name="robot_frame_id" value="base_footprint"/>
+        <param name="base_frame_id" value="$(arg ns)/map"/>
+        <param name="robot_frame_id" value="$(arg ns)/base_footprint"/>
         <param name="polling_rate" value="30"/>
         <param name="timer_duration" value="10"/>
         <param name="building" value="Building 4"/>
