@@ -11,6 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  cv_bridge
+  image_transport
+  sensor_msgs
 )
 
 find_package(OpenCV)
@@ -155,6 +158,7 @@ add_executable(door_detection src/door_detection.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(vision ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(door_detection ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} vision)
 
 #############

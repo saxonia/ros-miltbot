@@ -5,7 +5,12 @@
 #include <iostream>
 
 #include <ros/ros.h>
+#include "image_transport/image_transport.h"
+#include "cv_bridge/cv_bridge.h"
+#include <sensor_msgs/image_encodings.h>
+
 #include "sensor_msgs/CompressedImage.h"
+// #include "sensor_msgs/Image.h"
 
 #ifndef __MILTBOT_VISION_MONO_CAMERA
 #define __MILTBOT_VISION_MONO_CAMERA
@@ -23,23 +28,24 @@ class MonoCamera
 
         ~MonoCamera(void);
 
-        // MonoCamera();
-
         void colorImageCallback(const sensor_msgs::CompressedImage& msg);
+
+        void depthImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
         // bool getParameter(string ns, ros::NodeHandle& n);
 
-        // void resizeImage(int imageWidth,int imageHeight);
+        void resizeImage(cv::Mat &src, int imageWidth,int imageHeight);
 
-        // void flipImage(int id);
+        void flipImage(cv::Mat &src, int id);
 
-        // void rotateImage();
     private:
 
     public:
         // std::string name;
         cv::Mat color_view;
         cv::Mat depth_view;
+        cv::Mat mono_view;
+        cv::Mat depth_norm;
         // cv::Mat viewGray;
         // cv::Size imageSize;
         // cv::Mat cameraMatrix;
