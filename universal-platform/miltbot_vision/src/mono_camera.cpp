@@ -3,11 +3,13 @@
 namespace miltbot {
 
 MonoCamera::MonoCamera(void):
-    color_image_sub_topic_name_(""),
-    depth_image_sub_topic_name_("")
+    color_image_sub_topic_name_("camera/rgb/image_color/compressed"),
+    depth_image_sub_topic_name_("camera/depth/image")
 {
-    this->color_image_sub = nh_.subscribe("camera/rgb/image_color/compressed", 1, &MonoCamera::colorImageCallback, this);
-    this->depth_image_sub = nh_.subscribe("camera/depth/image", 1, &MonoCamera::depthImageCallback, this);
+    nh_.param("color_image_sub_topic", color_image_sub_topic_name_, color_image_sub_topic_name_);
+    nh_.param("depth_image_sub_topic", depth_image_sub_topic_name_, depth_image_sub_topic_name_);
+    this->color_image_sub = nh_.subscribe(color_image_sub_topic_name_, 1, &MonoCamera::colorImageCallback, this);
+    this->depth_image_sub = nh_.subscribe(depth_image_sub_topic_name_, 1, &MonoCamera::depthImageCallback, this);
 }
 
 MonoCamera::~MonoCamera(void)
@@ -17,9 +19,7 @@ MonoCamera::~MonoCamera(void)
 
 void MonoCamera::colorImageCallback(const sensor_msgs::CompressedImage& msg) {
     std::vector<unsigned char> array = msg.data;
-    // ROS_INFO("Get Data Color %ld",array.size());
     this->color_view = cv::imdecode(array,1);
-    // ROS_WARN("Sizeeee : %d x %d",color_view.rows, color_view.cols);
 }
 
 void MonoCamera::depthImageCallback(const sensor_msgs::ImageConstPtr& msg) {

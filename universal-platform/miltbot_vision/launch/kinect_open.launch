@@ -1,0 +1,7 @@
+<launch>
+    <arg name="ns" default="" />
+    <node pkg="miltbot_vision" type="kinect_open" name="kinect_open" output="screen" >
+        <param name="color_image_sub_topic" value="$(arg ns)/camera/rgb/image_color/compressed"/>
+        <param name="depth_image_sub_topic" value="$(arg ns)/camera/depth/image"/>
+    </node>
+</launch>

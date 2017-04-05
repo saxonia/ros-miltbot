@@ -142,6 +142,7 @@ add_library(vision src/mono_camera.cpp)
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/miltbot_vision_node.cpp)
+add_executable(kinect_open src/kinect_open.cpp)
 add_executable(door_detection src/door_detection.cpp)
 
 ## Rename C++ executable without prefix
@@ -159,6 +160,7 @@ add_executable(door_detection src/door_detection.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(vision ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(kinect_open ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} vision)
 target_link_libraries(door_detection ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} vision)
 
 #############
