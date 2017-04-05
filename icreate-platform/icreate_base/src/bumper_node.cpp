@@ -11,8 +11,8 @@
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-std::string base_frame_id("map");
-std::string robot_frame_id("base_footprint");
+std::string base_frame_id("bot1/map");
+std::string robot_frame_id("bot1/base_footprint");
 
 ros::ServiceClient run_system_client;
 ros::Publisher move_base_cancel_pub;
@@ -35,7 +35,6 @@ void initializeSimpleBackwardMoveBase(std::string frame_id) {
     }
     ROS_INFO("Navigation Waypoint Node Initialized !");
     ac.sendGoal(goal);
-    ROS_WARN("NAv poX: %f",goal.target_pose.pose.position.x);
     ac.waitForResult();
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
       ROS_INFO("Hooray, the base moved 1 meter backward");
@@ -83,10 +82,10 @@ void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
         ROS_INFO("Bump Wheel Drops : %d",msg.bumps_wheeldrops);
         callRunSystemService(false);
         move_base_cancel_pub.publish(*new actionlib_msgs::GoalID());
-        // initializeSimpleBackwardMoveBase(robot_frame_id);
+        initializeSimpleBackwardMoveBase(robot_frame_id);
         // initializeSimpleBackwardMoveBase(base_frame_id);
         initializeSimpleRotateMoveBase(robot_frame_id);
-        callRunSystemService(true);
+        // callRunSystemService(true);
     }
 }
 
@@ -106,8 +105,6 @@ int main(int argc, char** argv) {
     nh.param("turtlebot_state_sub_topic", turtlebot_state_sub_topic_name, turtlebot_state_sub_topic_name);
     nh.param("move_base_cancel_pub_topic", move_base_cancel_pub_topic_name, move_base_cancel_pub_topic_name);
     nh.param("run_system_service", run_system_service_name, run_system_service_name);
-
-    ROS_INFO("%s",run_system_service_name.c_str());
 
 
     ros::Subscriber turtlebot_sensor_sub = nh.subscribe(turtlebot_state_sub_topic_name, 10, turtlebotSensorCallback);
