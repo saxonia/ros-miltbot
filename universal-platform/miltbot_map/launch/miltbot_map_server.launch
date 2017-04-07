@@ -3,7 +3,9 @@
     <param name="map1_sub_topic" value="/build4_f17/map" type="string" />
     <param name="map2_sub_topic" value="/build4_f20/map" type="string" />
     <param name="map_dynamic_sub_topic" value="map_dynamic" type="string" />
-    <param name="set_map_service" value="set_map_service" type="string" />
+    <param name="premap_sub_topic" value="premap" type="string" />
+    <param name="set_map_server_service" value="set_map_service" type="string" />
+    <param name="set_map_client_service" value="set_map" type="string" />
     <param name="map_pub_topic" value="map" type="string" />
 
     <node pkg="miltbot_map" type="map_server" name="maps_server" output="screen">

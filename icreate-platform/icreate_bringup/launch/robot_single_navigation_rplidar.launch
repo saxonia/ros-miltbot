@@ -20,6 +20,9 @@
     <arg name="map" default="build4_f20" />
     <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
         <param name="frame_id" value="$(arg ns)/map"/>
+        <remap from="map" to="premap" />
+        <remap from="map_metadata" to="premap_metadata" />
+        <!--<remap from="static_map" to="static_premap" />-->
         <!--<param name="frame_id" value="map"/>-->
     </node>
 
