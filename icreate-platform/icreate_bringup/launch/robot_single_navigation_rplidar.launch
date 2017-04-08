@@ -1,31 +1,29 @@
 <launch>
     <arg name="ns" default="/" />
     <group ns="$(arg ns)">
-    <include file="$(find icreate_bringup)/launch/robot_joy_rplidar.launch" >
-        <arg name="ns" default="$(arg ns)" />
-    </include>
+        <include file="$(find icreate_bringup)/launch/robot_joy_rplidar.launch" >
+            <arg name="ns" default="$(arg ns)" />
+        </include>
 
-    <!--<include file="$(find icreate_navigation)/launch/waypoint_navigation.launch" />-->
+        <!--<include file="$(find icreate_navigation)/launch/waypoint_navigation.launch" />-->
 
-    <include file="$(find icreate_navigation)/launch/modules/icreate_navigation_stack.1.launch" >
-        <arg name="ns" default="$(arg ns)" />
-    </include>
+        <include file="$(find icreate_navigation)/launch/modules/icreate_navigation_stack.1.launch" >
+            <arg name="ns" default="$(arg ns)" />
+        </include>
 
-    <include file="$(find miltbot_state)/launch/miltbot_state.launch" />
+        <include file="$(find miltbot_state)/launch/miltbot_state.launch" />
 
-    <include file="$(find miltbot_map)/launch/miltbot_map_server.launch">
-        <arg name="ns" default="$(arg ns)" />
-    </include>
+        <include file="$(find miltbot_map)/launch/miltbot_map_server.launch">
+            <arg name="ns" default="$(arg ns)" />
+        </include>
 
-    <arg name="map" default="build4_f20" />
-    <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
-        <param name="frame_id" value="$(arg ns)/map"/>
-        <remap from="map" to="premap" />
-        <remap from="map_metadata" to="premap_metadata" />
-        <!--<remap from="static_map" to="static_premap" />-->
-        <!--<param name="frame_id" value="map"/>-->
-    </node>
-
+        <arg name="map" default="build4_f20" />
+        <node pkg="map_server" type="map_server" name="map_server" args="$(find miltbot_map)/map/$(arg map).yaml" output="screen">
+            <param name="frame_id" value="$(arg ns)/map"/>
+            <remap from="map" to="premap" />
+            <remap from="map_metadata" to="premap_metadata" />
+            <remap from="static_map" to="static_premap" />
+        </node>
     </group>
 
 </launch>
