@@ -5,7 +5,8 @@
 #include <map>
 
 #include "map.h"
-#include <miltbot_map/GetWaypointList.h>
+#include "miltbot_map/GetWaypointList.h"
+#include "miltbot_map/GetBaseStationList.h"
 
 Map map;
 
@@ -113,20 +114,30 @@ bool getWaypointListService(miltbot_map::GetWaypointList::Request &req,
     return true;
 }
 
+bool getBaseStationService(miltbot_map::GetBaseStationList::Request &req,
+                           miltbot_map::GetBaseStationList::Response &res) {
+    std::vector<miltbot_common::Waypoint> ret = map.getBaseStation();
+    res.waypoints = ret;
+    return true;
+}
+
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "waypoint_server");
     // ros::NodeHandle nh("~");
     ros::NodeHandle nh;
 
-    std::string get_waypoint_list_service_name("get_waypoint_list");
+    std::string get_waypoint_list_server_service_name("get_waypoint_list");
+    std::string get_base_station_server_service_name("get_base_station");
     std::string waypoint_list_file_name("waypoint_list.csv");
 
-    nh.param("get_waypoint_list_service",get_waypoint_list_service_name, get_waypoint_list_service_name);
-    nh.param("waypoint_list_file",waypoint_list_file_name, waypoint_list_file_name);
+    nh.param("get_waypoint_list_service",get_waypoint_list_server_service_name, get_waypoint_list_server_service_name);
+    nh.param("get_base_station_server_service",get_base_station_server_service_name, get_base_station_server_service_name);
+    nh.param("waypoint_server/waypoint_list_file",waypoint_list_file_name, waypoint_list_file_name);
 
     loadWaypoint(map, waypoint_list_file_name);
-    ros::ServiceServer service = nh.advertiseService(get_waypoint_list_service_name, getWaypointListService);
+    ros::ServiceServer get_waypoint_list_service = nh.advertiseService(get_waypoint_list_server_service_name, getWaypointListService);
+    ros::ServiceServer get_base_station_service = nh.advertiseService(get_base_station_server_service_name, getBaseStationService);
     ros::spin();
 
     return 0;

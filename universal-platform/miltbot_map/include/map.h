@@ -31,6 +31,8 @@ class Map {
 
         std::vector<miltbot_common::Waypoint> getWaypointList(std::string building, std::string building_floor);
 
+        std::vector<miltbot_common::Waypoint> getBaseStation();
+
     private:
         std::string makeStringQuote(std::string data);
 

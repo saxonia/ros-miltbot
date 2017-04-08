@@ -69,6 +69,7 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 add_service_files(
     FILES
+    GetBaseStationList.srv
     GetWaypoint.srv
     GetWaypointList.srv
     SetMap.srv

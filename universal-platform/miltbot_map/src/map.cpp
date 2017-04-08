@@ -68,6 +68,25 @@ std::vector<miltbot_common::Waypoint> Map::getWaypointList(std::string building,
     return res;
 }
 
+std::vector<miltbot_common::Waypoint> Map::getBaseStation() {
+    std::vector<miltbot_common::Waypoint> res;
+    ROS_INFO("map size: %ld", this->data.size());
+    for(std::map<Key, std::vector<MapData> >::iterator it = data.begin(); it != data.end(); it++) {
+        std::vector<MapData> map_data_list = it->second;
+        for(int i = 0; i < map_data_list.size(); i++) {
+            if(map_data_list[i].name == "\"Base Station\"") {
+                miltbot_common::Waypoint waypoint;
+                waypoint.name = map_data_list[i].name;
+                waypoint.building = it->first.first;
+                waypoint.building_floor = it->first.second;
+                waypoint.goal = convertPointToMoveBaseGoal(map_data_list[i].point);
+                res.push_back(waypoint);
+            }
+        }
+    }
+    return res;
+}
+
 std::string Map::makeStringQuote(std::string data) {
     return "\"" + data + "\"";
     // return data;
