@@ -134,6 +134,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(icreate_base_node src/icreate_base_node.cpp)
 add_executable(bumper_node src/bumper_node.cpp)
+add_executable(power_node src/power_node.cpp)
 add_executable(imu_node src/imu_node.cpp)
 
 ## Add cmake target dependencies of the executable
@@ -145,6 +146,7 @@ add_executable(imu_node src/imu_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(bumper_node ${catkin_LIBRARIES})
+target_link_libraries(power_node ${catkin_LIBRARIES})
 target_link_libraries(imu_node ${catkin_LIBRARIES})
 
 

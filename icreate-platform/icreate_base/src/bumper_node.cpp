@@ -98,8 +98,6 @@ int main(int argc, char** argv) {
     std::string move_base_cancel_pub_topic_name("move_base/cancel");
     std::string run_system_service_name("run_system");
 
-    ROS_INFO("%s",run_system_service_name.c_str());
-
     nh.param("bumper_node/base_frame_id", base_frame_id, base_frame_id);
     nh.param("bumper_node/robot_frame_id", robot_frame_id, robot_frame_id);
     nh.param("turtlebot_state_sub_topic", turtlebot_state_sub_topic_name, turtlebot_state_sub_topic_name);
