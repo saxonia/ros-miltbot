@@ -73,9 +73,9 @@ add_service_files(
   FILES
   AddTarget.srv
   DeleteTarget.srv
+  GetRobotList.srv
   RunSystem.srv
   ViewTargetQueue.srv
-  GetRobotList.srv
 )
 
 ## Generate actions in the 'action' folder

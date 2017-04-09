@@ -11,7 +11,6 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     std::vector<float> store;
     store = msg->ranges;
     mid_range = store[idx];
-    // ROS_WARN("%ld",store.size());
     ROS_INFO("Middle Range: %f",store[idx]);
 }
 

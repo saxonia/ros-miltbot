@@ -25,7 +25,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     ac("move_base", true) 
 {
     nh_.param("clear_costmap_service", clear_costmap_service_name_, clear_costmap_service_name_);
-    nh_.param("/get_waypoint_list_service", get_waypoint_list_service_name_, get_waypoint_list_service_name_);
+    nh_.param("get_waypoint_list_service", get_waypoint_list_service_name_, get_waypoint_list_service_name_);
     nh_.param("navigation_node/move_base_wait_time", move_base_wait_time_, move_base_wait_time_);
     nh_.param("run_gmapping_service", run_gmapping_service_name_, run_gmapping_service_name_);
     nh_.param("set_map_service", set_map_service_name_, set_map_service_name_);

@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     std::string building_floor_name("Floor 20");
 	int polling_rate(30);
     int timer_duration(10);
-    // nh.param("navigation_node/move_base_topic", move_base_topic_name, move_base_topic_name);
+    nh.param("navigation_node/move_base_topic", move_base_topic_name, move_base_topic_name);
     nh.param("navigation_node/base_frame_id", base_frame_id, base_frame_id);
     nh.param("navigation_node/robot_frame_id", robot_frame_id, robot_frame_id);
     nh.param("navigation_node/package_name", package_name, package_name); 
