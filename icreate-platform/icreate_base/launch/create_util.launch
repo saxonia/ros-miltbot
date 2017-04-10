@@ -12,7 +12,7 @@
         <param name="run_system_service" value="run_system"/>
 
         <node pkg="icreate_base" type="power_node" name="power_node" output="screen">
-            <param name="voltage_limit" value="0"/>
+            <param name="voltage_limit" value="15510"/>
         </node>
 
     </group>

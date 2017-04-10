@@ -14,6 +14,7 @@
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 int voltage_limit;
+bool isRunChargingNavigation;
 ros::ServiceClient run_system_client;
 ros::ServiceClient add_target_client;
 ros::ServiceClient get_base_station_client;
@@ -77,17 +78,23 @@ void loadBaseStationWaypoints() {
     callGetBaseStationWaypointService();
 }
 
-void runSystemRecovery() {
+void runChargingNavigation() {
     callRunChargingNavigationService(false);
     callAddTargetService();
 }
 
 void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
-    int data = msg.voltage;
-    ROS_INFO("Voltage : %d",data);
-    if(data < voltage_limit) {
-        runSystemRecovery();
+    int voltage = msg.voltage;
+    // bool is_finish_back_to_charge = msg.is_finish_back_to_charge;
+    ROS_INFO("Voltage : %d",voltage);
+    if(voltage < voltage_limit && !isRunChargingNavigation) {
+        runChargingNavigation();
+        isRunChargingNavigation = true;
     }
+    //ถ้าชาร์ตเต็มทำอะไรต่อ
+    // else if(voltage > voltage_limit && isRunChargingNavigation) {
+
+    // }
 }
 
 void navigationStateCallback(const miltbot_navigation::NavigationState &msg) {
@@ -104,6 +111,8 @@ int main(int argc, char** argv) {
     std::string run_system_service_name("run_system");
     std::string add_target_service_name("add_target");
     std::string get_base_station_service_name("get_base_station");
+    voltage_limit = 15510;
+    isRunChargingNavigation = false;
 
     // nh.param("bumper_node/base_frame_id", base_frame_id, base_frame_id);
     // nh.param("bumper_node/robot_frame_id", robot_frame_id, robot_frame_id);

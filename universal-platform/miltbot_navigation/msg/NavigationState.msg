@@ -1,3 +1,4 @@
 string task
 string building
 string building_floor
+bool is_finish_charging
