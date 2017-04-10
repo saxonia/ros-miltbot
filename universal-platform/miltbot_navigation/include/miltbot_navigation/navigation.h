@@ -12,6 +12,7 @@
 #include "miltbot_common/WaypointList.h"
 #include "miltbot_map/GetWaypointList.h"
 #include "miltbot_map/SetMap.h"
+#include "miltbot_navigation/NavigationState.h"
 #include "miltbot_state/SetRobotState.h"
 #include "miltbot_system/ViewTargetQueue.h"
 #include "miltbot_system/AddTarget.h"
@@ -46,6 +47,12 @@ class Navigation {
 
         void addDefaultTargetQueue(miltbot_common::Waypoint data);
 
+        void deleteDefaultTargetQueue(long id);
+
+        void addChargingQueue(miltbot_common::Waypoint data);
+
+        void deleteChargingQueue(long id);
+
         void setBuilding(std::string building);
 
         std::string getBuilding();
@@ -71,6 +78,10 @@ class Navigation {
         bool verifyTarget();
 
         bool update();
+
+        void updateTargetQueue();
+
+        void updateNavigationState();
 
         void runMoveBase();
 
@@ -125,6 +136,9 @@ class Navigation {
 
         bool runSystemService(miltbot_system::RunSystem::Request &req,
                             miltbot_system::RunSystem::Response &res);
+
+        bool runChargingNavigationService(miltbot_system::RunSystem::Request &req,
+                            miltbot_system::RunSystem::Response &res);
         
         void callRunTransportationService(std::string mode);
         
@@ -134,16 +148,18 @@ class Navigation {
 
         void sendMoveBaseCancel();  
 
-        void setWaypoint(std::vector<miltbot_common::Waypoint> waypoints);
-
     public:
         bool requestToSetNewGoal;
         bool isSystemWorking;
+        bool isNormalNavigation;
+        bool isChargingNavigation;
+        bool isSystemRecoveryNavigation;
         bool isDoneGoal;
         bool isLiftNavigation;
 
         std::vector<miltbot_common::Waypoint> default_queue;
         std::vector<miltbot_common::Waypoint> target_queue;
+        std::vector<miltbot_common::Waypoint> charging_queue;
         std::vector<miltbot_common::Waypoint> lifts;
         miltbot_common::Waypoint    currentPosition;
 
@@ -158,12 +174,6 @@ class Navigation {
         int lift_navigation_step;
         int fail_goal_value_;
 
-        ros::ServiceServer view_target_queue_server;
-        ros::ServiceServer add_target_service_server;
-        ros::ServiceServer delete_target_service_server;
-        ros::ServiceServer add_default_target_service_server;
-        ros::ServiceServer run_system_service_server;
-
     private:
         //NodeHandle
         ros::NodeHandle nh_;
@@ -173,8 +183,17 @@ class Navigation {
         //Publisher
         ros::Publisher move_base_cancel_pub;
         ros::Publisher target_queue_pub;
+        ros::Publisher navigation_state_pub;
 
-        //SeviceClient for clear costmap service
+        //ServiceServer 
+        ros::ServiceServer view_target_queue_server;
+        ros::ServiceServer add_target_service_server;
+        ros::ServiceServer delete_target_service_server;
+        ros::ServiceServer add_default_target_service_server;
+        ros::ServiceServer run_system_service_server;
+        ros::ServiceServer run_charging_navigation_service_server;
+
+        //SeviceClient
         ros::ServiceClient clear_costmap_client_;
         ros::ServiceClient set_robot_state_client_;
         ros::ServiceClient run_gmapping_client_;
@@ -196,24 +215,34 @@ class Navigation {
 
         float mid_range;
 
-        std::string clear_costmap_service_name_;
-        std::string get_waypoint_list_service_name_;
-        std::string move_base_topic_name_;
+        //Param
         float move_base_wait_time_;
+
+        //Subscriber name
+        std::string move_base_topic_name_;
+
+        //Publisher name
+        std::string move_base_cancel_pub_topic_name_;
+        std::string target_queue_pub_topic_name_;
+        std::string navigation_state_pub_topic_name_;
+
+        //ServiceServer name
         std::string view_target_queue_service_name_;
         std::string add_target_service_name_;
         std::string delete_target_service_name_;
+        std::string add_default_target_service_name_;
+        std::string run_system_service_name_;
+        std::string run_charging_navigation_service_name_;
+
+        //ServiceClient name
+        std::string clear_costmap_service_name_;
+        std::string get_waypoint_list_service_name_;
         std::string set_robot_state_service_name_;
         std::string run_gmapping_service_name_;
         std::string set_map_service_name_;
         std::string get_middle_range_service_name_;
-        std::string add_default_target_service_name_;
-        std::string run_system_service_name_;
         std::string run_transportation_service_name_;
-        std::string move_base_cancel_pub_topic_name_;
-        std::string target_queue_pub_topic_name_;
         
-
 };
 
 }

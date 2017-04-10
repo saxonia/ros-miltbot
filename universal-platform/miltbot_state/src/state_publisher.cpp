@@ -94,6 +94,8 @@ std::string robotState::convertToStateName(int state) {
             break;
         case 7:
             stateName = "USINGLIFT";
+        case 8:
+            stateName = "BACKTOCHARGE";
     }
     return stateName;
 }
@@ -127,6 +129,9 @@ void robotState::setState(std::string s) {
     }
     else if(s == "USINGLIFT") {
         state = 7;
+    }
+    else if(s == "BACKTOCHARGE") {
+        state = 8;
     }
 }
 
