@@ -12,7 +12,7 @@
         <param name="move_base_wait_time" value="2.0"/>
     </node>
 
-    <param name="get_waypoint_list_service" value="get_waypoint_list" />
+    <param name="get_waypoint_list_service" value="/get_waypoint_list" />
     <param name="clear_costmap_service" value="move_base/clear_costmaps" />
     <param name="run_gmapping_service" value="run_gmapping"/>
     <param name="set_map_service" value="set_map_service"/>

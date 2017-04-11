@@ -124,14 +124,14 @@ int main(int argc, char** argv) {
     nh.param("add_target_service", add_target_service_name, add_target_service_name);
     nh.param("get_base_station_service", get_base_station_service_name, get_base_station_service_name);
 
-    loadBaseStationWaypoints();
-
     ros::Subscriber turtlebot_sensor_sub = nh.subscribe(turtlebot_state_sub_topic_name, 10, turtlebotSensorCallback);
     ros::Subscriber navigation_state_sub = nh.subscribe(navigation_state_sub_topic_name, 10, navigationStateCallback);
     // move_base_cancel_pub = nh.advertise<actionlib_msgs::GoalID>(move_base_cancel_pub_topic_name, 1);
     run_system_client = nh.serviceClient<miltbot_system::RunSystem>(run_system_service_name);
     add_target_client = nh.serviceClient<miltbot_system::AddTarget>(add_target_service_name);
     get_base_station_client = nh.serviceClient<miltbot_map::GetBaseStationList>(get_base_station_service_name);
+
+    loadBaseStationWaypoints();
     ros::spin();
 
     return 0;

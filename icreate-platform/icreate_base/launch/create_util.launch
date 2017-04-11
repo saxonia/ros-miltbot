@@ -10,6 +10,7 @@
         <param name="turtlebot_state_sub_topic" value="icreate_node/sensor_state"/>
         <param name="move_base_cancel_pub_topic" value="move_base/cancel"/>
         <param name="run_system_service" value="run_system"/>
+        <param name="get_base_station_service" value="/get_base_station"/>
 
         <node pkg="icreate_base" type="power_node" name="power_node" output="screen">
             <param name="voltage_limit" value="15510"/>
