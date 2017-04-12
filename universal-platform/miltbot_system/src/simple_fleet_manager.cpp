@@ -16,12 +16,16 @@ typedef std::pair<std::string, std::string> Key;
 
 std::map<Key, std::vector<miltbot_common::Waypoint> > targets;
 std::vector<miltbot_common::Waypoint> target_queue;
+std::vector<miltbot_common::Waypoint> default_queue;
+std::vector<miltbot_common::Waypoint> charging_queue;
 
 std::string view_target_queue_service_name("view_target_queue");
 std::string get_waypoint_list_service_name("get_waypoint_list");
 std::string add_target_service_name("add_target");
 std::string delete_target_service_name("delete_target");
 std::string add_default_target_service_name("add_default_target");
+std::string delete_default_target_service_name("delete_default_target");
+std::string run_charging_navigation_service_name("run_charging_navigation");
 std::string run_system_service_name("run_system");
 
 long generateTargetId() {
@@ -49,18 +53,6 @@ bool callGetWaypointService(ros::NodeHandle &nh, std::string building, std::stri
     else {
         ROS_ERROR("Failed to call service get_waypoint_list");
         return false;
-    }
-}
-
-void callRunSystemService(ros::NodeHandle &nh, bool status, std::string service_namespace) {
-    ros::ServiceClient client = nh.serviceClient<miltbot_system::RunSystem>(service_namespace + run_system_service_name);
-    miltbot_system::RunSystem srv;
-    srv.request.status = status;
-    if(client.call(srv)) {
-        bool flag = srv.response.success;
-    }
-    else {
-        ROS_ERROR("Failed to call service run_system");
     }
 }
 
@@ -110,14 +102,53 @@ void callAddDefaultTargetService(ros::NodeHandle &nh, miltbot_common::Waypoint d
     }
 }
 
+void callDeleteDefaultTargetService(ros::NodeHandle &nh, long id, std::string service_namespace) {
+    ROS_ERROR("ID: %ld",id);
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::DeleteTarget>(service_namespace + delete_default_target_service_name);
+    miltbot_system::DeleteTarget srv;
+    srv.request.id = id;
+    if(client.call(srv)) {
+        bool flag = srv.response.success;
+    }
+    else {
+        ROS_ERROR("Failed to call service delete_default_target");
+    }
+}
+
 void callViewTargetQueue(ros::NodeHandle &nh, std::string service_namespace) {
     ros::ServiceClient client = nh.serviceClient<miltbot_system::ViewTargetQueue>(service_namespace + view_target_queue_service_name);
     miltbot_system::ViewTargetQueue srv;
     if(client.call(srv)) {
         target_queue = srv.response.target_queue;
+        default_queue = srv.response.default_queue;
+        charging_queue = srv.response.charging_queue;
     }
     else {
         ROS_ERROR("Failed to call service view_target_queue");
+    }
+}
+
+void callRunChargingNavigationService(ros::NodeHandle &nh, bool status, std::string service_namespace) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::RunSystem>(service_namespace + run_charging_navigation_service_name);
+    miltbot_system::RunSystem srv;
+    srv.request.status = status;
+    if(client.call(srv)) {
+        bool flag = srv.response.success;
+    }
+    else {
+        ROS_ERROR("Failed to call service run_charging_navigation");
+    }
+}
+
+void callRunSystemService(ros::NodeHandle &nh, bool status, std::string service_namespace) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::RunSystem>(service_namespace + run_system_service_name);
+    miltbot_system::RunSystem srv;
+    srv.request.status = status;
+    if(client.call(srv)) {
+        bool flag = srv.response.success;
+    }
+    else {
+        ROS_ERROR("Failed to call service run_system");
     }
 }
 
@@ -168,6 +199,18 @@ void displayRobot() {
 void displayTargetQueue() {
     for(int i = 0; i < target_queue.size(); i++) {
         std::cout <<"["<<i<<"] " << target_queue[i].name <<std::endl; 
+    }
+}
+
+void displayDefaultQueue() {
+   for(int i = 0; i < default_queue.size(); i++) {
+        std::cout <<"["<<i<<"] " << default_queue[i].name <<std::endl; 
+    } 
+}
+
+void displayChargingQueue() {
+    for(int i = 0; i < charging_queue.size(); i++) {
+        std::cout <<"["<<i<<"] " << charging_queue[i].name <<std::endl; 
     }
 }
 
@@ -240,26 +283,63 @@ bool showRobotMenu(std::string &service_namespace) {
     }
 }
 
-bool showQueueMenu(ros::NodeHandle &nh, std::string service_namespace, long &id) {
+bool showQueueMenu(ros::NodeHandle &nh, std::string service_namespace, long &id, int flag) {
     int selected_target;
     while(ros::ok()) {
         callViewTargetQueue(nh, service_namespace);
         std::cout << "Please Select Target" << std::endl;
-        displayTargetQueue();
+        if(flag == 0) {
+            displayTargetQueue();
+        }
+        else if(flag == 1) {
+            displayDefaultQueue();
+        }
+        else if(flag == 2) {
+            displayChargingQueue();
+        }
+        
         std::cout <<"["<<99<<"] " << "Cancel" <<std::endl;
         std::cout << "[AGENT] Input Target : ";
         std::cin >> selected_target;
-        if((selected_target < 0 || selected_target >= target_queue.size()) && selected_target != 99) {
+        if(flag == 0) {
+            if((selected_target < 0 || selected_target >= target_queue.size()) && selected_target != 99) {
             ROS_WARN("Wrong Select Point To Navigate Try Again");
             continue;
+            }
+            else if(selected_target == 99) {
+                return false;
+            }
+            else {
+                id = target_queue[selected_target].id;
+                return true;
+            }
         }
-        else if(selected_target == 99) {
-            return false;
+        else if(flag == 1) {
+            if((selected_target < 0 || selected_target >= default_queue.size()) && selected_target != 99) {
+                ROS_WARN("Wrong Select Point To Navigate Try Again");
+                continue;
+            }
+            else if(selected_target == 99) {
+                return false;
+            }
+            else {
+                id = default_queue[selected_target].id;
+                return true;
+            }
         }
-        else {
-            id = target_queue[selected_target].id;
-            return true;
-        }
+        else if(flag == 2) {
+            if((selected_target < 0 || selected_target >= charging_queue.size()) && selected_target != 99) {
+                ROS_WARN("Wrong Select Point To Navigate Try Again");
+                continue;
+            }
+            else if(selected_target == 99) {
+                return false;
+            }
+            else {
+                id = charging_queue[selected_target].id;
+                return true;
+            }
+        }      
     }
 }
 
@@ -286,7 +366,7 @@ void runDeleteTarget(ros::NodeHandle &nh) {
     std::string service_namespace;
     if(!showRobotMenu(service_namespace)) return;
     long id;
-    if(!showQueueMenu(nh, service_namespace, id)) return;
+    if(!showQueueMenu(nh, service_namespace, id, 0)) return;
     callDeleteTargetService(nh, id, service_namespace);
 }
 
@@ -314,19 +394,44 @@ void runAddDefaultTarget(ros::NodeHandle &nh) {
     miltbot_common::Waypoint data;
     showWaypointMenu(data);
     data.task = "SINGLERUN";
-    callAddDefaultTargetService(nh,data, service_namespace);
+    callAddDefaultTargetService(nh, data, service_namespace);
 }
 
-void runStartSystem(ros::NodeHandle &nh) {
+void runDeleteDefaultTarget(ros::NodeHandle &nh) {
     std::string service_namespace;
     if(!showRobotMenu(service_namespace)) return;
-    callRunSystemService(nh, true, service_namespace);
+    long id;
+    if(!showQueueMenu(nh, service_namespace, id, 1)) return;
+    callDeleteDefaultTargetService(nh, id, service_namespace);
 }
 
-void runShutdownSystem(ros::NodeHandle &nh) {
+void runAddChargingTarget(ros::NodeHandle &nh) {
     std::string service_namespace;
     if(!showRobotMenu(service_namespace)) return;
-    callRunSystemService(nh, false, service_namespace);
+    miltbot_common::Waypoint data;
+    if(!showWaypointMenu(data)) return;
+    data.task = "BACKTOCHARGE";
+    callAddTargetService(nh, data, service_namespace);
+}
+
+void runDeleteChargingTarget(ros::NodeHandle &nh) {
+    std::string service_namespace;
+    if(!showRobotMenu(service_namespace)) return;
+    long id;
+    if(!showQueueMenu(nh, service_namespace, id, 2)) return;
+    callDeleteTargetService(nh, id, service_namespace);
+}
+
+void runChargingNavigation(ros::NodeHandle &nh, bool flag) {
+    std::string service_namespace;
+    if(!showRobotMenu(service_namespace)) return;
+    callRunChargingNavigationService(nh, flag, service_namespace);
+}
+
+void runSystem(ros::NodeHandle &nh, bool flag) {
+    std::string service_namespace;
+    if(!showRobotMenu(service_namespace)) return;
+    callRunSystemService(nh, flag, service_namespace);
 }
 
 void showFleetManagerMenu() {
@@ -340,9 +445,14 @@ void showFleetManagerMenu() {
     std::cout << "[5] Send Robot To Receive Supplies" << std::endl;
     std::cout << "[6] Send Robot To Send Supplies" << std::endl;
     std::cout << "[7] Add Default Target To Robot" << std::endl;
-    std::cout << "[10] Exit Program" << std::endl;
+    std::cout << "[8] Delete Default Target To Robot" << std::endl;
+    std::cout << "[9] Add Charging Target To Robot" << std::endl;
+    std::cout << "[10] Delete Charging Target To Robot" << std::endl;
+    std::cout << "[96] Start Charging Navigation" << std::endl;
+    std::cout << "[97] Stop Charging Navigation" << std::endl;
     std::cout << "[98] Start System" << std::endl;
     std::cout << "[99] Stop System" << std::endl;
+    std::cout << "[100] Exit Program" << std::endl;
 }
 
 bool runFleetManagerMenu(ros::NodeHandle &nh) {
@@ -378,15 +488,30 @@ bool runFleetManagerMenu(ros::NodeHandle &nh) {
         case 7:
             runAddDefaultTarget(nh);
             break;
+        case 8:
+            runDeleteDefaultTarget(nh);
+            break;
+        case 9:
+            runAddChargingTarget(nh);
+            break;
         case 10:
-            std::cout << "10" << std::endl;
-            return false;
+            runDeleteChargingTarget(nh);
+            break;
+        case 96:
+            runChargingNavigation(nh, true);
+            break;
+        case 97:
+            runChargingNavigation(nh, false);
+            break;
         case 98:
-            runStartSystem(nh);
+            runSystem(nh, true);
             break;
         case 99:
-            runShutdownSystem(nh);
+            runSystem(nh, false);
             break;
+        case 100:
+            std::cout << "10" << std::endl;
+            return false;
         default: 
             std::cout << "Wrong Command Please Try Again" << std::endl;
     }
@@ -397,11 +522,11 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "simple_fleet_manager");
     ros::NodeHandle nh;
 
-    nh.param("get_waypoint_list_service", get_waypoint_list_service_name, get_waypoint_list_service_name);
-    nh.param("add_target_service", add_target_service_name, add_target_service_name);
-    nh.param("delete_target_service", delete_target_service_name, delete_target_service_name);
-    nh.param("add_default_target_service", add_default_target_service_name, add_default_target_service_name);
-    nh.param("run_system_service", run_system_service_name, run_system_service_name);
+    // nh.param("get_waypoint_list_service", get_waypoint_list_service_name, get_waypoint_list_service_name);
+    // nh.param("add_target_service", add_target_service_name, add_target_service_name);
+    // nh.param("delete_target_service", delete_target_service_name, delete_target_service_name);
+    // nh.param("add_default_target_service", add_default_target_service_name, add_default_target_service_name);
+    // nh.param("run_system_service", run_system_service_name, run_system_service_name);
 
     loadWaypoint(nh);
 

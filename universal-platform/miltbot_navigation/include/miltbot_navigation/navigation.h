@@ -134,6 +134,9 @@ class Navigation {
         bool addDefaultTargetService(miltbot_system::AddTarget::Request &req,
                             miltbot_system::AddTarget::Response &res);
 
+        bool deleteDefaultTargetService(miltbot_system::DeleteTarget::Request &req,
+                            miltbot_system::DeleteTarget::Response &res);
+
         bool runSystemService(miltbot_system::RunSystem::Request &req,
                             miltbot_system::RunSystem::Response &res);
 
@@ -190,6 +193,7 @@ class Navigation {
         ros::ServiceServer add_target_service_server;
         ros::ServiceServer delete_target_service_server;
         ros::ServiceServer add_default_target_service_server;
+        ros::ServiceServer delete_default_target_service_server;
         ros::ServiceServer run_system_service_server;
         ros::ServiceServer run_charging_navigation_service_server;
 
@@ -231,6 +235,7 @@ class Navigation {
         std::string add_target_service_name_;
         std::string delete_target_service_name_;
         std::string add_default_target_service_name_;
+        std::string delete_default_target_service_name_;
         std::string run_system_service_name_;
         std::string run_charging_navigation_service_name_;
 

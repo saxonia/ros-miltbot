@@ -16,6 +16,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     add_target_service_name_("add_target"),
     delete_target_service_name_("delete_target"),
     add_default_target_service_name_("add_default_target"),
+    delete_default_target_service_name_("delete_default_target"),
     fail_goal_value_(2),
     set_robot_state_service_name_("set_robot_state"),
     run_gmapping_service_name_("run_gmapping"),
@@ -72,6 +73,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->add_target_service_server = nh_.advertiseService(this->add_target_service_name_, &Navigation::addTargetService, this);
     this->delete_target_service_server = nh_.advertiseService(this->delete_target_service_name_, &Navigation::deleteTargetService, this);
     this->add_default_target_service_server = nh_.advertiseService(this->add_default_target_service_name_, &Navigation::addDefaultTargetService, this);
+    this->delete_default_target_service_server = nh_.advertiseService(this->delete_default_target_service_name_, &Navigation::deleteDefaultTargetService, this);
     this->run_system_service_server = nh_.advertiseService(this->run_system_service_name_, &Navigation::runSystemService, this);
     this->run_charging_navigation_service_server = nh_.advertiseService(this->run_charging_navigation_service_name_, &Navigation::runChargingNavigationService, this);
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
@@ -760,6 +762,8 @@ void Navigation::goalFeedbackCallback(const move_base_msgs::MoveBaseFeedbackCons
 bool Navigation::viewTargetQueueService(miltbot_system::ViewTargetQueue::Request &req,
                                 miltbot_system::ViewTargetQueue::Response &res) {
     res.target_queue = this->target_queue;
+    res.default_queue = this->default_queue;
+    res.charging_queue = this->charging_queue;
     return true;
 }
 
@@ -791,10 +795,21 @@ bool Navigation::addDefaultTargetService(miltbot_system::AddTarget::Request &req
     return true;
 }
 
+bool Navigation::deleteDefaultTargetService(miltbot_system::DeleteTarget::Request &req,
+                            miltbot_system::DeleteTarget::Response &res) {
+    this->deleteDefaultTargetQueue(req.id);
+}
+
 bool Navigation::runSystemService(miltbot_system::RunSystem::Request &req,
                             miltbot_system::RunSystem::Response &res) {
     this->isSystemWorking = req.status;
-    ROS_INFO("Start/Stop System");
+    if(req.status) {
+        ROS_INFO("Start System");
+    }
+    else {
+        ROS_INFO("Stop System");
+        this->sendMoveBaseCancel();
+    }
     res.success = true;
     return true;
 }

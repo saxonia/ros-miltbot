@@ -1,2 +1,4 @@
 ---
 miltbot_common/Waypoint[] target_queue
+miltbot_common/Waypoint[] default_queue
+miltbot_common/Waypoint[] charging_queue

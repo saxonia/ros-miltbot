@@ -5,10 +5,12 @@
 
     <!--<machine name="miltbot-nuc2" address="192.168.1.36" env-loader="/opt/ros/kinetic/env.sh" user="miltbot" default="true" />-->
 
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+    
     <node pkg="miltbot_system" type="robot_server" name="robot_server" output="screen" >
     </node>
 
-    <node pkg="miltbot_system" type="simple_fleet_manager" name="simple_fleet_manager" output="screen" >
-    </node>
+    <!--<node pkg="" type="" name="" output="screen" >
+    </node>-->
 
 </launch>
