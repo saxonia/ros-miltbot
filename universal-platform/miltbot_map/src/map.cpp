@@ -59,7 +59,7 @@ std::vector<miltbot_common::Waypoint> Map::getWaypointList(std::string building,
     }
     for(int i = 0; i < map_data_list.size(); i++) {
         miltbot_common::Waypoint waypoint;
-        waypoint.name = map_data_list[i].name;
+        waypoint.name = this->deleteStringQuote(map_data_list[i].name);
         waypoint.building = building;
         waypoint.building_floor = building_floor;
         waypoint.goal = convertPointToMoveBaseGoal(map_data_list[i].point);
@@ -76,10 +76,10 @@ std::vector<miltbot_common::Waypoint> Map::getBaseStation() {
         for(int i = 0; i < map_data_list.size(); i++) {
             if(map_data_list[i].name == "\"Base Station\"") {
                 miltbot_common::Waypoint waypoint;
-                waypoint.name = map_data_list[i].name;
-                waypoint.building = it->first.first;
-                waypoint.building_floor = it->first.second;
-                waypoint.goal = convertPointToMoveBaseGoal(map_data_list[i].point);
+                waypoint.name = this->deleteStringQuote(map_data_list[i].name);
+                waypoint.building = this->deleteStringQuote(it->first.first);
+                waypoint.building_floor = this->deleteStringQuote(it->first.second);
+                waypoint.goal = this->convertPointToMoveBaseGoal(map_data_list[i].point);
                 res.push_back(waypoint);
             }
         }

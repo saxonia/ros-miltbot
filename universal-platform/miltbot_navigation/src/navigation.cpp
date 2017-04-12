@@ -175,14 +175,15 @@ bool Navigation::setCurrentPosition(std::string current_position_name) {
     }
 
     this->currentPosition.name = current_position_name;
+    this->currentPosition.building = this->building;
+    this->currentPosition.building_floor = this->building_floor;
     this->currentPosition.goal.target_pose.pose.position.x    = transform.getOrigin().x();
     this->currentPosition.goal.target_pose.pose.position.y    = transform.getOrigin().y();
     this->currentPosition.goal.target_pose.pose.orientation.x = transform.getRotation().x();
     this->currentPosition.goal.target_pose.pose.orientation.y = transform.getRotation().y();
     this->currentPosition.goal.target_pose.pose.orientation.z = transform.getRotation().z();
     this->currentPosition.goal.target_pose.pose.orientation.w = transform.getRotation().w();
-    this->currentPosition.building = this->building;
-    this->currentPosition.building_floor = this->building_floor;
+    
     
     std::cout << "RETURNING POSITION MARKED : ";
     std::cout << this->currentPosition.goal.target_pose.pose.position.x << "," 
@@ -290,6 +291,7 @@ bool Navigation::update() {
         }
         else if(this->isChargingNavigation) {
             //อย่าลืมไปเพิ่ม topic หยุดเดิน ถ้าหุ่นไม่หยุด
+            ROS_INFO("GO %d",this->isDoneGoal);
             if(this->isDoneGoal) {
                 this->isDoneGoal = false;
                 if(this->charging_queue.size() > 0) {
@@ -309,6 +311,7 @@ bool Navigation::update() {
                     // }
                 }
                 else if(this->charging_queue.size() == 0) {
+                    ROS_INFO("Zero Queue");
                     this->isDoneGoal = true;
                 }
                 else {
@@ -317,8 +320,9 @@ bool Navigation::update() {
             }
             else {
                 //ระบบยังทำงาน ไม่เสร็จ ปล่อยผ่านไป
+                ROS_WARN("None");
             }
-            
+            this->isChargingNavigation = false;
         }
         else if(this->isSystemRecoveryNavigation) {
 
@@ -334,14 +338,15 @@ bool Navigation::update() {
 void Navigation::updateTargetQueue() {
     miltbot_common::WaypointList waypoint_list;
     waypoint_list.waypoints = this->target_queue;
-    target_queue_pub.publish(waypoint_list);
+    this->target_queue_pub.publish(waypoint_list);
 }
 
 void Navigation::updateNavigationState() {
     miltbot_navigation::NavigationState navigation_state;
+    navigation_state.task = "";
     navigation_state.building = this->building;
     navigation_state.building_floor = this->building_floor;
-    navigation_state_pub.publish(navigation_state);
+    this->navigation_state_pub.publish(navigation_state);
 }
 
 void Navigation::runMoveBase() {
@@ -789,6 +794,7 @@ bool Navigation::addDefaultTargetService(miltbot_system::AddTarget::Request &req
 bool Navigation::runSystemService(miltbot_system::RunSystem::Request &req,
                             miltbot_system::RunSystem::Response &res) {
     this->isSystemWorking = req.status;
+    ROS_INFO("Start/Stop System");
     res.success = true;
     return true;
 }
@@ -796,11 +802,14 @@ bool Navigation::runSystemService(miltbot_system::RunSystem::Request &req,
 bool Navigation::runChargingNavigationService(miltbot_system::RunSystem::Request &req,
                             miltbot_system::RunSystem::Response &res) {
     this->isChargingNavigation = req.status;
+    ROS_INFO("got charge status %d",req.status);
     if(req.status) {
+        ROS_INFO("Start Charge Process");
         this->isNormalNavigation = false;
         this->isSystemRecoveryNavigation = false;
     }
     else {
+        ROS_INFO("Stop Charge Process");
         this->sendMoveBaseCancel();
         this->isNormalNavigation = true;
         this->isSystemRecoveryNavigation = true;
@@ -857,6 +866,7 @@ bool Navigation::sendWaypointRequest(std::string building, std::string building_
 }
 
 void Navigation::sendMoveBaseCancel() {
+    ROS_WARN("Move Base Cancel Goal");
     move_base_cancel_pub.publish(*new actionlib_msgs::GoalID());
 }
 

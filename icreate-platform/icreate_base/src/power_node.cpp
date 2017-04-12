@@ -14,6 +14,7 @@
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 int voltage_limit;
+int callback_count;
 bool isRunChargingNavigation;
 ros::ServiceClient run_system_client;
 ros::ServiceClient add_target_client;
@@ -28,10 +29,14 @@ long generateTargetId() {
 
 miltbot_common::Waypoint selectBaseStation() {
     miltbot_common::Waypoint res;
+    ROS_INFO("select : %s %s",navigation_state.building.c_str(),navigation_state.building_floor.c_str());
     for(int i = 0; i < waypoints.size(); i++) {
+        ROS_INFO("found : %s %s",waypoints[i].building.c_str(),waypoints[i].building_floor.c_str());
         if(waypoints[i].building == navigation_state.building) {
             if(waypoints[i].building_floor == navigation_state.building_floor) {
                 res = waypoints[i];
+                ROS_INFO("FIN");
+                break;
             }
         }
     }
@@ -42,6 +47,7 @@ void callGetBaseStationWaypointService() {
     miltbot_map::GetBaseStationList srv;
     if(get_base_station_client.call(srv)) {
         waypoints = srv.response.waypoints;
+        ROS_INFO("Get Waypoints: %ld",waypoints.size());
     }
     else {
         ROS_ERROR("Failed to call service get_base_station");
@@ -53,6 +59,7 @@ void callRunChargingNavigationService(bool status) {
     srv.request.status = status;
     if(run_system_client.call(srv)) {
         bool flag = srv.response.success;
+        ROS_INFO("Run Charge Navi :%d", flag);
     }
     else {
         ROS_ERROR("Failed to call service run_charging_navigation");
@@ -63,6 +70,8 @@ bool callAddTargetService() {
     miltbot_system::AddTarget srv;
     long id = generateTargetId();
     srv.request.waypoint = selectBaseStation();
+    ROS_INFO("%s",srv.request.waypoint.name.c_str());
+    ROS_INFO("%lf",srv.request.waypoint.goal.target_pose.pose.position.x);
     srv.request.waypoint.id = id;
     srv.request.waypoint.task = "BACKTOCHARGE";
     if(add_target_client.call(srv)) {
@@ -79,18 +88,22 @@ void loadBaseStationWaypoints() {
 }
 
 void runChargingNavigation() {
-    callRunChargingNavigationService(false);
     callAddTargetService();
+    callRunChargingNavigationService(true);
 }
 
 void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
     int voltage = msg.voltage;
     // bool is_finish_back_to_charge = msg.is_finish_back_to_charge;
-    ROS_INFO("Voltage : %d",voltage);
+    if(callback_count == 1000) {
+        ROS_INFO("Voltage : %d",voltage);
+        callback_count = 0;
+    }
     if(voltage < voltage_limit && !isRunChargingNavigation) {
         runChargingNavigation();
         isRunChargingNavigation = true;
     }
+    callback_count++;
     //ถ้าชาร์ตเต็มทำอะไรต่อ
     // else if(voltage > voltage_limit && isRunChargingNavigation) {
 
@@ -108,10 +121,11 @@ int main(int argc, char** argv) {
     std::string turtlebot_state_sub_topic_name("icreate_node/sensor_state");
     std::string navigation_state_sub_topic_name("navigation_state");
     std::string move_base_cancel_pub_topic_name("move_base/cancel");
-    std::string run_system_service_name("run_system");
+    std::string run_charging_navigation_service_name("run_charging_navigation");
     std::string add_target_service_name("add_target");
     std::string get_base_station_service_name("get_base_station");
     voltage_limit = 15510;
+    callback_count = 1000;
     isRunChargingNavigation = false;
 
     // nh.param("bumper_node/base_frame_id", base_frame_id, base_frame_id);
@@ -120,14 +134,14 @@ int main(int argc, char** argv) {
     nh.param("turtlebot_state_sub_topic", turtlebot_state_sub_topic_name, turtlebot_state_sub_topic_name);
     nh.param("navigation_state_sub_topic", navigation_state_sub_topic_name, navigation_state_sub_topic_name);
     nh.param("move_base_cancel_pub_topic", move_base_cancel_pub_topic_name, move_base_cancel_pub_topic_name);
-    nh.param("run_system_service", run_system_service_name, run_system_service_name);
+    nh.param("run_charging_navigation_service", run_charging_navigation_service_name, run_charging_navigation_service_name);
     nh.param("add_target_service", add_target_service_name, add_target_service_name);
     nh.param("get_base_station_service", get_base_station_service_name, get_base_station_service_name);
 
     ros::Subscriber turtlebot_sensor_sub = nh.subscribe(turtlebot_state_sub_topic_name, 10, turtlebotSensorCallback);
     ros::Subscriber navigation_state_sub = nh.subscribe(navigation_state_sub_topic_name, 10, navigationStateCallback);
     // move_base_cancel_pub = nh.advertise<actionlib_msgs::GoalID>(move_base_cancel_pub_topic_name, 1);
-    run_system_client = nh.serviceClient<miltbot_system::RunSystem>(run_system_service_name);
+    run_system_client = nh.serviceClient<miltbot_system::RunSystem>(run_charging_navigation_service_name);
     add_target_client = nh.serviceClient<miltbot_system::AddTarget>(add_target_service_name);
     get_base_station_client = nh.serviceClient<miltbot_map::GetBaseStationList>(get_base_station_service_name);
 
