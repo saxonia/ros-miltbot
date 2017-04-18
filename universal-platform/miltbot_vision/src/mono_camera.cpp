@@ -95,7 +95,8 @@ bool MonoCamera::detectColorTape(cv::Mat src) {
 	cv::inRange(hsv_image, cv::Scalar(H_MIN,S_MIN,V_MIN), cv::Scalar(H_MAX,S_MAX,V_MAX), hsv_inRange);
 	cv::Mat greenLightImage = this->deleteNoise(color_img,hsv_inRange);
 	// cv::Mat greenLightRes = locatePosition(colorImg,greenLightImage,"LIGHT GREEN");
-    color_tape_view = greenLightImage.clone();
+    this->color_tape_view = hsv_inRange.clone();
+    this->color_tape_proc = greenLightImage.clone();
 
     return this->verifyLiftDoor();
 }
@@ -147,9 +148,11 @@ cv::Mat MonoCamera::deleteNoise(cv::Mat src, cv::Mat inRange) {
 }
 
 bool MonoCamera::verifyLiftDoor() {
+    cv::Mat color_tape_mono_view;
+    cv::cvtColor(this->color_tape_proc, color_tape_mono_view, CV_BGR2GRAY);
     std::vector< std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
-	cv::findContours(this->color_tape_view, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	cv::findContours(color_tape_mono_view, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 	if(contours.size() > 0)
 	{
 		//int BiggestContourIdx = findBiggestContour(contours);

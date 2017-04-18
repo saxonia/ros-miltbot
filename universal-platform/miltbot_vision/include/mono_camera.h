@@ -63,6 +63,7 @@ class MonoCamera
         cv::Mat mono_view;
         cv::Mat depth_norm;
         cv::Mat color_tape_view;
+        cv::Mat color_tape_proc;
         // cv::Mat viewGray;
         // cv::Size imageSize;
         // cv::Mat cameraMatrix;
@@ -87,11 +88,11 @@ class MonoCamera
         std::string depth_image_sub_topic_name_;
         std::string is_front_lift_service_name_;
 
-        int H_MIN = 0;
-        int H_MAX = 179;
-        int S_MIN = 0;
+        int H_MIN = 42;
+        int H_MAX = 71;
+        int S_MIN = 130;
         int S_MAX = 255;
-        int V_MIN = 0;
+        int V_MIN = 26;
         int V_MAX = 255;
         const std::string trackbarWindowName = "Trackbars";
 
