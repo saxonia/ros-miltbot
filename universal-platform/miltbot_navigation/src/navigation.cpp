@@ -25,6 +25,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     run_system_service_name_("run_system"),
     run_charging_navigation_service_name_("run_charging_navigation"),
     run_transportation_service_name_("run_transportation"),
+    is_front_lift_service_name_("is_front_lift"),
     ac("move_base", true) 
 {
     nh_.param("navigation_node/move_base_wait_time", move_base_wait_time_, move_base_wait_time_);
@@ -82,7 +83,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->get_middle_range_client_ = nh_.serviceClient<miltbot_navigation::GetMiddleRange>(get_middle_range_service_name_);
     this->set_map_service_client_ = nh_.serviceClient<miltbot_map::SetMap>(set_map_service_name_);
     this->run_transportation_client_ = nh_.serviceClient<miltbot_transportation::RunTransportation>(run_transportation_service_name_);
-    
+    this->is_front_lift_client_ = nh_.serviceClient<miltbot_vision::IsFrontLift>(is_front_lift_service_name_);
 }
 
 Navigation::~Navigation(void) 
@@ -370,7 +371,7 @@ void Navigation::runLiftNavigation() {
             this->runMoveBase();
             break;
         }
-        //Step 1: Wait & Move to in front of the inncoming lift
+        //Step 1: Wait & Move to in front of the incoming lift
         case 1: {
             int liftNumber = waitForIncomingLift();
             miltbot_common::Waypoint data = this->lifts[liftNumber];
@@ -382,22 +383,35 @@ void Navigation::runLiftNavigation() {
             this->runMoveBase();
             break;
         }
-        //Step 2: Wait Lift Door Open & Move inside the lift
+        //Step 2:Verify Robot is in front of lift door
         case 2: {
+            if(this->verifyFrontDoor()) {
+                this->lift_navigation_step++;
+            }
+            else {
+                this->lift_navigation_step = 0;
+            }
+        }
+        //Step 3: Wait Lift Door Open & Move inside the lift
+        case 3: {
             bool flag;
             while(ros::ok()) {
                 if(!this->verifyLiftDoor()) {
-                    int liftNumber = waitForIncomingLift();
-                    miltbot_common::Waypoint data = this->lifts[liftNumber];
-                    data.task = "USINGLIFT";
-                    this->target_queue.insert(this->target_queue.begin(), data);
-                    this->setRobotTarget(this->target_queue[0]);
-                    this->setRobotGoal(this->base_frame_id);
-                    this->sendStateRequest(this->target_queue[0].task);
-                    this->runMoveBase();
-                    this->lift_navigation_step--;
-                    break;
+                    continue;
                 }
+                // else {
+
+                //     // int liftNumber = waitForIncomingLift();
+                //     // miltbot_common::Waypoint data = this->lifts[liftNumber];
+                //     // data.task = "USINGLIFT";
+                //     // this->target_queue.insert(this->target_queue.begin(), data);
+                //     // this->setRobotTarget(this->target_queue[0]);
+                //     // this->setRobotGoal(this->base_frame_id);
+                //     // this->sendStateRequest(this->target_queue[0].task);
+                //     // this->runMoveBase();
+                //     // this->lift_navigation_step = 2;
+                //     // break;
+                // }
                 icreate_navigation::RunGmappingService srv;
                 srv.request.task = "open";
                 if(run_gmapping_client_.call(srv)) {
@@ -414,12 +428,12 @@ void Navigation::runLiftNavigation() {
             }
             break;
         }
-        case 3: {
-            initializeLiftRotateMoveBase();
+        case 4: {
+            this->initializeLiftRotateMoveBase();
             break;
         }
-        case 4: {
-            waitUserInputLift();
+        case 5: {
+            this->waitUserInputLift();
             bool flag;
             while(ros::ok()) {
                 icreate_navigation::RunGmappingService srv;
@@ -438,7 +452,7 @@ void Navigation::runLiftNavigation() {
             }
             break;
         }
-        case 5: {
+        case 6: {
             bool flag = false;
             icreate_navigation::RunGmappingService srv;
             srv.request.task = "close";
@@ -458,6 +472,7 @@ void Navigation::runLiftNavigation() {
                     bool flag2 = srv2.response.flag;
                     this->building = this->target_queue[0].building;
                     this->building_floor = this->target_queue[0].building_floor;
+                    this->lift_navigation_step = 0;
                 }
                 else {
                    ROS_WARN("Failed to run set map");
@@ -554,6 +569,17 @@ int Navigation::waitForIncomingLift() {
             std::cout << "Standard exception: " << e.what() << std::endl;
             continue;
         }
+    }
+}
+
+bool Navigation::verifyFrontDoor() {
+    miltbot_vision::IsFrontLift srv;
+    if(this->is_front_lift_client_.call(srv)) {
+        return srv.response.is_front_lift;
+    }
+    else {
+        ROS_ERROR("Fail to call Service is_front_lift");
+        return false;
     }
 }
 

@@ -19,6 +19,7 @@
 #include "miltbot_system/DeleteTarget.h"
 #include "miltbot_system/RunSystem.h"
 #include "miltbot_transportation/RunTransportation.h"
+#include "miltbot_vision/IsFrontLift.h"
 
 #ifndef __MILTBOT_NAVIGATION_NAVIGATION
 #define __MILTBOT_NAVIGATION_NAVIGATION
@@ -104,6 +105,8 @@ class Navigation {
         void displayLiftWaypoints();
         
         int waitForIncomingLift();
+
+        bool verifyFrontDoor();
 
         bool verifyLiftDoor();
 
@@ -204,6 +207,7 @@ class Navigation {
         ros::ServiceClient get_middle_range_client_;
         ros::ServiceClient set_map_service_client_;
         ros::ServiceClient run_transportation_client_;
+        ros::ServiceClient is_front_lift_client_;
 
         //Timer
         ros::Timer timer_;
@@ -247,6 +251,7 @@ class Navigation {
         std::string set_map_service_name_;
         std::string get_middle_range_service_name_;
         std::string run_transportation_service_name_;
+        std::string is_front_lift_service_name_;
         
 };
 

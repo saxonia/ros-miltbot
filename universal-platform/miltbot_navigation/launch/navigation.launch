@@ -10,6 +10,7 @@
         <param name="building" value="Building 4"/>
         <param name="building_floor" value="Floor 20"/>
         <param name="move_base_wait_time" value="2.0"/>
+        <remap from="is_front_lift" to="$(arg ns)/is_front_lift" />
     </node>
 
     <param name="get_waypoint_list_service" value="/get_waypoint_list" />
