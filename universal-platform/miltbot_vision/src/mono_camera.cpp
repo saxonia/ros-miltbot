@@ -100,6 +100,29 @@ bool MonoCamera::detectColorTape(cv::Mat src) {
     return this->verifyLiftDoor();
 }
 
+// Create Trackbars for color Segmentation
+void MonoCamera::createTrackbars()
+{
+	cv::namedWindow(trackbarWindowName,CV_WINDOW_AUTOSIZE);
+	//create memory to store trackbar name on window
+	char TrackbarName[50];
+	sprintf( TrackbarName, "H_MIN", H_MIN);
+	sprintf( TrackbarName, "H_MAX", H_MAX);
+	// sprintf( TrackbarName, "L_MIN", L_MIN);
+	// sprintf( TrackbarName, "L_MAX", L_MAX);
+	sprintf( TrackbarName, "S_MIN", S_MIN);
+	sprintf( TrackbarName, "S_MAX", S_MAX);
+	sprintf( TrackbarName, "V_MIN", V_MIN);
+	sprintf( TrackbarName, "V_MAX", V_MAX);
+
+	cv::createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
+	cv::createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar);
+	cv::createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar);
+	cv::createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar);
+	cv::createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar);
+	cv::createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar);
+}
+
 cv::Mat MonoCamera::deleteNoise(cv::Mat src, cv::Mat inRange) {
 	cv::Mat imgBitwise;
 	cv::bitwise_and(src,src,imgBitwise,inRange);
@@ -145,6 +168,10 @@ bool MonoCamera::verifyLiftDoor() {
         return true;
 	}
     return false;
+}
+
+void on_trackbar( int, void* ) {
+	//This function gets called whenever a trackbar position is changed
 }
 
 bool MonoCamera::isFrontLiftService(miltbot_vision::IsFrontLift::Request &req,

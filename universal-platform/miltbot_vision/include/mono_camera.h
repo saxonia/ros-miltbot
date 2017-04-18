@@ -23,6 +23,9 @@ namespace miltbot {
 // const int imageHeight = 480;
 
 // #pragma once
+void on_trackbar( int, void* );
+
+
 class MonoCamera
 {
     public:
@@ -42,10 +45,13 @@ class MonoCamera
 
         bool detectColorTape(cv::Mat src);
 
+        void createTrackbars();
+
     private:
         cv::Mat deleteNoise(cv::Mat src, cv::Mat inRange);
 
         bool verifyLiftDoor();
+
 
         bool isFrontLiftService(miltbot_vision::IsFrontLift::Request &req,
                         miltbot_vision::IsFrontLift::Response &res);
@@ -87,6 +93,7 @@ class MonoCamera
         int S_MAX = 255;
         int V_MIN = 0;
         int V_MAX = 255;
+        const std::string trackbarWindowName = "Trackbars";
 
 		// std::vector<float> cmData;
 		// int distortRows;

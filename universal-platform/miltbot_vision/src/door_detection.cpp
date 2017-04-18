@@ -45,6 +45,7 @@ int main(int argc, char **argv)
     #ifdef KINECT_STREAM
         ROS_INFO("KINECT STREAM MODE");
         miltbot::MonoCamera cam;
+        cam.createTrackbars();
         ros::Rate rate(30);
         ROS_INFO("Before loop");
         while(ros::ok())

@@ -22,7 +22,7 @@
             <param name="frame_id" value="$(arg ns)/map"/>
             <remap from="map" to="premap" />
             <remap from="map_metadata" to="premap_metadata" />
-            <remap from="static_map" to="static_premap" />
+            <!--<remap from="static_map" to="static_premap" />-->
         </node>
     </group>
 
