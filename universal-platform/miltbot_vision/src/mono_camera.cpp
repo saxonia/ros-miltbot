@@ -4,12 +4,14 @@ namespace miltbot {
 
 MonoCamera::MonoCamera(void):
     color_image_sub_topic_name_("camera/rgb/image_color/compressed"),
-    depth_image_sub_topic_name_("camera/depth/image")
+    depth_image_sub_topic_name_("camera/depth/image"),
+    is_front_lift_service_name_("is_front_lift")
 {
-    nh_.param("color_image_sub_topic", color_image_sub_topic_name_, color_image_sub_topic_name_);
-    nh_.param("depth_image_sub_topic", depth_image_sub_topic_name_, depth_image_sub_topic_name_);
+    // nh_.param("color_image_sub_topic", color_image_sub_topic_name_, color_image_sub_topic_name_);
+    // nh_.param("depth_image_sub_topic", depth_image_sub_topic_name_, depth_image_sub_topic_name_);
     this->color_image_sub = nh_.subscribe(color_image_sub_topic_name_, 1, &MonoCamera::colorImageCallback, this);
     this->depth_image_sub = nh_.subscribe(depth_image_sub_topic_name_, 1, &MonoCamera::depthImageCallback, this);
+    this->is_front_lift_server = nh_.advertiseService(is_front_lift_service_name_, &MonoCamera::isFrontLiftService, this);
 }
 
 MonoCamera::~MonoCamera(void)
@@ -81,6 +83,74 @@ void MonoCamera::resizeImage(cv::Mat &src, int imageWidth, int imageHeight) {
 
 void MonoCamera::flipImage(cv::Mat &src, int id) {
     cv::flip(src,src,id);
+}
+
+bool MonoCamera::detectColorTape(cv::Mat src) {
+    cv::Mat hsv_image;
+	cv::Mat hsv_inRange;
+    cv::Mat color_img;
+    cv::medianBlur(src, color_img, 11);
+	cv::cvtColor(color_img, hsv_image, CV_BGR2HSV);
+    //Green Light Color
+	cv::inRange(hsv_image, cv::Scalar(H_MIN,S_MIN,V_MIN), cv::Scalar(H_MAX,S_MAX,V_MAX), hsv_inRange);
+	cv::Mat greenLightImage = this->deleteNoise(color_img,hsv_inRange);
+	// cv::Mat greenLightRes = locatePosition(colorImg,greenLightImage,"LIGHT GREEN");
+    color_tape_view = greenLightImage.clone();
+
+    return this->verifyLiftDoor();
+}
+
+cv::Mat MonoCamera::deleteNoise(cv::Mat src, cv::Mat inRange) {
+	cv::Mat imgBitwise;
+	cv::bitwise_and(src,src,imgBitwise,inRange);
+	cv::Mat imgMorph;
+	/*Mat kernel = Mat::ones(Size(20,20),CV_8U);
+	Mat kernel1 = getStructuringElement(MORPH_ELLIPSE,Size(20,20));
+	erode(imgBitwise,imgMorph,kernel1);
+	dilate(imgMorph,imgMorph,kernel1);
+	morphologyEx(imgMorph,imgMorph,MORPH_OPEN,kernel);*/
+
+	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(10,10));
+	//dilate with larger element so make sure object is nicely visible
+	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8,8));
+
+	cv::erode(imgBitwise,imgMorph,erodeElement);
+	cv::erode(imgMorph,imgMorph,erodeElement);
+
+	cv::dilate(imgMorph,imgMorph,dilateElement);
+	cv::dilate(imgMorph,imgMorph,dilateElement);
+
+	return imgMorph;
+}
+
+bool MonoCamera::verifyLiftDoor() {
+    std::vector< std::vector<cv::Point> > contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::findContours(this->color_tape_view, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	if(contours.size() > 0)
+	{
+		//int BiggestContourIdx = findBiggestContour(contours);
+		// res = imgProc.clone();
+		//if(BiggestContourIdx < 0) return res;
+		// drawContours(res,contours,-1,Scalar(255,255,255));
+
+		// for(int i = 0;i < contours.size();i++)
+		// {
+		// 	Moments mu = moments(contours[i]);
+		// 	int x = mu.m10/mu.m00;
+		// 	int y = mu.m01/mu.m00;
+		// 	putText(res,color,Point(x-20,y-30),1,1,Scalar(255,255,255));
+		// 	putText(src,color,Point(x-20,y-30),1,1,Scalar(0,0,0));
+		// }
+        return true;
+	}
+    return false;
+}
+
+bool MonoCamera::isFrontLiftService(miltbot_vision::IsFrontLift::Request &req,
+                        miltbot_vision::IsFrontLift::Response &res) {
+    res.is_front_lift = detectColorTape(this->color_view);
+    return true;
 }
 
 }

@@ -5,12 +5,14 @@
 #include <iostream>
 
 #include <ros/ros.h>
-#include "image_transport/image_transport.h"
-#include "cv_bridge/cv_bridge.h"
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 
 #include "sensor_msgs/CompressedImage.h"
 // #include "sensor_msgs/Image.h"
+
+#include "miltbot_vision/IsFrontLift.h"
 
 #ifndef __MILTBOT_VISION_MONO_CAMERA
 #define __MILTBOT_VISION_MONO_CAMERA
@@ -38,7 +40,15 @@ class MonoCamera
 
         void flipImage(cv::Mat &src, int id);
 
+        bool detectColorTape(cv::Mat src);
+
     private:
+        cv::Mat deleteNoise(cv::Mat src, cv::Mat inRange);
+
+        bool verifyLiftDoor();
+
+        bool isFrontLiftService(miltbot_vision::IsFrontLift::Request &req,
+                        miltbot_vision::IsFrontLift::Response &res);
 
     public:
         // std::string name;
@@ -46,6 +56,7 @@ class MonoCamera
         cv::Mat depth_view;
         cv::Mat mono_view;
         cv::Mat depth_norm;
+        cv::Mat color_tape_view;
         // cv::Mat viewGray;
         // cv::Size imageSize;
         // cv::Mat cameraMatrix;
@@ -58,11 +69,24 @@ class MonoCamera
 
     private:
         ros::NodeHandle nh_;
+
+        //Subscriber
         ros::Subscriber color_image_sub;
         ros::Subscriber depth_image_sub;
 
+        //Service Server
+        ros::ServiceServer is_front_lift_server;
+
         std::string color_image_sub_topic_name_;
         std::string depth_image_sub_topic_name_;
+        std::string is_front_lift_service_name_;
+
+        int H_MIN = 0;
+        int H_MAX = 179;
+        int S_MIN = 0;
+        int S_MAX = 255;
+        int V_MIN = 0;
+        int V_MAX = 255;
 
 		// std::vector<float> cmData;
 		// int distortRows;

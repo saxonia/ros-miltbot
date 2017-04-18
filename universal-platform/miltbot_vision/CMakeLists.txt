@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   sensor_msgs
+  message_generation
 )
 
 find_package(OpenCV)
@@ -64,6 +65,10 @@ find_package(OpenCV)
 #   Service1.srv
 #   Service2.srv
 # )
+add_service_files(
+  FILES
+  IsFrontLift.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -77,6 +82,9 @@ find_package(OpenCV)
 #   DEPENDENCIES
 #   std_msgs
 # )
+generate_messages(
+  DEPENDENCIES
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -117,6 +125,8 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+
+add_definitions(-std=c++11)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
