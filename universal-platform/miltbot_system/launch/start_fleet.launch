@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="miltbot_system" type="simple_fleet_manager" name="simple_fleet_manager" output="screen" >
+    </node>
+
+</launch>

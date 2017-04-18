@@ -30,6 +30,7 @@ def start_set_map():
 
 def gmapping_start():
     "Return the pathname of the KOS root directory."
+    global gmapping_launch
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
     gmapping_launch = roslaunch.parent.ROSLaunchParent(uuid, [gmapping_file_path])
@@ -53,6 +54,7 @@ def gmapping_start():
     rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius',0.1)
 
 def amcl_start():
+    global amcl_launch
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
     amcl_launch = roslaunch.parent.ROSLaunchParent(uuid, [amcl_file_path])
@@ -78,9 +80,11 @@ def amcl_start():
 
 def gmapping_shutdown():
     "Return the pathname of the KOS root directory."
+    global gmapping_launch
     gmapping_launch.shutdown()
 
 def amcl_shutdown():
+    global amcl_launch
     amcl_launch.shutdown()
 
 def gmapping_callback(msg):

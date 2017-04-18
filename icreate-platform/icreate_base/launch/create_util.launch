@@ -9,6 +9,7 @@
         
         <param name="turtlebot_state_sub_topic" value="icreate_node/sensor_state"/>
         <param name="move_base_cancel_pub_topic" value="move_base/cancel"/>
+        <param name="navigation_state_sub_topic" value="navigation_state" />
         <param name="run_charging_navigation_service" value="run_charging_navigation"/>
         <param name="get_base_station_service" value="/get_base_station"/>
 

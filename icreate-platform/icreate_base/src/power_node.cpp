@@ -16,6 +16,8 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 int voltage_limit;
 int callback_count;
 bool isRunChargingNavigation;
+bool get_state = false;
+bool get_vol = false;
 ros::ServiceClient run_system_client;
 ros::ServiceClient add_target_client;
 ros::ServiceClient get_base_station_client;
@@ -99,7 +101,7 @@ void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
         ROS_INFO("Voltage : %d",voltage);
         callback_count = 0;
     }
-    if(voltage < voltage_limit && !isRunChargingNavigation) {
+    if(voltage < voltage_limit && !isRunChargingNavigation && get_vol && get_state) {
         runChargingNavigation();
         isRunChargingNavigation = true;
     }
@@ -108,10 +110,16 @@ void turtlebotSensorCallback(const create_node::TurtlebotSensorState &msg) {
     // else if(voltage > voltage_limit && isRunChargingNavigation) {
 
     // }
+    get_vol = true;
 }
 
 void navigationStateCallback(const miltbot_navigation::NavigationState &msg) {
     navigation_state = msg;
+    if(callback_count == 1000) {
+        ROS_INFO("Building : %s",navigation_state.building.c_str());
+    }
+    get_state = true;
+
 }
 
 int main(int argc, char** argv) {
