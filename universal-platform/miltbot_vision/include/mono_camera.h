@@ -33,7 +33,7 @@ class MonoCamera
 
         ~MonoCamera(void);
 
-        void colorImageCallback(const sensor_msgs::CompressedImage& msg);
+        void colorImageCallback(const sensor_msgs::ImageConstPtr& msg);
 
         void depthImageCallback(const sensor_msgs::ImageConstPtr& msg);
 

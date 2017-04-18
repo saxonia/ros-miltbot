@@ -52,9 +52,9 @@ int main(int argc, char **argv)
         {
             ros::spinOnce();
             rate.sleep();
-            if(!cam.color_view.data || !cam.depth_view.data) {
-                continue;
-            }
+            // if(!cam.color_view.data || !cam.depth_view.data) {
+            //     continue;
+            // }
             // cam.detectColorTape(cam.color_view);
             // cv::namedWindow("color_img");
             // cv::namedWindow("depth_img");
@@ -65,8 +65,8 @@ int main(int argc, char **argv)
             // cv::imshow("depth_norm",cam.depth_norm);
             // cv::imshow("color_tape",cam.color_tape_view);
             // cv::imshow("color_tape_proc",cam.color_tape_proc);
-            int key = cv::waitKey(30);
-            if(key == 27) break;
+            // int key = cv::waitKey(30);
+            // if(key == 27) break;
         }
     #endif
     ROS_INFO("END");

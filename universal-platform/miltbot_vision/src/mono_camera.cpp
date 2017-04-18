@@ -3,8 +3,8 @@
 namespace miltbot {
 
 MonoCamera::MonoCamera(void):
-    color_image_sub_topic_name_("camera/rgb/image_color/compressed"),
-    depth_image_sub_topic_name_("camera/depth/image"),
+    color_image_sub_topic_name_("camera/rgb/image_color"),
+    depth_image_sub_topic_name_("camera/depth/image_raw"),
     is_front_lift_service_name_("is_front_lift")
 {
     // nh_.param("color_image_sub_topic", color_image_sub_topic_name_, color_image_sub_topic_name_);
@@ -19,9 +19,20 @@ MonoCamera::~MonoCamera(void)
 
 }
 
-void MonoCamera::colorImageCallback(const sensor_msgs::CompressedImage& msg) {
-    std::vector<unsigned char> array = msg.data;
-    this->color_view = cv::imdecode(array,1);
+void MonoCamera::colorImageCallback(const sensor_msgs::ImageConstPtr& msg) {
+    // std::vector<unsigned char> array = msg.data;
+    // this->color_view = cv::imdecode(array,1);
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_8UC3);//now cv_ptr is the matrix, do not forget "TYPE_" before "16UC1"
+    }
+    catch (cv_bridge::Exception& e)
+    {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+      return;
+    }
+    this->color_view = cv_ptr->image;
 }
 
 void MonoCamera::depthImageCallback(const sensor_msgs::ImageConstPtr& msg) {

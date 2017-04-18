@@ -1,8 +1,6 @@
 <launch>
     <arg name="ns" default="" />
-    <node pkg="miltbot_vision" type="kinect_open" name="kinect_open" output="screen" >
-        <!--<param name="color_image_sub_topic" value="$(arg ns)/camera/rgb/image_color/compressed"/>-->
-        <!--<param name="depth_image_sub_topic" value="$(arg ns)/camera/depth/image"/>-->
+    <node pkg="miltbot_vision" type="door_detection" name="door_detection" output="screen" >
         <remap from="camera/rgb/image_color" to="$(arg ns)/camera/rgb/image_color" />
         <remap from="camera/depth/image_raw" to="$(arg ns)/camera/depth/image_raw" />
         <remap from="is_front_lift" to="$(arg ns)/is_front_lift" />
