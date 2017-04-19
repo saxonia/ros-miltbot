@@ -11,6 +11,7 @@
         <param name="building_floor" value="Floor 20"/>
         <param name="move_base_wait_time" value="2.0"/>
         <remap from="is_front_lift" to="$(arg ns)/is_front_lift" />
+        <!--<remap from="is_lift_open" to="$(arg ns)/is_lift_open" />-->
     </node>
 
     <param name="get_waypoint_list_service" value="/get_waypoint_list" />

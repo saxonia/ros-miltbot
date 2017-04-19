@@ -69,6 +69,7 @@ add_service_files(
   FILES
   RunGmapping.srv
   GetMiddleRange.srv
+  IsLiftOpen.srv
 )
 
 ## Generate actions in the 'action' folder

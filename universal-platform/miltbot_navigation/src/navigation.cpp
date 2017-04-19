@@ -26,6 +26,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     run_charging_navigation_service_name_("run_charging_navigation"),
     run_transportation_service_name_("run_transportation"),
     is_front_lift_service_name_("is_front_lift"),
+    is_lift_open_service_name_("is_lift_open"),
     ac("move_base", true) 
 {
     nh_.param("navigation_node/move_base_wait_time", move_base_wait_time_, move_base_wait_time_);
@@ -84,6 +85,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->set_map_service_client_ = nh_.serviceClient<miltbot_map::SetMap>(set_map_service_name_);
     this->run_transportation_client_ = nh_.serviceClient<miltbot_transportation::RunTransportation>(run_transportation_service_name_);
     this->is_front_lift_client_ = nh_.serviceClient<miltbot_vision::IsFrontLift>(is_front_lift_service_name_);
+    this->is_lift_open_client_ = nh_.serviceClient<miltbot_navigation::IsLiftOpen>(is_lift_open_service_name_);
 }
 
 Navigation::~Navigation(void) 
@@ -584,15 +586,23 @@ bool Navigation::verifyFrontDoor() {
 }
 
 bool Navigation::verifyLiftDoor() {
-    std::cout << "Wait For Verifying Lift Door" << std::endl;
-    std::cout << "Press c to cancel or any key to continue" << std::endl;
-    std::cout << "Your input : ";
-    std::string in;
-    std::cin >> in;
-    if(in == "c") {
+    // std::cout << "Wait For Verifying Lift Door" << std::endl;
+    // std::cout << "Press c to cancel or any key to continue" << std::endl;
+    // std::cout << "Your input : ";
+    // std::string in;
+    // std::cin >> in;
+    // if(in == "c") {
+    //     return false;
+    // }
+    // return true;
+    miltbot_navigation::IsLiftOpen srv;
+    if(this->is_lift_open_client_.call(srv)) {
+        return srv.response.is_lift_open;
+    }
+    else {
+        ROS_ERROR("Fail to call Service is_lift_open");
         return false;
     }
-    return true;
 }
 
 bool Navigation::waitUserInputLift() {

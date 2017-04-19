@@ -13,6 +13,7 @@
 #include "miltbot_map/GetWaypointList.h"
 #include "miltbot_map/SetMap.h"
 #include "miltbot_navigation/NavigationState.h"
+#include "miltbot_navigation/IsLiftOpen.h"
 #include "miltbot_state/SetRobotState.h"
 #include "miltbot_system/ViewTargetQueue.h"
 #include "miltbot_system/AddTarget.h"
@@ -208,6 +209,7 @@ class Navigation {
         ros::ServiceClient set_map_service_client_;
         ros::ServiceClient run_transportation_client_;
         ros::ServiceClient is_front_lift_client_;
+        ros::ServiceClient is_lift_open_client_;
 
         //Timer
         ros::Timer timer_;
@@ -252,6 +254,7 @@ class Navigation {
         std::string get_middle_range_service_name_;
         std::string run_transportation_service_name_;
         std::string is_front_lift_service_name_;
+        std::string is_lift_open_service_name_;
         
 };
 

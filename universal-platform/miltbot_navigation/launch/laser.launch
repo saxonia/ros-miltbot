@@ -2,6 +2,10 @@
     <arg name="ns" default="/" />
     <group ns="$(arg ns)">
         <node pkg="miltbot_navigation" type="laser_node" name="laser_node" output="screen">
+            <!--<remap from="scan" to="scan" />-->
+            <!--<remap from="get_middle_range" to="get_middle_range" />-->
+            <!--<remap from="is_lift_open" to="is_lift_open" />-->
+            <param name="mid_range_threshold" value="1.0"/>
         </node>
     </group>
 </launch>
