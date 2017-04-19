@@ -1,5 +1,9 @@
 <launch>
+    <arg name="ns" default="" />
     <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+      <!--<param name="base_footprint_frame" value="$(arg ns)/base_footprint"/>-->
+      <!--<param name="output_frame" value="$(arg ns)/odom_combined"/>-->
+      <param name="base_footprint_frame" value="base_footprint"/>
       <param name="output_frame" value="odom_combined"/>
       <param name="freq" value="30.0"/>
       <param name="sensor_timeout" value="1.0"/>
@@ -9,5 +13,6 @@
       <param name="debug" value="false"/>
       <param name="self_diagnose" value="false"/>
       <remap from="imu_data" to="imu/data" />
+      <!--<remap from="robot_pose_ekf/odom_combined" to="odom_combined" />-->
     </node>
 </launch>

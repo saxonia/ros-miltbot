@@ -8,6 +8,8 @@
         <remap from="/diagnostics" to="diagnostics" />
         <param name="odom_frame" value="$(arg ns)/odom"/>
         <param name="base_frame" value="$(arg ns)/base_footprint"/>
+        <remap from="imu/data" to="icreate_node/imu/data" />
+        <remap from="imu/raw" to="icreate_node/imu/raw" />
         <!--<param name="odom_frame" value="odom"/>-->
         <!--<param name="base_frame" value="base_footprint"/>-->
         
