@@ -90,7 +90,8 @@ class MonoCamera
 
         int H_MIN = 42;
         int H_MAX = 71;
-        int S_MIN = 130;
+        // int S_MIN = 130;
+        int S_MIN = 60;
         int S_MAX = 255;
         int V_MIN = 26;
         int V_MAX = 255;

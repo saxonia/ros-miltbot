@@ -17,6 +17,48 @@ using namespace std;
 #define KINECT_STREAM
 //#define WEBCAM_STREAM
 
+int H_MIN = 42;
+int H_MAX = 71;
+int S_MIN = 60;
+int S_MAX = 255;
+int V_MIN = 26;
+int V_MAX = 255;
+
+cv::Mat deleteNoise(cv::Mat src, cv::Mat inRange) {
+	cv::Mat imgBitwise;
+	cv::bitwise_and(src,src,imgBitwise,inRange);
+	cv::Mat imgMorph;
+
+	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3));
+	//dilate with larger element so make sure object is nicely visible
+	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8,8));
+
+	cv::erode(imgBitwise,imgMorph,erodeElement);
+	cv::erode(imgMorph,imgMorph,erodeElement);
+
+	cv::dilate(imgMorph,imgMorph,dilateElement);
+	cv::dilate(imgMorph,imgMorph,dilateElement);
+    // return imgBitwise;
+	return imgMorph;
+}
+
+bool detectColorTape(cv::Mat src) {
+    cv::Mat hsv_image;
+	cv::Mat hsv_inRange;
+    cv::Mat color_img;
+    cv::medianBlur(src, color_img, 11);
+	cv::cvtColor(color_img, hsv_image, CV_BGR2HSV);
+    //Green Light Color
+	cv::inRange(hsv_image, cv::Scalar(H_MIN,S_MIN,V_MIN), cv::Scalar(H_MAX,S_MAX,V_MAX), hsv_inRange);
+	cv::Mat greenLightImage = deleteNoise(color_img,hsv_inRange);
+	// cv::Mat greenLightRes = locatePosition(colorImg,greenLightImage,"LIGHT GREEN");
+    // this->color_tape_view = hsv_inRange.clone();
+    // this->color_tape_proc = greenLightImage.clone();
+    cv::imshow("1",hsv_inRange);
+    cv::imshow("2",greenLightImage);
+    // return this->verifyLiftDoor();
+    return true;
+}
 
 int main(int argc, char **argv)
 {
@@ -29,14 +71,21 @@ int main(int argc, char **argv)
     #ifdef IMAGE
         ROS_INFO("IMAGE MODE");
         std::string package_path = ros::package::getPath("miltbot_vision");
-        cv::String image_path(package_path + "/images/door.jpg"); // by default
+        // cv::String image_path(package_path + "/images/door.jpg"); // by default
+        cv::String image_path("/home/saxonia/Pictures/door.png");
         if( argc > 1)
         {
             image_path = argv[1];
         }
         cv::Mat src;
         src = cv::imread(image_path, cv::IMREAD_COLOR);
-        cv::resize(src,src,cv::Size(src.cols/2,src.rows/2));
+        if(!src.data) {
+            ROS_ERROR("errorr");
+            return -1;
+        }
+        cv::resize(src,src,cv::Size(640,480));
+        detectColorTape(src);
+        
         cv::namedWindow("src");
         cv::imshow("src",src);
         cv::waitKey(0);
