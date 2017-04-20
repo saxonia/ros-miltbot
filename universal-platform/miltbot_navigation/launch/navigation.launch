@@ -10,7 +10,7 @@
         <param name="building" value="Building 4"/>
         <param name="building_floor" value="Floor 20"/>
         <param name="move_base_wait_time" value="2.0"/>
-        <remap from="is_front_lift" to="$(arg ns)/is_front_lift" />
+        <!--<remap from="is_front_lift" to="$(arg ns)/is_front_lift" />-->
         <!--<remap from="is_lift_open" to="$(arg ns)/is_lift_open" />-->
     </node>
 

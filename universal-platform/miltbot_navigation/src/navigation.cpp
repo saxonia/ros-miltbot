@@ -361,6 +361,7 @@ void Navigation::runMoveBase() {
 }
 
 void Navigation::runLiftNavigation() {
+    ROS_INFO("Into Lift Navigation");
     switch(this->lift_navigation_step) {
         //Step 0: Move to Lift Ground
         case 0: {
@@ -387,33 +388,34 @@ void Navigation::runLiftNavigation() {
         }
         //Step 2:Verify Robot is in front of lift door
         case 2: {
+            ROS_INFO("Lift Navigation: Step 2");
             if(this->verifyFrontDoor()) {
+                ROS_INFO("Verify Front Lift Door OK");
                 this->lift_navigation_step++;
             }
             else {
+                ROS_INFO("Verify Front Lift Door Fail");
                 this->lift_navigation_step = 0;
             }
+            this->isDoneGoal = true;
         }
         //Step 3: Wait Lift Door Open & Move inside the lift
         case 3: {
-            bool flag;
+            ROS_INFO("Lift Navigation: Step 3");
+            bool flag = false;
+            int verify_door_fail = 0;
             while(ros::ok()) {
+                if(verify_door_fail == 30) {
+                    ROS_WARN("Verify Lift Door Fail");
+                    this->lift_navigation_step = 1;
+                    this->isDoneGoal = true;
+                    break;
+                }
                 if(!this->verifyLiftDoor()) {
+                    verify_door_fail++;
                     continue;
                 }
-                // else {
-
-                //     // int liftNumber = waitForIncomingLift();
-                //     // miltbot_common::Waypoint data = this->lifts[liftNumber];
-                //     // data.task = "USINGLIFT";
-                //     // this->target_queue.insert(this->target_queue.begin(), data);
-                //     // this->setRobotTarget(this->target_queue[0]);
-                //     // this->setRobotGoal(this->base_frame_id);
-                //     // this->sendStateRequest(this->target_queue[0].task);
-                //     // this->runMoveBase();
-                //     // this->lift_navigation_step = 2;
-                //     // break;
-                // }
+                ROS_INFO("Verify Door Open OK");
                 icreate_navigation::RunGmappingService srv;
                 srv.request.task = "open";
                 if(run_gmapping_client_.call(srv)) {
@@ -719,6 +721,9 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
                 }
                 else if(this->current_state == "USINGLIFT") {
                     state_request = "USINGLIFT";
+                }
+                else {
+                    ROS_WARN("No Current State");
                 }
                 this->sendStateRequest(state_request);
             }

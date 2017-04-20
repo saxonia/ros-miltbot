@@ -185,14 +185,14 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "lift_test");
     ros::NodeHandle nh;
 
-    std::string move_base_topic("/move_base");
+    std::string move_base_topic("move_base");
     int polling_rate(30);
     std::string base_frame_id("map");
     std::string robot_frame_id("base_footprint");
-    nh.param("move_base_topic", move_base_topic, move_base_topic);
-    nh.param("polling_rate", polling_rate, polling_rate);
+    // nh.param("move_base_topic", move_base_topic, move_base_topic);
+    // nh.param("polling_rate", polling_rate, polling_rate);
 
-    icreate::Robot robot("Building 4", "Floor 20""/waypoint_navigation/base_frame_id", base_frame_id, base_frame_id);
+    icreate::Robot robot("Building 4", "Floor 20", base_frame_id, base_frame_id);
     icreate::SingleNavigation single_navigation("Building 4", "Floor 20");
 
     MoveBaseClient ac(move_base_topic, true);

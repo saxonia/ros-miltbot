@@ -53,9 +53,9 @@ void MonoCamera::depthImageCallback(const sensor_msgs::ImageConstPtr& msg) {
     this->depth_view = cv_ptr->image;
     cv::normalize(this->depth_view, this->depth_norm, 0, 255, cv::NORM_MINMAX, CV_8UC1);
     
-    ROS_WARN("Value1 : %d %lf",depth_view.at<unsigned char>(298, 143),depth_view.at<float>(298, 143));
-    ROS_WARN("Value2 : %d %lf",depth_view.at<unsigned char>(393 ,417),depth_view.at<float>(393 ,417));
-    ROS_WARN("Value3 : %d %lf",depth_view.at<unsigned char>(396, 579),depth_view.at<float>(396, 579));
+    // ROS_WARN("Value1 : %d %lf",depth_view.at<unsigned char>(298, 143),depth_view.at<float>(298, 143));
+    // ROS_WARN("Value2 : %d %lf",depth_view.at<unsigned char>(393 ,417),depth_view.at<float>(393 ,417));
+    // ROS_WARN("Value3 : %d %lf",depth_view.at<unsigned char>(396, 579),depth_view.at<float>(396, 579));
 }
 
 // bool MonoCamera::getParameter(string ns, ros::NodeHandle& n)
@@ -190,7 +190,8 @@ void on_trackbar( int, void* ) {
 
 bool MonoCamera::isFrontLiftService(miltbot_vision::IsFrontLift::Request &req,
                         miltbot_vision::IsFrontLift::Response &res) {
-    res.is_front_lift = detectColorTape(this->color_view);
+	res.is_front_lift = true;
+    // res.is_front_lift = detectColorTape(this->color_view);
     return true;
 }
 

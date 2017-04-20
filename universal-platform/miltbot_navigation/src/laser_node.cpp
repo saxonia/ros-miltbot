@@ -13,14 +13,17 @@ bool is_lift_open;
 // std::vector<float> range_queue(10);
 
 bool verifyLiftDoor(std::vector<float> store, int mid_idx) {
-    int lower = mid_idx-15;
-    int upper = mid_idx+15;
-    float sum;
-    for(int i = lower; i <= upper;i++) {
-        sum += store[i];
-    }
-    float avg = sum / (upper-lower);
-    if(abs(avg - old_mid_range) > mid_range_threshold) {
+    // int lower = mid_idx-15;
+    // int upper = mid_idx+15;
+    // float sum;
+    // for(int i = lower; i <= upper;i++) {
+    //     sum += store[i];
+    // }
+    // float avg = sum / (upper-lower);
+    // ROS_INFO("Average Range %lf",avg);
+    ROS_INFO("Diff Range %lf",fabs(store[mid_idx] - old_mid_range));
+    // if(fabs(avg - old_mid_range) > mid_range_threshold) {
+    if(fabs(store[mid_idx] - old_mid_range) > mid_range_threshold) {
         is_lift_open = true;
     }
     else {
