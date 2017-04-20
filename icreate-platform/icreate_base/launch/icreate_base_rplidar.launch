@@ -16,8 +16,8 @@
         <arg name="laser_path" default="$(find icreate_base)/params/laser_filters_rplidar_config.yaml" />
     </include>
 
-    <!--<include file="$(find icreate_base)/launch/robot_pose.launch">
+    <include file="$(find icreate_base)/launch/robot_pose.launch">
         <arg name="ns" default="$(arg ns)" />
-    </include>-->
+    </include>
 
 </launch>
