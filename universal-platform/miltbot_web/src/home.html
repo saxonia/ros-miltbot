@@ -5,10 +5,29 @@
     <link rel="stylesheet" type="text/css" href="../libs/bulma.css">
     <link rel="stylesheet" href="../css/index.css">
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>-->
-    <script type="text/javascript" src="../../libs/jquery.js"></script>
+    <script type="text/javascript" src="../libs/jquery.js"></script>
     <script type="text/javascript" src="../script/index.js" ></script>
 
+    <script type="text/javascript" src="../libs/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="../libs/roslib.min.js"></script>
+
     <script type="text/javascript">
+      var ros = new ROSLIB.Ros({
+        url : 'ws://127.0.1.1:9090'
+      });
+    
+      ros.on('connection', function() {
+        console.log('Connected to websocket server.');
+      });
+    
+      ros.on('error', function(error) {
+        console.log('Error connecting to websocket server: ', error);
+      });
+    
+      ros.on('close', function() {
+        console.log('Connection to websocket server closed.');
+      });
+      
       var building;
       var building_floor;
       var building2;
@@ -92,7 +111,7 @@
             <div class="box">
               <h2 class="title is-5">Number of floor in the system </h2>
               <hr>
-              <p>2 ชั้น</p>
+              <p>3 ชั้น</p>
             </div>
           </div>
           <!--<div class="column">

@@ -52,14 +52,33 @@
       }
 
       function callGetWaypointList() {
+        console.log("Go")
+        var floor = document.getElementById("select-floor");
+        var building;
+        var building_floor;
+        if(floor.value == 0) {
+          building = "Building 4"
+          building_floor = "Floor 17"
+        }
+        else if(floor.value == 1){
+          building = "Building 4"
+          building_floor = "Floor 19"
+        }
+        else if(floor.value == 2){
+          building = "Building 4"
+          building_floor = "Floor 20"
+        }
+        else {
+          console.log("Errorr Load Waypoint")
+        }
         var getWaypointListClient = new ROSLIB.Service({
           ros : ros,
           name : '/get_waypoint_list',
           serviceType : 'miltbot_map/GetWaypointList'
         });
         var request = new ROSLIB.ServiceRequest({
-          building : "Building 4",
-          floor : "Floor 20"
+          building : building,
+          floor : building_floor
         });
       
         getWaypointListClient.callService(request, function(result) {
@@ -195,7 +214,9 @@
                 <span class="select">
                   <select id="select-floor" onchange="loadTarget(), selectChange()">
                     <option disabled selected>Select Floor</option>
-                    <option value="0">Floor 20</option>
+                    <option value="0">Floor 17</option>
+                    <option value="1">Floor 19</option>
+                    <option value="2">Floor 20</option>
                   </select>
                 </span>
               </p>
