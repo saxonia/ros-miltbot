@@ -8,6 +8,57 @@
     <script type="text/javascript" src="../../libs/jquery.js"></script>
     <script type="text/javascript" src="../script/index.js" ></script>
 
+    <script type="text/javascript">
+      var building;
+      var building_floor;
+      var building2;
+      var building_floor2;
+
+      function showNavigationState(building, building_floor,idx) {
+        var x = "";
+        x = x + "<p>";
+        x = x + "Current Building: " + building + "<br>";
+        x = x + "Current Floor: " + building_floor + "<br>";
+        x = x + "</p>";
+        if(idx == 0) {
+          document.getElementById("navigation_state").innerHTML = x;
+        }
+        else if(idx == 1){
+          document.getElementById("navigation_state2").innerHTML = x;
+        }
+      }
+
+      var navigation_state_sub = new ROSLIB.Topic({
+        ros : ros,
+        name : '/bot1/navigation_state',
+        messageType : 'miltbot_navigation/NavigationState',
+        throttle_rate: 1000
+      });
+
+      navigation_state_sub.subscribe(function(message) {
+        building = message.building;
+        building_floor = message.building_floor;
+        // console.log(target_queue);
+        showNavigationState(building, building_floor,0)
+        // target_queue_sub.unsubscribe();
+      });
+
+      var navigation_state2_sub = new ROSLIB.Topic({
+        ros : ros,
+        name : '/bot2/navigation_state',
+        messageType : 'miltbot_navigation/NavigationState',
+        throttle_rate: 1000
+      });
+
+      navigation_state2_sub.subscribe(function(message) {
+        building2 = message.building;
+        building_floor2 = message.building_floor;
+        // console.log(target_queue);
+        showNavigationState(building2, building_floor2,1)
+        // target_queue_sub.unsubscribe();
+      });
+    </script>
+
   </head>
 
   <body>
@@ -20,7 +71,7 @@
         <a class="nav-item is-tab is-active" href="home.html">Home</a>
         <a class="nav-item is-tab" href="task/task-manager.html">Task Manager</a>
         <!--<a class="nav-item is-tab" href="monitor.html">System Monitor</a>-->
-        <a class="nav-item is-tab" href="map/map-manager.html">Map Manager</a>
+        <!--<a class="nav-item is-tab" href="map/map-manager.html">Map Manager</a>-->
         <!--<a class="nav-item is-tab" href="about.html">About</a>-->
       </div>
     </nav>
@@ -34,23 +85,40 @@
             <div class="box">
               <h2 class="title is-5">Number of robots in the system</h2>
               <hr>
-              <p>1 ตัว</p>
+              <p>2 ตัว</p>
             </div>
           </div>
           <div class="column">
             <div class="box">
               <h2 class="title is-5">Number of floor in the system </h2>
               <hr>
-              <p>3 ชั้น</p>
+              <p>2 ชั้น</p>
             </div>
           </div>
           <!--<div class="column">
             <div class="box">
-              <h2 class="title is-5">จำนวนงานทั้งหมดในปัจจุบัน</h2>
+              <h2 class="title is-5">Robot1 Status</h2>
               <hr>
               <p>2 งาน</p>
               
-            </div>-->
+            </div>
+          </div>-->
+        </div>
+        <div class="columns">
+          <div class="column">
+            <div class="box">
+              <h2 class="title is-5">Robot1 Status</h2>
+              <hr>
+              <p id="navigation_state"></p>
+            </div>
+          </div>
+          <div class="column">
+            <div class="box">
+              <h2 class="title is-5">Robot2 Status</h2>
+              <hr>
+              <p id="navigation_state2"></p>
+              
+            </div>
           </div>
         </div>
         <!--<div class="box">
