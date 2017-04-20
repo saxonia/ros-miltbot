@@ -5,8 +5,8 @@
             <arg name="ns" default="$(arg ns)" />
         </include>
 
-        <include file="$(find mpu6050_serial_to_imu)/launch/imu.launch">
-        </include>
+        <!--<include file="$(find mpu6050_serial_to_imu)/launch/imu.launch">
+        </include>-->
         
         <include file="$(find icreate_navigation)/launch/modules/icreate_navigation_stack.1.launch" >
             <arg name="ns" default="$(arg ns)" />

@@ -366,9 +366,9 @@ void Navigation::runLiftNavigation() {
         //Step 0: Move to Lift Ground
         case 0: {
             ROS_INFO("Lift Navigation: Step 0");
-            this->isDoneGoal = true;
-            this->lift_navigation_step++;
-            break;
+            // this->isDoneGoal = true;
+            // this->lift_navigation_step++;
+            // break;
             miltbot_common::Waypoint data = this->lifts.back();
             data.task = "USINGLIFT";
             this->target_queue.insert(this->target_queue.begin(), data);
@@ -382,9 +382,9 @@ void Navigation::runLiftNavigation() {
         case 1: {
             ROS_INFO("Lift Navigation: Step 2");
             this->target_number = waitForIncomingLift();
-            this->isDoneGoal = true;
-            this->lift_navigation_step++;
-            break;
+            // this->isDoneGoal = true;
+            // this->lift_navigation_step++;
+            // break;
             miltbot_common::Waypoint data = this->lifts[this->target_number];
             data.task = "USINGLIFT";
             this->target_queue.insert(this->target_queue.begin(), data);
@@ -443,25 +443,25 @@ void Navigation::runLiftNavigation() {
                 break;
             }
             if(flag) {
-                this->isDoneGoal = true;
-                this->lift_navigation_step++;
-                break;
+                // this->isDoneGoal = true;
+                // this->lift_navigation_step++;
+                // break;
                 initializeLiftForwardMoveBase();
             }
             break;
         }
         case 4: {
             ROS_INFO("Lift Navigation: Step 4");
-            this->waitUserInputLift();
-            this->isDoneGoal = true;
-            this->lift_navigation_step++;
-            break;
+            // this->waitUserInputLift();
+            // this->isDoneGoal = true;
+            // this->lift_navigation_step++;
+            // break;
             this->initializeLiftRotateMoveBase();
             break;
         }
         case 5: {
             ROS_INFO("Lift Navigation: Step 5");
-            this->waitUserInputLift();
+            // this->waitUserInputLift();
             bool flag = false;
             int verify_door_fail = 0;
             while(ros::ok()) {
@@ -488,16 +488,16 @@ void Navigation::runLiftNavigation() {
                 break;
             }
             if(flag) {
-                this->isDoneGoal = true;
-                this->lift_navigation_step++;
-                break;
+                // this->isDoneGoal = true;
+                // this->lift_navigation_step++;
+                // break;
                 initializeLiftForwardOutMoveBase();
             }
             break;
         }
         case 6: {
             ROS_INFO("Lift Navigation: Step 6");
-            this->waitUserInputLift();
+            // this->waitUserInputLift();
             bool flag = false;
             icreate_navigation::RunGmappingService srv;
             srv.request.task = "close";
