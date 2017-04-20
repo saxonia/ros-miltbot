@@ -14,12 +14,14 @@
 
 typedef std::pair<std::string, std::string> Key;
 
+std::vector<std::string> robots;
 std::map<Key, std::vector<miltbot_common::Waypoint> > targets;
 std::vector<miltbot_common::Waypoint> target_queue;
 std::vector<miltbot_common::Waypoint> default_queue;
 std::vector<miltbot_common::Waypoint> charging_queue;
 
 std::string view_target_queue_service_name("view_target_queue");
+std::string get_robot_list_service_name("get_robot_list");
 std::string get_waypoint_list_service_name("get_waypoint_list");
 std::string add_target_service_name("add_target");
 std::string delete_target_service_name("delete_target");
@@ -30,6 +32,19 @@ std::string run_system_service_name("run_system");
 
 long generateTargetId() {
     return rand();
+}
+
+bool callGetRobotService(ros::NodeHandle &nh) {
+    ros::ServiceClient client = nh.serviceClient<miltbot_system::GetRobotList>(get_robot_list_service_name);
+    miltbot_system::GetRobotList srv;
+    if(client.call(srv)) {
+        robots = srv.response.robot_list;
+        return true;
+    }
+    else {
+        ROS_ERROR("Failed to call service get_robot_list");
+        return false;
+    }
 }
 
 bool callGetWaypointService(ros::NodeHandle &nh, std::string building, std::string building_floor) {
@@ -161,6 +176,10 @@ void loadWaypoint(ros::NodeHandle &nh) {
     callGetWaypointService(nh, building, building_floor);
 }
 
+void loadRobot(ros::NodeHandle &nh) {
+    callGetRobotService(nh);
+}
+
 void setTargetPriority(miltbot_common::Waypoint &data) {
     std::cout << "Please insert target priority" << std::endl;
     std::cout << "Your Input: ";
@@ -189,10 +208,10 @@ void displayBuildingFloor() {
 void displayRobot() {
     int i = 0;
     std::cout << "Please Select Robot" << std::endl;
-    std::cout <<"["<<i<<"] " << "bot1" <<std::endl; 
-    // for(std::map<Key, std::vector<miltbot_common::Waypoint> >::iterator it = targets.begin(); it != targets.end(); it++, i++) {
-        // std::cout <<"["<<i<<"] " << (it->first).second <<std::endl; 
-    // }
+    // std::cout <<"["<<i<<"] " << "bot1" <<std::endl; 
+    for(std::vector<std::string>::iterator it = robots.begin(); it != robots.end(); it++, i++) {
+        std::cout <<"["<<i<<"] " << *it <<std::endl; 
+    }
     std::cout <<"["<<99<<"] " << "Cancel" <<std::endl;
 }
 
@@ -269,7 +288,7 @@ bool showRobotMenu(std::string &service_namespace) {
         std::cout << "[AGENT] Input Robot : ";
         std::cin >> selected_robot;
         std::cout << std::endl;
-        if((selected_robot < 0 || selected_robot >= 1) && selected_robot != 99) {
+        if((selected_robot < 0 || selected_robot >= robots.size()) && selected_robot != 99) {
             ROS_WARN("Wrong Select Point To Navigate Try Again");
             continue;
         }
@@ -277,7 +296,12 @@ bool showRobotMenu(std::string &service_namespace) {
             return false;
         }
         else {
-            service_namespace = "bot1/";
+            if(selected_robot == 0) {
+                service_namespace = "bot1/";
+            }
+            else if(selected_robot == 1) {
+                service_namespace = "bot2/";
+            }
             return true;
         }
     }
@@ -528,6 +552,7 @@ int main(int argc, char** argv) {
     // nh.param("add_default_target_service", add_default_target_service_name, add_default_target_service_name);
     // nh.param("run_system_service", run_system_service_name, run_system_service_name);
 
+    loadRobot(nh);
     loadWaypoint(nh);
 
     while(ros::ok()) {

@@ -382,9 +382,9 @@ void Navigation::runLiftNavigation() {
         case 1: {
             ROS_INFO("Lift Navigation: Step 2");
             this->target_number = waitForIncomingLift();
-            // this->isDoneGoal = true;
-            // this->lift_navigation_step++;
-            // break;
+            //this->isDoneGoal = true;
+            //this->lift_navigation_step++;
+            //break;
             miltbot_common::Waypoint data = this->lifts[this->target_number];
             data.task = "USINGLIFT";
             this->target_queue.insert(this->target_queue.begin(), data);
@@ -397,7 +397,10 @@ void Navigation::runLiftNavigation() {
         //Step 2:Verify Robot is in front of lift door
         case 2: {
             ROS_INFO("Lift Navigation: Step 2");
-            if(this->verifyFrontDoor()) {
+            //this->isDoneGoal = true;
+	        //this->lift_navigation_step++;
+	        //break;
+	    if(this->verifyFrontDoor()) {
                 ROS_INFO("Verify Front Lift Door OK");
                 miltbot_navigation::GetMiddleRange srv;
                 if(get_middle_range_client_.call(srv)) {
@@ -428,7 +431,7 @@ void Navigation::runLiftNavigation() {
                 }
                 if(!this->verifyLiftDoor()) {
                     verify_door_fail++;
-                    continue;
+                   continue;
                 }
                 ROS_INFO("Verify Door Open OK");
                 icreate_navigation::RunGmappingService srv;
