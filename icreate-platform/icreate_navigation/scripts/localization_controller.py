@@ -67,7 +67,7 @@ def amcl_start():
     rospy.set_param('move_base/NavfnROS/allow_unknown',False)
     rospy.set_param('move_base/NavfnROS/default_tolerance',0.0)
     rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.5)
-    rospy.set_param('move_base/DWAPlannerROS/min_vel_x',-0.15)
+    rospy.set_param('move_base/DWAPlannerROS/min_vel_x',0.15)
     rospy.set_param('move_base/DWAPlannerROS/max_trans_vel',0.4)
     rospy.set_param('move_base/DWAPlannerROS/min_trans_vel',0.1)
     # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.4)

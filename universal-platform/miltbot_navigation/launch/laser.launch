@@ -5,7 +5,8 @@
             <!--<remap from="scan" to="scan" />-->
             <!--<remap from="get_middle_range" to="get_middle_range" />-->
             <!--<remap from="is_lift_open" to="is_lift_open" />-->
-            <param name="mid_range_threshold" value="1.0"/>
+            <param name="mid_range_lower" value="1.0"/>
+            <param name="mid_range_upper" value="10.0"/>
         </node>
     </group>
 </launch>

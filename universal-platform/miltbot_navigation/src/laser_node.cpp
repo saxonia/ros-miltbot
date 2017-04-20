@@ -8,9 +8,21 @@
 
 float mid_range;
 float old_mid_range;
-float mid_range_threshold;
+float mid_range_lower, mid_range_upper;
 bool is_lift_open;
 // std::vector<float> range_queue(10);
+
+bool verifyLiftDoor(float old_mid_range) {
+    float range_diff = fabs(mid_range - old_mid_range);
+    ROS_INFO("Diff Range %lf",range_diff);
+    if(range_diff > mid_range_lower && range_diff < mid_range_upper) {
+        is_lift_open = true;
+    }
+    else {
+        is_lift_open = false;
+    }
+    return is_lift_open;
+}
 
 bool verifyLiftDoor(std::vector<float> store, int mid_idx) {
     // int lower = mid_idx-15;
@@ -21,14 +33,16 @@ bool verifyLiftDoor(std::vector<float> store, int mid_idx) {
     // }
     // float avg = sum / (upper-lower);
     // ROS_INFO("Average Range %lf",avg);
-    ROS_INFO("Diff Range %lf",fabs(store[mid_idx] - old_mid_range));
+    float range_diff = fabs(store[mid_idx] - old_mid_range);
+    ROS_INFO("Diff Range %lf",range_diff);
     // if(fabs(avg - old_mid_range) > mid_range_threshold) {
-    if(fabs(store[mid_idx] - old_mid_range) > mid_range_threshold) {
+    if(range_diff > mid_range_lower && range_diff < mid_range_upper) {
         is_lift_open = true;
     }
     else {
         is_lift_open = false;
     }
+    return is_lift_open;
 }
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
@@ -37,7 +51,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     std::vector<float> store;
     store = msg->ranges;
     mid_range = store[idx];
-    verifyLiftDoor(store, idx);
+    // verifyLiftDoor(store, idx);
     old_mid_range = mid_range;
 }
 
@@ -53,7 +67,8 @@ bool getMiddleRangeService(miltbot_navigation::GetMiddleRange::Request &req,
 
 bool isLiftOpenService(miltbot_navigation::IsLiftOpen::Request &req,
                        miltbot_navigation::IsLiftOpen::Response &res) {
-    res.is_lift_open = is_lift_open;
+    // res.is_lift_open = is_lift_open;
+    res.is_lift_open = verifyLiftDoor(req.mid_range);
     return true;
 }
 
@@ -67,7 +82,8 @@ int main(int argc, char** argv) {
 
     // nh.param("laser_scan_sub_topic",laser_scan_sub_topic_name,laser_scan_sub_topic_name);
     // nh.param("get_middle_range_service",get_middle_range_service_name,get_middle_range_service_name);
-    nh.param("laser_node/mid_range_threshold", mid_range_threshold, mid_range_threshold);
+    nh.param("laser_node/mid_range_lower", mid_range_lower, mid_range_lower);
+    nh.param("laser_node/mid_range_upper", mid_range_upper, mid_range_upper);
 
     ros::Subscriber scan_sub = nh.subscribe(laser_scan_sub_topic_name, 1, scanCallback);
     ros::ServiceServer get_middle_range_service = nh.advertiseService(get_middle_range_service_name, getMiddleRangeService);
