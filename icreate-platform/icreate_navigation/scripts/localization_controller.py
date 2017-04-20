@@ -37,9 +37,9 @@ def gmapping_start():
     gmapping_launch.start()
 
     #Set Parameter Server
-    rospy.set_param('slam_gmapping/odom_frame_id', namespace + '/odom')
-    rospy.set_param('slam_gmapping/base_frame_id', namespace + '/base_footprint')
-    rospy.set_param('slam_gmapping/map_frame_id', namespace + '/map')
+    rospy.set_param('slam_gmapping/odom_frame', namespace + '/odom')
+    rospy.set_param('slam_gmapping/base_frame', namespace + '/base_footprint')
+    rospy.set_param('slam_gmapping/map_frame', namespace + '/map')
     rospy.set_param('move_base/NavfnROS/allow_unknown',True)
     rospy.set_param('move_base/NavfnROS/default_tolerance',0.2)
     rospy.set_param('move_base/DWAPlannerROS/max_vel_x',0.8)

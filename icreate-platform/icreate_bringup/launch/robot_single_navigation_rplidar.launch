@@ -9,8 +9,8 @@
             <arg name="ns" default="$(arg ns)" />
         </include>
 
-        <include file="$(find mpu6050_serial_to_imu)/launch/imu.launch">
-        </include>
+        <!--<include file="$(find mpu6050_serial_to_imu)/launch/imu.launch">
+        </include>-->
 
         <include file="$(find miltbot_state)/launch/miltbot_state.launch" />
 
