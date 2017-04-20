@@ -74,6 +74,12 @@
         serviceType : 'miltbot_system/AddTarget'
       });
 
+      var addTarget2Client = new ROSLIB.Service({
+        ros : ros,
+        name : '/bot2/add_target',
+        serviceType : 'miltbot_system/AddTarget'
+      });
+
       function accept() {
         task_id = document.getElementById("select-task").value;
         target_id = document.getElementById("select-target").value;
@@ -98,9 +104,21 @@
         var request = new ROSLIB.ServiceRequest({
           waypoint : waypoint
         });
-        addTargetClient.callService(request, function(result) {
-          console.log(result.success);
-        });
+        var robot = document.getElementById("select-robot");
+        if(robot.value == 0) {
+          addTargetClient.callService(request, function(result) {
+            console.log(result.success);
+          });
+        }
+        else if(robot.value == 1) {
+          addTarget2Client.callService(request, function(result) {
+            console.log(result.success);
+          });
+        }
+        else {
+          console.log("No robot value");
+        }
+        
       }
 
       function selectChange() {
@@ -166,6 +184,7 @@
                   <select id="select-robot" onchange="selectChange()">
                     <option disabled selected>Select Robot</option>
                     <option value="0">Robot1</option>
+                    <option value="1">Robot2</option>
                   </select>
                 </span>
               </p>

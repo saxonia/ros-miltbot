@@ -3,10 +3,94 @@
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="../../libs/bulma.css">
+    <link rel="stylesheet" type="text/css" href="../../libs/font-awesome.min.css">
     <link rel="stylesheet" href="../../css/index.css">
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>-->
     <script type="text/javascript" src="../../libs/jquery.js"></script>
     <script type="text/javascript" src="../../script/index.js" ></script>
+
+    <script type="text/javascript" src="../../libs/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="../../libs/roslib.min.js"></script>
+
+    <script type="text/javascript">
+      var ros = new ROSLIB.Ros({
+        url : 'ws://127.0.1.1:9090'
+      });
+    
+      ros.on('connection', function() {
+        console.log('Connected to websocket server.');
+      });
+    
+      ros.on('error', function(error) {
+        console.log('Error connecting to websocket server: ', error);
+      });
+    
+      ros.on('close', function() {
+        console.log('Connection to websocket server closed.');
+      });
+
+      var target_queue;
+
+      function showTargetQueue(target_queue) {
+        var x = "";
+        for(var i = 0; i < target_queue.length; i++) {
+          x = x + "<tr>";
+          x = x + "<th>" + (i+1) + "</th>";
+          x = x + "<td>" + target_queue[i].task + "</td>";
+          x = x + "<td>" + target_queue[i].building_floor + "</td>";
+          x = x + "<td>" + target_queue[i].name + "</td>";
+          x = x + "<td>" + "<a id=\"delete-task-button\" class=\"button is-danger\" onclick=\"deleteTask(this)\">";
+          x = x + "<i class=\"fa fa-trash\" aria-hidden=\"true\"></i>" + "</a>" + "</td>";
+          x = x + "</tr>";
+        }
+          document.getElementById("target_queue_list").innerHTML = x;
+      }
+
+      // var viewTargetQueueClient = new ROSLIB.Service({
+      //   ros : ros,
+      //   name : '/bot1/view_target_queue',
+      //   serviceType : 'miltbot_system/ViewTargetQueue'
+      // });
+      // var request;
+    
+      // viewTargetQueueClient.callService(request, function(result) {
+      //   target_queue = result.target_queue;
+      //   showTargetQueue(result.target_queue);
+      // });
+
+      var target_queue_sub = new ROSLIB.Topic({
+        ros : ros,
+        name : '/bot2/target_queue',
+        messageType : 'miltbot_common/WaypointList',
+        throttle_rate: 1000
+      });
+    
+      target_queue_sub.subscribe(function(message) {
+        target_queue = message.waypoints;
+        console.log(target_queue);
+        showTargetQueue(target_queue)
+        // target_queue_sub.unsubscribe();
+      });
+
+      function deleteTask(x) {
+        var idx = x.parentNode.parentNode.rowIndex;
+        document.getElementById("task-list-table").deleteRow(idx);
+
+        var deleteTargetClient = new ROSLIB.Service({
+          ros : ros,
+          name : '/bot2/delete_target',
+          serviceType : 'miltbot_system/DeleteTarget'
+        });
+        var request = new ROSLIB.ServiceRequest({
+          id : target_queue[idx-1].id
+        });
+
+        deleteTargetClient.callService(request, function(result) {
+          console.log(result.success);
+        });
+
+      }
+    </script>
 
   </head>
 
@@ -17,10 +101,10 @@
           
           <h1 class="title is-2">Miltbot</h1>
         </a>
-        <a class="nav-item is-tab " href="home.html">Home</a>
+        <a class="nav-item is-tab " href="../home.html">Home</a>
         <a class="nav-item is-tab is-active" href="task-manager.html">Task Manager</a>
-        <!--<a class="nav-item is-tab" href="monitor.html">System Monitor</a>-->
-        <a class="nav-item is-tab" href="map-manager.html">Map Manager</a>
+        <!--<a class="nav-item is-tab" href="../monitor.html">System Monitor</a>-->
+        <a class="nav-item is-tab" href="../map/map-manager.html">Map Manager</a>
         <!--<a class="nav-item is-tab" href="../about.html">About</a>-->
       </div>
     </nav>
@@ -29,15 +113,15 @@
       <div class="container">
          <div class="control is-grouped">
           <p class="control">
-            <a class="button is-primary" href="add-task.html">
-              เพิ่ม task
+            <a id="add-task-button" class="button is-primary" href="add-task.html">
+              Add Task
             </a>
           </p>
-          <p class="control">
+          <!--<p class="control">
             <a class="button is-danger">
-              ลบ task
+              Delete Task
             </a>
-          </p>
+          </p>-->
         </div>
       </div>
     </section>
@@ -46,29 +130,30 @@
       <div class="container">
         <div class="page-navigation">
             <nav class="pagination">
-              <a class="pagination-previous" href="task-robot.html">Previous</a>
+              <a class="pagination-previous is-disabled">Previous</a>
               <a class="pagination-next is-disabled">Next</a>
               <ul class="pagination-list">
                 <li>
-                  <a class="pagination-link" href="task-robot.html">1</a>
+                  <a class="pagination-link is-current">1</a>
                 </li>
-                <li>
-                  <a class="pagination-link is-current">2</a>
-                </li>
+                <!--<li>
+                  <a class="pagination-link" href="task-robot2.html">2</a>
+                </li>-->
               </ul>
             </nav>
         </div>
-        <h1 class="title is-3">Robot2 Task</h1>
+        <h1 class="title is-3">Robot1 Task</h1>
         <hr>
         <div class="columns">
           <div class="column task-list">
-            <table class="table">
+            <table id="task-list-table" class="table">
               <thead>
                 <tr>
                   <th>Order</th>
                   <th>Task</th>
                   <th>Building Floor</th>
                   <th>Position</th>
+                  <th>Delete</th>
                 </tr>
               </thead>
               <tfoot>
@@ -77,23 +162,18 @@
                   <th>Task</th>
                   <th>Building Floor</th>
                   <th>Position</th>
+                  <th>Delete</th>
                 </tr>
               </tfoot>
-              <tbody>
-                <tr>
-                  <th>1</th>
-                  <td>Send Supplies</td>
-                  <td>Floor 20</td>
-                  <td>Base Station</td>
-                </tr>
+              <tbody id="target_queue_list">
               </tbody>
             </table>
           </div>
-          <div class="column task-map">
+          <!--<div class="column task-map">
             <div class="box">
               <img src="/home/saxonia/Pictures/Mapp.png" alt="Map1">
             </div>
-          </div>
+          </div>-->
         </div>
       </div>
     </section>
