@@ -37,27 +37,56 @@ def gmapping_start():
     gmapping_launch = roslaunch.parent.ROSLaunchParent(uuid, [gmapping_file_path])
     gmapping_launch.start()
 
-    #Set Dynamic Reconfigure for Slam Gmapping
-    client = dynamic_reconfigure.client.Client("slam_gmapping")
-    params = {'odom_frame' : namespace + '/odom',
-              'base_frame' : namespace + '/base_footprint',
-              'map_frame' : namespace + '/map',
+    #Set Parameter Server
+    rospy.set_param('slam_gmapping/odom_frame', namespace + '/odom')
+    rospy.set_param('slam_gmapping/base_frame', namespace + '/base_footprint')
+    rospy.set_param('slam_gmapping/map_frame', namespace + '/map')
+    # rospy.set_param('move_base/DWAPlannerROS/max_vel_x', 0.7)
+    # rospy.set_param('move_base/DWAPlannerROS/min_vel_x', 0.4)
+    # rospy.set_param('move_base/DWAPlannerROS/max_trans_vel', 1.0)
+    # rospy.set_param('move_base/DWAPlannerROS/min_trans_vel', 0.1)
+    # # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.5)
+    rospy.set_param('move_base/global_costmap/global_frame', namespace + "/odom")
+    # rospy.set_param('move_base/global_costmap/inflation_layer/inflation_radius', 0.1)
+    # rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius', 0.1)
+    rospy.set_param('move_base/NavfnROS/allow_unknown', True)
+    rospy.set_param('move_base/NavfnROS/default_tolerance', 0.2)
+    # rospy.set_param('velocity_smoother/accel_lim_v', 0.5)
+    # rospy.set_param('velocity_smoother/speed_lim_v', 1.0)
+
+    # #Set Dynamic Reconfigure for Slam Gmapping
+    # client = dynamic_reconfigure.client.Client("slam_gmapping")
+    # params = {'odom_frame' : namespace + '/odom',
+    #           'base_frame' : namespace + '/base_footprint',
+    #           'map_frame' : namespace + '/map',
+    #          }
+    # config = client.update_configuration(params)
+
+    #Set Dynamic Reconfigure for Move Base
+    client = dynamic_reconfigure.client.Client("move_base/DWAPlannerROS")
+    params = {'max_vel_x' : 0.7,
+              'min_vel_x' : 0.4,
+              'max_trans_vel' : 1.0,
+              'min_trans_vel' : 0.1
              }
     config = client.update_configuration(params)
 
-    #Set Dynamic Reconfigure for Move Base
-    client = dynamic_reconfigure.client.Client("move_base")
-    params = {'DWAPlannerROS/max_vel_x' : 0.7,
-              'DWAPlannerROS/min_vel_x' : 0.4,
-              'DWAPlannerROS/max_trans_vel' : 1.0,
-              'DWAPlannerROS/min_trans_vel' : 0.1,
-              'global_costmap/global_frame' : namespace + "/odom",
-              'global_costmap/inflation_layer/inflation_radius' : 0.1,
-              'local_costmap/inflation_layer/inflation_radius' : 0.31,
-              'NavfnROS/allow_unknown' : True,
-              'NavfnROS/default_tolerance' : 0.2,
+    client = dynamic_reconfigure.client.Client("move_base/global_costmap/inflation_layer")
+    params = {#'global_frame' : namespace + "/map",
+              'inflation_radius' : 0.1
              }
     config = client.update_configuration(params)
+
+    client = dynamic_reconfigure.client.Client("move_base/local_costmap/inflation_layer")
+    params = {'inflation_radius' : 0.1
+             }
+    config = client.update_configuration(params)
+
+    # client = dynamic_reconfigure.client.Client("move_base/NavfnROS")
+    # params = {'allow_unknown' : True,
+    #           'default_tolerance' : 0.2
+    #          }
+    # config = client.update_configuration(params)
 
     #Set Dynamic Reconfigure for Velocity Smoother
     client = dynamic_reconfigure.client.Client("velocity_smoother")
@@ -65,23 +94,6 @@ def gmapping_start():
               'speed_lim_v' : 1.0
              }
     config = client.update_configuration(params)
-
-    # #Set Parameter Server
-    # rospy.set_param('slam_gmapping/odom_frame', namespace + '/odom')
-    # rospy.set_param('slam_gmapping/base_frame', namespace + '/base_footprint')
-    # rospy.set_param('slam_gmapping/map_frame', namespace + '/map')
-    # rospy.set_param('move_base/DWAPlannerROS/max_vel_x', 0.7)
-    # rospy.set_param('move_base/DWAPlannerROS/min_vel_x', 0.4)
-    # rospy.set_param('move_base/DWAPlannerROS/max_trans_vel', 1.0)
-    # rospy.set_param('move_base/DWAPlannerROS/min_trans_vel', 0.1)
-    # # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.5)
-    # rospy.set_param('move_base/global_costmap/global_frame', namespace + "/odom")
-    # rospy.set_param('move_base/global_costmap/inflation_layer/inflation_radius', 0.1)
-    # rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius', 0.1)
-    # rospy.set_param('move_base/NavfnROS/allow_unknown', True)
-    # rospy.set_param('move_base/NavfnROS/default_tolerance', 0.2)
-    # rospy.set_param('velocity_smoother/accel_lim_v', 0.5)
-    # rospy.set_param('velocity_smoother/speed_lim_v', 1.0)
     
 
 def amcl_start():
@@ -91,27 +103,56 @@ def amcl_start():
     amcl_launch = roslaunch.parent.ROSLaunchParent(uuid, [amcl_file_path])
     amcl_launch.start()
 
+    #Set Parameter Server
+    rospy.set_param('amcl/odom_frame_id', namespace + '/odom')
+    rospy.set_param('amcl/base_frame_id', namespace + '/base_footprint')
+    rospy.set_param('amcl/global_frame_id', namespace + '/map')
+    # rospy.set_param('move_base/DWAPlannerROS/max_vel_x', 0.5)
+    # rospy.set_param('move_base/DWAPlannerROS/min_vel_x', 0.15)
+    # rospy.set_param('move_base/DWAPlannerROS/max_trans_vel', 0.4)
+    # rospy.set_param('move_base/DWAPlannerROS/min_trans_vel', 0.1)
+    # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.4)
+    rospy.set_param('move_base/global_costmap/global_frame', namespace + "/map")
+    # rospy.set_param('move_base/global_costmap/inflation_layer/inflation_radius', 0.3)
+    # rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius', 0.3)
+    rospy.set_param('move_base/NavfnROS/allow_unknown', False)
+    rospy.set_param('move_base/NavfnROS/default_tolerance', 0.0)
+    # rospy.set_param('velocity_smoother/accel_lim_v', 0.2)
+    # rospy.set_param('velocity_smoother/speed_lim_v', 0.3)
+
     #Set Dynamic Reconfigure for AMCL
-    client = dynamic_reconfigure.client.Client("amcl")
-    params = {'odom_frame_id' : namespace + '/odom',
-              'base_frame_id' : namespace + '/base_footprint',
-              'global_frame_id' : namespace + '/map',
+    # client = dynamic_reconfigure.client.Client("amcl")
+    # params = {'odom_frame_id' : namespace + '/odom',
+    #           'base_frame_id' : namespace + '/base_footprint',
+    #           'global_frame_id' : namespace + '/map'
+    #          }
+    # config = client.update_configuration(params)
+
+    #Set Dynamic Reconfigure for Move Base
+    client = dynamic_reconfigure.client.Client("move_base/DWAPlannerROS")
+    params = {'max_vel_x' : 0.5,
+              'min_vel_x' : 0.15,
+              'max_trans_vel' : 0.4,
+              'min_trans_vel' : 0.1
              }
     config = client.update_configuration(params)
 
-    #Set Dynamic Reconfigure for Move Base
-    client = dynamic_reconfigure.client.Client("move_base")
-    params = {'DWAPlannerROS/max_vel_x' : 0.5,
-              'DWAPlannerROS/min_vel_x' : 0.15,
-              'DWAPlannerROS/max_trans_vel' : 0.4,
-              'DWAPlannerROS/min_trans_vel' : 0.1,
-              'global_costmap/global_frame' : namespace + "/map",
-              'global_costmap/inflation_layer/inflation_radius' : 0.3,
-              'local_costmap/inflation_layer/inflation_radius' : 0.3,
-              'NavfnROS/allow_unknown' : False,
-              'NavfnROS/default_tolerance' : 0.0,
+    client = dynamic_reconfigure.client.Client("move_base/global_costmap/inflation_layer")
+    params = {#'global_frame' : namespace + "/map",
+              'inflation_radius' : 0.3
              }
     config = client.update_configuration(params)
+
+    client = dynamic_reconfigure.client.Client("move_base/local_costmap/inflation_layer")
+    params = {'inflation_radius' : 0.3
+             }
+    config = client.update_configuration(params)
+
+    # client = dynamic_reconfigure.client.Client("move_base/NavfnROS")
+    # params = {'allow_unknown' : False,
+    #           'default_tolerance' : 0.0
+    #          }
+    # config = client.update_configuration(params)
 
     #Set Dynamic Reconfigure for Velocity Smoother
     client = dynamic_reconfigure.client.Client("velocity_smoother")
@@ -120,22 +161,7 @@ def amcl_start():
              }
     config = client.update_configuration(params)
 
-    # #Set Parameter Server
-    # rospy.set_param('amcl/odom_frame_id', namespace + '/odom')
-    # rospy.set_param('amcl/base_frame_id', namespace + '/base_footprint')
-    # rospy.set_param('amcl/global_frame_id', namespace + '/map')
-    # rospy.set_param('move_base/DWAPlannerROS/max_vel_x', 0.5)
-    # rospy.set_param('move_base/DWAPlannerROS/min_vel_x', 0.15)
-    # rospy.set_param('move_base/DWAPlannerROS/max_trans_vel', 0.4)
-    # rospy.set_param('move_base/DWAPlannerROS/min_trans_vel', 0.1)
-    # # rospy.set_param('move_base/DWAPlannerROS/acc_lim_x',1.4)
-    # rospy.set_param('move_base/global_costmap/global_frame', namespace + "/map")
-    # rospy.set_param('move_base/global_costmap/inflation_layer/inflation_radius', 0.3)
-    # rospy.set_param('move_base/local_costmap/inflation_layer/inflation_radius', 0.3)
-    # rospy.set_param('move_base/NavfnROS/allow_unknown', False)
-    # rospy.set_param('move_base/NavfnROS/default_tolerance', 0.0)
-    # rospy.set_param('velocity_smoother/accel_lim_v', 0.2)
-    # rospy.set_param('velocity_smoother/speed_lim_v', 0.3)
+    
 
 
 

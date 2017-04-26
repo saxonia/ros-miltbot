@@ -181,13 +181,26 @@ int main(int argc, char** argv)
 
                 quaternionTFToMsg(differential_rotation, imu.orientation);
 
+                // imu.orientation.x = 0.0;
+                // imu.orientation.y = 0.0;
+                // imu.orientation.z = 0.0;
+                // imu.orientation.w = 0.0;
+
                 imu.angular_velocity.x = gxf;
                 imu.angular_velocity.y = gyf;
                 imu.angular_velocity.z = gzf;
 
+                // imu.angular_velocity.x = 0.0;
+                // imu.angular_velocity.y = 0.0;
+                // imu.angular_velocity.z = 0.0;
+
                 imu.linear_acceleration.x = axf;
                 imu.linear_acceleration.y = ayf;
                 imu.linear_acceleration.z = azf;
+
+                // imu.linear_acceleration.x = 0.0;
+                // imu.linear_acceleration.y = 0.0;
+                // imu.linear_acceleration.z = 0.0;
 
                 imu_pub.publish(imu);
 
