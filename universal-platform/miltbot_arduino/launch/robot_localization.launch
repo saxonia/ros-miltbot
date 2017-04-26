@@ -1,0 +1,39 @@
+<launch>  
+  <arg name="ns" default="" />
+  <!-- Launch robot_localization node -->
+  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization" >
+    <remap from="set_pose" to="$(arg ns)/robot_localization/set_pose"/>           
+    <remap from="odometry/filtered" to="$(arg ns)/robot_localization/odom_combined"/>
+
+    <param name="odom_frame" value="odom_combined"/>
+    <param name="base_link_frame" value="base_footprint"/>  
+    <param name="two_d_mode" value="true"/>  
+    <param name="use_control" value="true"/>
+    <rosparam param="control_config">[true,  false, false,
+                                  false, false, true]</rosparam>
+
+    <!-- =============================================================================== -->    
+    <!-- Configure odom0 (WHEEL ODOMETRY) -->
+    
+    <param name="odom0" value="$(arg ns)/odom" />
+    <rosparam param="odom0_config">[true,  true,  true,   <!-- x, y, z position -->
+                                    true,  true, true,    <!-- roll, pitch, yaw angles-->
+                                    true,  true,  true,   <!-- x/y/z velocity -->
+                                    true, true, true,    <!-- roll/pitch/yaw velocity -->
+                                    false, false ,false ]   
+    </rosparam>
+
+    <!-- =============================================================================== -->    
+    <!-- Configure imu0 (MPU6050 - GY86)-->
+    <param name="imu0" value="$(arg ns)/imu/data"/>
+    <rosparam param="imu0_config">[false, false, false, <!-- x, y, z position -->
+                               true, true, true,      <!-- roll, pitch, yaw angles-->
+                               false, false, false,     <!-- x/y/z velocity -->
+                               true, true, true,      <!-- roll/pitch/yaw velocity -->
+                               false, false, false]      <!-- Ax/Ay/Az -->
+    </rosparam>
+
+    <!-- =============================================================================== -->    
+  </node>
+
+</launch>

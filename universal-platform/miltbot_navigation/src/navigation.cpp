@@ -264,7 +264,8 @@ bool Navigation::update() {
                 if(this->target_queue.size() > 0) {
                     //เช็คว่าจุดหมายที่จะไปอยู่ชั้นเดียวกันมั้ย ถ้าอยู่ชั้นเดียวกันก็เซ็ตเลย ถ้าไม่ก็เซ็ต target ไปอยู่ที่ส่วนของ Lift
                     ROS_INFO("Before Check");
-                    this->verifyTarget();
+                    // this->verifyTarget();
+                    this->isLiftNavigation = true;
                     if(this->isLiftNavigation) {
                         ROS_INFO("After Check Yes");
                         this->runLiftNavigation();
@@ -365,10 +366,12 @@ void Navigation::runMoveBase() {
 
 void Navigation::runLiftNavigation() {
     ROS_INFO("Into Lift Navigation");
+    ROS_INFO("isDonegoal Run: %d",this->isDoneGoal);
     switch(this->lift_navigation_step) {
         //Step 0: Move to Lift Ground
         case 0: {
             ROS_INFO("Lift Navigation: Step 0");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             // this->isDoneGoal = true;
             // this->lift_navigation_step++;
             // break;
@@ -384,6 +387,7 @@ void Navigation::runLiftNavigation() {
         //Step 1: Wait & Move to in front of the incoming lift
         case 1: {
             ROS_INFO("Lift Navigation: Step 1");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             this->target_number = waitForIncomingLift();
             //this->isDoneGoal = true;
             //this->lift_navigation_step++;
@@ -400,6 +404,7 @@ void Navigation::runLiftNavigation() {
         //Step 2:Verify Robot is in front of lift door
         case 2: {
             ROS_INFO("Lift Navigation: Step 2");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             //this->isDoneGoal = true;
 	        //this->lift_navigation_step++;
 	        //break;
@@ -430,6 +435,7 @@ void Navigation::runLiftNavigation() {
         //Step 3: Wait Lift Door Open & Move inside the lift
         case 3: {
             ROS_INFO("Lift Navigation: Step 3");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             bool flag = false;
             int verify_door_fail = 0;
             while(ros::ok()) {
@@ -466,6 +472,7 @@ void Navigation::runLiftNavigation() {
         }
         case 4: {
             ROS_INFO("Lift Navigation: Step 4");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             // this->waitUserInputLift();
             // this->isDoneGoal = true;
             // this->lift_navigation_step++;
@@ -475,6 +482,7 @@ void Navigation::runLiftNavigation() {
         }
         case 5: {
             ROS_INFO("Lift Navigation: Step 5");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             while(ros::ok()) {
                 miltbot_navigation::GetMiddleRange srv;
                 if(get_middle_range_client_.call(srv)) {
@@ -524,6 +532,7 @@ void Navigation::runLiftNavigation() {
         }
         case 6: {
             ROS_INFO("Lift Navigation: Step 6");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             // this->waitUserInputLift();
             bool flag = false;
             icreate_navigation::RunGmappingService srv;
