@@ -95,31 +95,31 @@ int main(int argc, char **argv)
         ROS_INFO("KINECT STREAM MODE");
         miltbot::MonoCamera cam;
         
-        ros::Rate rate(30);
+        ros::Rate rate(50);
         ROS_INFO("Before loop");
-        cv::namedWindow("color_img");
-        cv::namedWindow("color_tape");
-        cv::namedWindow("color_tape_proc");
-        cv::moveWindow("color_img", 100, 100);
-        cv::moveWindow("color_tape", 100, 100);
-        cv::moveWindow("color_tape_proc", 100, 100);
+        // cv::namedWindow("color_img");
+        // cv::namedWindow("color_tape");
+        // cv::namedWindow("color_tape_proc");
+        // cv::moveWindow("color_img", 100, 100);
+        // cv::moveWindow("color_tape", 100, 100);
+        // cv::moveWindow("color_tape_proc", 100, 100);
         while(ros::ok())
         {
-            cam.createTrackbars();
+            // cam.createTrackbars();
             ros::spinOnce();
             rate.sleep();
             if(!cam.color_view.data || !cam.depth_view.data) {
                 continue;
             }
-            cam.detectColorTape(cam.color_view);
+            // cam.detectColorTape(cam.color_view);
             // cv::namedWindow("depth_img");
             // cam.resizeImage(cam.color_view, 240, 240);
             // cam.resizeImage(cam.depth_view, 240, 240);
-            cv::imshow("color_img",cam.color_view);
+            // cv::imshow("color_img",cam.color_view);
             // cv::imshow("depth_img",cam.depth_view);
             // cv::imshow("depth_norm",cam.depth_norm);
-            cv::imshow("color_tape",cam.color_tape_view);
-            cv::imshow("color_tape_proc",cam.color_tape_proc);
+            // cv::imshow("color_tape",cam.color_tape_view);
+            // cv::imshow("color_tape_proc",cam.color_tape_proc);
             
             int key = cv::waitKey(30);
             if(key == 27) break;

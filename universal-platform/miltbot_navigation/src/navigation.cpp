@@ -409,6 +409,7 @@ void Navigation::runLiftNavigation() {
             ROS_INFO("Lift Navigation: Step 1");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             this->target_number = waitForIncomingLift();
+            // ROS_INFO("Target Number")
             //this->isDoneGoal = true;
             //this->lift_navigation_step++;
             //break;
@@ -517,16 +518,9 @@ void Navigation::runLiftNavigation() {
                     break;
                 }
             }
-            // this->waitUserInputLift();
             bool flag = false;
             int verify_door_fail = 0;
             while(ros::ok()) {
-                // if(verify_door_fail == 10000) {
-                //     ROS_WARN("Verify Lift Door Fail");
-                //     this->lift_navigation_step = 1;
-                //     this->isDoneGoal = true;
-                //     break;
-                // }
                 if(!this->verifyLiftDoor()) {
                     verify_door_fail++;
                     continue;
@@ -547,14 +541,19 @@ void Navigation::runLiftNavigation() {
                 // this->isDoneGoal = true;
                 // this->lift_navigation_step++;
                 // break;
-                initializeLiftForwardOutMoveBase();
+                this->initializeLiftForwardOutMoveBase();
             }
             break;
         }
         case 6: {
             ROS_INFO("Lift Navigation: Step 6");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
-            // this->waitUserInputLift();
+            this->initializeLiftRotateMoveBase();
+            break;
+        }
+        case 7: {
+            ROS_INFO("Lift Navigation: Step 7");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             bool flag = false;
             icreate_navigation::RunGmappingService srv;
             srv.request.task = "close";
@@ -565,11 +564,14 @@ void Navigation::runLiftNavigation() {
                 ROS_WARN("Failed to run gmapping");
             }
             if(flag) {
-                this->initializeLiftRotateMoveBase();
+                this->lift_navigation_step++;
+                this->isDoneGoal = true;
             }
             break;
         }
-        case 7: {
+        case 8: {
+            ROS_INFO("Lift Navigation: Step 8");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             // this->target_number = 2;
             this->navigation_case = 0;
             miltbot_map::SetMap srv2;
@@ -790,10 +792,14 @@ void Navigation::initializeLiftRotateMoveBase() {
     this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
     this->runMoveBase();
+    ROS_INFO("In ROtate Donegoal: %d",this->isDoneGoal);
+    ROS_INFO("Lift Nav Step: %d",this->lift_navigation_step);
+    this->isDoneGoal = false;
 }
 
 void Navigation::initializeLiftForwardOutMoveBase() {
     this->mid_range += 1.0;
+    // this->mid_range -= 0.5;
     move_base_msgs::MoveBaseGoal new_point;
     new_point.target_pose.pose.position.x = this->mid_range;
     new_point.target_pose.pose.orientation.w = 1;
@@ -808,6 +814,9 @@ void Navigation::initializeLiftForwardOutMoveBase() {
     this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
     this->runMoveBase();
+    ROS_INFO("Out Forward Donegoal: %d",this->isDoneGoal);
+    ROS_INFO("Lift Nav Step: %d",this->lift_navigation_step);
+    this->isDoneGoal = false;
 }
 
 void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state, 
@@ -884,7 +893,9 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
             }
             else {
                 ROS_INFO("Still Do Task");
-                this->setCurrentPosition("Current Position");
+                // if(this->current_state != "USINGLIFT") {
+                    this->setCurrentPosition("Current Position");
+                // }
                 this->fail_goal_count++;
             }
         }
