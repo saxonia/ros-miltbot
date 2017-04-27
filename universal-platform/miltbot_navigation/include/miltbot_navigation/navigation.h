@@ -7,11 +7,10 @@
 // #include "miltbot_navigation/move_base_data.h"
 
 #include "icreate_navigation/RunGmappingService.h"
-#include "miltbot_navigation/GetMiddleRange.h"
-
 #include "miltbot_common/WaypointList.h"
 #include "miltbot_map/GetWaypointList.h"
 #include "miltbot_map/SetMap.h"
+#include "miltbot_navigation/GetMiddleRange.h"
 #include "miltbot_navigation/NavigationState.h"
 #include "miltbot_navigation/IsLiftOpen.h"
 #include "miltbot_state/SetRobotState.h"
@@ -54,6 +53,10 @@ class Navigation {
         void addChargingQueue(miltbot_common::Waypoint data);
 
         void deleteChargingQueue(long id);
+
+        void addFailingQueue(miltbot_common::Waypoint data);
+
+        void deleteFailingQueue(long id);
 
         void setBuilding(std::string building);
 
@@ -167,6 +170,7 @@ class Navigation {
         std::vector<miltbot_common::Waypoint> default_queue;
         std::vector<miltbot_common::Waypoint> target_queue;
         std::vector<miltbot_common::Waypoint> charging_queue;
+        std::vector<miltbot_common::Waypoint> failing_queue;
         std::vector<miltbot_common::Waypoint> lifts;
         miltbot_common::Waypoint    currentPosition;
 

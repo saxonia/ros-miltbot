@@ -61,10 +61,11 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->isLiftNavigation = false;
     this->done_goal_number = -1;
     this->fail_goal_count = 0;
-    this->lift_navigation_step = 0;
+    this->lift_navigation_step = 2;
     this->mid_range = 0;
     this->lifts.clear();
     this->default_queue.clear();
+    this->failing_queue.clear();
     this->waitMoveBaseServer(move_base_wait_time_);
     this->setCurrentPosition("Current Position");
     this->sendWaypointRequest(building,building_floor + " Lift");
@@ -148,6 +149,25 @@ void Navigation::deleteChargingQueue(long id) {
         }
     }
     ROS_INFO("Charging Queue Size: %ld", charging_queue.size());
+}
+
+void Navigation::addFailingQueue(miltbot_common::Waypoint data) {
+    this->failing_queue.push_back(data);
+    ROS_INFO("Failing Queue Size: %ld", this->failing_queue.size());
+}
+
+void Navigation::deleteFailingQueue(long id) {
+    if(this->target.id == id) {
+        std::cout << "this queue is already run" << std::endl;
+        this->sendMoveBaseCancel();  
+    }
+    for(int i = 0;i < failing_queue.size(); i++) {
+        if(failing_queue[i].id == id) {
+            this->failing_queue.erase(this->failing_queue.begin() + i);
+            break;
+        }
+    }
+    ROS_INFO("Failing Queue Size: %ld", this->failing_queue.size());
 }
 
 void Navigation::setBuilding(std::string building) {
@@ -264,8 +284,8 @@ bool Navigation::update() {
                 if(this->target_queue.size() > 0) {
                     //เช็คว่าจุดหมายที่จะไปอยู่ชั้นเดียวกันมั้ย ถ้าอยู่ชั้นเดียวกันก็เซ็ตเลย ถ้าไม่ก็เซ็ต target ไปอยู่ที่ส่วนของ Lift
                     ROS_INFO("Before Check");
-                    // this->verifyTarget();
-                    this->isLiftNavigation = true;
+                    this->verifyTarget();
+                    // this->isLiftNavigation = true;
                     if(this->isLiftNavigation) {
                         ROS_INFO("After Check Yes");
                         this->runLiftNavigation();
@@ -408,7 +428,7 @@ void Navigation::runLiftNavigation() {
             //this->isDoneGoal = true;
 	        //this->lift_navigation_step++;
 	        //break;
-	    if(this->verifyFrontDoor()) {
+	        if(this->verifyFrontDoor()) {
                 ROS_INFO("Verify Front Lift Door OK");
                 while(ros::ok()) {
                     miltbot_navigation::GetMiddleRange srv;
@@ -431,6 +451,7 @@ void Navigation::runLiftNavigation() {
             }
             ROS_WARN("Before Error");
             this->isDoneGoal = true;
+            break;
         }
         //Step 3: Wait Lift Door Open & Move inside the lift
         case 3: {
@@ -447,7 +468,7 @@ void Navigation::runLiftNavigation() {
                 }
                 if(!this->verifyLiftDoor()) {
                     verify_door_fail++;
-                   continue;
+                    continue;
                 }
                 ROS_INFO("Verify Door Open OK");
                 icreate_navigation::RunGmappingService srv;
@@ -466,7 +487,7 @@ void Navigation::runLiftNavigation() {
                 // this->isDoneGoal = true;
                 // this->lift_navigation_step++;
                 // break;
-                initializeLiftForwardMoveBase();
+                this->initializeLiftForwardMoveBase();
             }
             break;
         }
@@ -568,6 +589,7 @@ void Navigation::runLiftNavigation() {
             else {
                ROS_WARN("Failed to run set map");
             }
+            break;
         }
     }
 }
@@ -662,7 +684,7 @@ int Navigation::waitForIncomingLift() {
 }
 
 bool Navigation::verifyFrontDoor() {
-    return true;
+    // return true;
     miltbot_vision::IsFrontLift srv;
     if(this->is_front_lift_client_.call(srv)) {
         return srv.response.is_front_lift;
@@ -856,6 +878,7 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
             if(this->fail_goal_count >= this->fail_goal_value_) {
                 ROS_INFO("Change Task");
                 this->setCurrentPosition("Current Position");
+                this->addFailingQueue(this->target_queue[0]);
                 this->deleteTargetQueue(this->target_queue[0].id);
                 this->fail_goal_count = 0;
             }
