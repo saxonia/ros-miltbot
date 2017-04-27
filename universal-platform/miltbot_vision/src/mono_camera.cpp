@@ -127,8 +127,8 @@ void MonoCamera::createTrackbars()
 	sprintf( TrackbarName, "V_MIN", V_MIN);
 	sprintf( TrackbarName, "V_MAX", V_MAX);
 
-	cv::createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
-	cv::createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar);
+	cv::createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, 128, on_trackbar);
+	cv::createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, 128, on_trackbar);
 	cv::createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar);
 	cv::createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar);
 	cv::createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar);
@@ -145,9 +145,9 @@ cv::Mat MonoCamera::deleteNoise(cv::Mat src, cv::Mat inRange) {
 	dilate(imgMorph,imgMorph,kernel1);
 	morphologyEx(imgMorph,imgMorph,MORPH_OPEN,kernel);*/
 
-	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(10,10));
+	cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8,8));
 	//dilate with larger element so make sure object is nicely visible
-	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8,8));
+	cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(10,10));
 
 	cv::erode(imgBitwise,imgMorph,erodeElement);
 	cv::erode(imgMorph,imgMorph,erodeElement);

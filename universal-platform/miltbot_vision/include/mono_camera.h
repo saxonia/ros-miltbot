@@ -89,11 +89,12 @@ class MonoCamera
         std::string is_front_lift_service_name_;
 
         int H_MIN = 42;
-        int H_MAX = 71;
-        // int S_MIN = 130;
-        int S_MIN = 60;
+        int H_MAX = 70;
+        int S_MIN = 115;
+        // int S_MIN = 60;
         int S_MAX = 255;
-        int V_MIN = 26;
+        // int V_MIN = 26;
+        int V_MIN = 32;
         int V_MAX = 255;
         const std::string trackbarWindowName = "Trackbars";
 
