@@ -61,7 +61,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->isLiftNavigation = false;
     this->done_goal_number = -1;
     this->fail_goal_count = 0;
-    this->lift_navigation_step = 2;
+    this->lift_navigation_step = 0;
     this->mid_range = 0;
     this->lifts.clear();
     this->default_queue.clear();
