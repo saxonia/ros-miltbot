@@ -4,7 +4,9 @@
 // #include <vector>
 #include <fstream>
 
+#include "miltbot_system/RobotList.h"
 #include "miltbot_system/GetRobotList.h"
+
 
 
 std::vector<std::string> robot_name_list;
@@ -72,18 +74,22 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     std::string get_robot_list_service_name("get_robot_list");
+    std::string robot_list_pub_topic_name("robot_list");
     std::string robot_list_file_name("robot_list.csv");
 
-    nh.param("get_robot_list_service",get_robot_list_service_name, get_robot_list_service_name);
-    nh.param("robot_list_file",robot_list_file_name, robot_list_file_name);
+    // nh.param("get_robot_list_service",get_robot_list_service_name, get_robot_list_service_name);
+    // nh.param("robot_list_file",robot_list_file_name, robot_list_file_name);
 
     loadRobot(robot_list_file_name);
-    // ros::Publisher pub = nh.advertise<miltbot_system::RobotList>(,1);
+    ros::Publisher pub = nh.advertise<miltbot_system::RobotList>(robot_list_pub_topic_name, 1);
     ros::ServiceServer service = nh.advertiseService(get_robot_list_service_name, getRobotListService);
     ros::Rate rate(30);
     while(ros::ok()) {
         ros::spinOnce();
         rate.sleep();
+        miltbot_system::RobotList robot_list;
+        robot_list.robot_list = robot_name_list;
+        pub.publish(robot_list);
     }
 
     return 0;

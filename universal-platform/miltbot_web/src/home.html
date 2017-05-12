@@ -32,6 +32,7 @@
       var building_floor;
       var building2;
       var building_floor2;
+      var robot_list;
 
       function showNavigationState(building, building_floor,idx) {
         var x = "";
@@ -45,6 +46,14 @@
         else if(idx == 1){
           document.getElementById("navigation_state2").innerHTML = x;
         }
+      }
+
+      function showNumOfRobot() {
+        var x = "";
+        x = x + "<p>";
+        x = x + robot_list.length + " ตัว" + "<br>";
+        x = x + "</p>";
+        document.getElementById("robot_count").innerHTML = x;
       }
 
       var navigation_state_sub = new ROSLIB.Topic({
@@ -66,7 +75,7 @@
         ros : ros,
         name : '/bot2/navigation_state',
         messageType : 'miltbot_navigation/NavigationState',
-        throttle_rate: 1000
+        throttle_rate : 1000
       });
 
       navigation_state2_sub.subscribe(function(message) {
@@ -75,6 +84,18 @@
         // console.log(target_queue);
         showNavigationState(building2, building_floor2,1)
         // target_queue_sub.unsubscribe();
+      });
+
+      var robot_list_sub = new ROSLIB.Topic({
+        ros : ros,
+        name : '/robot_list',
+        messageType : 'miltbot_system/RobotList',
+        throttle_rate : 1000
+      });
+
+      robot_list_sub.subscribe(function(message) {
+        robot_list = message.robot_list;
+        showNumOfRobot(robot_list);
       });
     </script>
 
@@ -104,14 +125,14 @@
             <div class="box">
               <h2 class="title is-5">Number of robots in the system</h2>
               <hr>
-              <p>2 ตัว</p>
+              <p id="robot_count"></p>
             </div>
           </div>
           <div class="column">
             <div class="box">
               <h2 class="title is-5">Number of floor in the system </h2>
               <hr>
-              <p>3 ชั้น</p>
+              <p>2 ชั้น</p>
             </div>
           </div>
           <!--<div class="column">
@@ -131,14 +152,14 @@
               <p id="navigation_state"></p>
             </div>
           </div>
-          <div class="column">
+          <!--<div class="column">
             <div class="box">
               <h2 class="title is-5">Robot2 Status</h2>
               <hr>
               <p id="navigation_state2"></p>
               
             </div>
-          </div>
+          </div>-->
         </div>
         <!--<div class="box">
               จำนวนชั้นที่มีในระบบ + ขื่อ
