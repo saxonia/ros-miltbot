@@ -8,11 +8,19 @@
     </node>
 
     <!--Map Server-->
-    <arg name="map2" default="build4_f20" />
+    <arg name="map2" default="build4_f19" />
     <node pkg="map_server" type="map_server" name="$(arg map2)_map_server" args="$(find miltbot_map)/map/$(arg map2).yaml" output="screen">
         <remap from="map" to="$(arg map2)/map" />
         <remap from="map_metadata" to="$(arg map2)/map_metadata" />
         <remap from="static_map" to="$(arg map2)/static_map" />
+    </node>
+
+    <!--Map Server-->
+    <arg name="map3" default="build4_f20" />
+    <node pkg="map_server" type="map_server" name="$(arg map3)_map_server" args="$(find miltbot_map)/map/$(arg map3).yaml" output="screen">
+        <remap from="map" to="$(arg map3)/map" />
+        <remap from="map_metadata" to="$(arg map3)/map_metadata" />
+        <remap from="static_map" to="$(arg map3)/static_map" />
     </node>
 
     <!--Map Server-->

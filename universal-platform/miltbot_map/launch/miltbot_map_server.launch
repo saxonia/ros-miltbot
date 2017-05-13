@@ -1,7 +1,8 @@
 <launch>
     <arg name="ns" default="" />
     <param name="map1_sub_topic" value="/build4_f17/map" type="string" />
-    <param name="map2_sub_topic" value="/build4_f20/map" type="string" />
+    <param name="map2_sub_topic" value="/build4_f19/map" type="string" />
+    <param name="map3_sub_topic" value="/build4_f20/map" type="string" />
     <param name="map_dynamic_sub_topic" value="map_dynamic" type="string" />
     <param name="premap_sub_topic" value="premap" type="string" />
     <param name="set_map_server_service" value="set_map_service" type="string" />

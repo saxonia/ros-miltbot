@@ -9,7 +9,6 @@
 #include "miltbot_map/SetMap.h"
 #include "miltbot_common/Waypoint.h"
 #include "miltbot_map/GetWaypointList.h"
-// #include "miltbot_navigation/move_base_data.h"
 
 #include <iostream>
 
@@ -19,6 +18,7 @@ std::string building_floor_req;
 std::vector<miltbot_common::Waypoint> lifts;
 nav_msgs::OccupancyGrid *map;
 nav_msgs::OccupancyGrid mapb4_f17;
+nav_msgs::OccupancyGrid mapb4_f19;
 nav_msgs::OccupancyGrid mapb4_f20;
 nav_msgs::OccupancyGrid map_dynamic;
 nav_msgs::OccupancyGrid premap;
@@ -30,30 +30,41 @@ ros::ServiceClient get_waypoint_list_client;
 int target_number = 0;
 int floor_flag = 0;
 bool pub_flag = false;
-bool pub_flag1 = false;
-bool pub_flag2 = false;
-bool pub_flag3 = false;
-bool pub_flag4 = false;
-bool get_map1 = true;
-bool get_map2 = true;
-bool get_map3 = true;
-bool get_map4 = true;
+// bool pub_flag1 = false;
+// bool pub_flag2 = false;
+// bool pub_flag3 = false;
+// bool pub_flag4 = false;
+bool pub_flag5 = false;
+// bool get_map1 = true;
+// bool get_map2 = true;
+// bool get_map3 = true;
+// bool get_map4 = true;
+bool get_map5 = true;
 
 void mapCallback(const nav_msgs::OccupancyGrid &msg) {
     // if(get_map1) {
         mapb4_f17 = msg;
         mapb4_f17.header.frame_id = frame_id;
         ROS_INFO("Map1: %d %s",mapb4_f17.info.width, frame_id.c_str());
-        pub_flag = true;
+        // pub_flag = true;
     // }
 }
 
 void mapCallback2(const nav_msgs::OccupancyGrid &msg) {
     // if(get_map2) {
+        mapb4_f19 = msg;
+        mapb4_f19.header.frame_id = frame_id;
+        ROS_INFO("Map2: %d %s",mapb4_f19.info.width, frame_id.c_str());
+        // pub_flag = true;
+    // }
+}
+
+void mapCallback3(const nav_msgs::OccupancyGrid &msg) {
+    // if(get_map2) {
         mapb4_f20 = msg;
         mapb4_f20.header.frame_id = frame_id;
-        ROS_INFO("Map2: %d %s",mapb4_f20.info.width, frame_id.c_str());
-        pub_flag = true;
+        ROS_INFO("Map3: %d %s",mapb4_f20.info.width, frame_id.c_str());
+        // pub_flag = true;
     // }
 }
 
@@ -61,17 +72,17 @@ void mapDynamicCallback(const nav_msgs::OccupancyGrid &msg) {
     map_dynamic = msg;
     map_dynamic.header.frame_id = frame_id;
     ROS_INFO("Map Dynamic: %d",map_dynamic.info.width);
-    pub_flag3 = true;
+    // pub_flag4 = true;
     pub_flag = true;
 }
 
 void premapCallback(const nav_msgs::OccupancyGrid &msg) {
-    if(get_map4) {
+    if(get_map5) {
         premap = msg;
         premap.header.frame_id = frame_id;
         ROS_INFO("Pre Map : %d %s",premap.info.width, frame_id.c_str());
-        pub_flag4 = true;
-        get_map4 = false;
+        pub_flag5 = true;
+        get_map5 = false;
         pub_flag = true;
     }
 }
@@ -166,7 +177,8 @@ int main(int argc, char** argv) {
 
     std::string map_list("map_list.csv");
     std::string map1_sub_topic_name("/build4_f17/map");
-    std::string map2_sub_topic_name("/build4_f20/map");
+    std::string map2_sub_topic_name("/build4_f19/map");
+    std::string map3_sub_topic_name("/build4_f20/map");
     std::string map_dynamic_sub_topic_name("map_dynamic");
     std::string premap_sub_topic_name("premap");
     std::string set_map_server_service_name("set_map_service");
@@ -180,6 +192,7 @@ int main(int argc, char** argv) {
 
     nh.param("map1_sub_topic", map1_sub_topic_name, map1_sub_topic_name);
     nh.param("map2_sub_topic", map2_sub_topic_name, map2_sub_topic_name);
+    nh.param("map3_sub_topic", map3_sub_topic_name, map3_sub_topic_name);
     nh.param("map_dynamic_sub_topic", map_dynamic_sub_topic_name, map_dynamic_sub_topic_name);
     nh.param("premap_sub_topic", premap_sub_topic_name, premap_sub_topic_name);
     nh.param("set_map_server_service", set_map_server_service_name, set_map_server_service_name);
@@ -196,6 +209,7 @@ int main(int argc, char** argv) {
     
     ros::Subscriber map_sub = nh.subscribe(map1_sub_topic_name, 1, mapCallback);
     ros::Subscriber map_sub2 = nh.subscribe(map2_sub_topic_name, 1, mapCallback2);
+    ros::Subscriber map_sub3 = nh.subscribe(map3_sub_topic_name, 1, mapCallback3);
     ros::Subscriber map_dynamic_sub = nh.subscribe(map_dynamic_sub_topic_name, 1, mapDynamicCallback);
     ros::Subscriber premap_sub = nh.subscribe(premap_sub_topic_name, 1, premapCallback);
     ros::ServiceServer service = nh.advertiseService(set_map_server_service_name, setMapService);
