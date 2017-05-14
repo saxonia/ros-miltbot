@@ -172,6 +172,9 @@ void loadWaypoint(ros::NodeHandle &nh) {
     std::string building_floor = "Floor 20";
     callGetWaypointService(nh, building, building_floor);
     building = "Building 4";
+    building_floor = "Floor 19";
+    callGetWaypointService(nh, building, building_floor);
+    building = "Building 4";
     building_floor = "Floor 17";
     callGetWaypointService(nh, building, building_floor);
 }

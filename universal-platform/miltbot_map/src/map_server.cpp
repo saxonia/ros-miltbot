@@ -150,6 +150,13 @@ bool setMapService(miltbot_map::SetMap::Request &req, miltbot_map::SetMap::Respo
         map = &mapb4_f20;
         if(!callSetMapClientService()) return false;
     }
+    else if(building_floor_req == "Floor 19" || building_floor_req == "Floor 19 Lift") {
+        map = &mapb4_f19;
+        if(!callSetMapClientService()) {
+            ROS_INFO("Good 19");
+            return false;
+        } 
+    }
     else if(building_floor_req == "Floor 17" || building_floor_req == "Floor 17 Lift") {
         map = &mapb4_f17;
         if(!callSetMapClientService()) {

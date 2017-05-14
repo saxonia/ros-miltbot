@@ -29,21 +29,26 @@
     <!-- ~odom_alpha1 (double, default: 0.2)
     Specifies the expected noise in odometry's rotation estimate from the rotational component of the robot's motion. -->
     <param name="odom_alpha1"               value="2.0"/>
+    <!--<param name="odom_alpha1"               value="1.0"/>-->
 
     <!-- ~odom_alpha2 (double, default: 0.2)
     Specifies the expected noise in odometry's rotation estimate from translational component of the robot's motion. -->
     <param name="odom_alpha2"               value="2.0"/>
+    <!--<param name="odom_alpha2"               value="2.0"/>-->
 
     <!-- ~odom_alpha3 (double, default: 0.2)
     Specifies the expected noise in odometry's translation estimate from the translational component of the robot's motion. -->
     <param name="odom_alpha3"               value="0.5"/>
+    <!--<param name="odom_alpha3"               value="0.3"/>-->
 
     <!-- ~odom_alpha4 (double, default: 0.2)
     Specifies the expected noise in odometry's translation estimate from the rotational component of the robot's motion. -->
     <param name="odom_alpha4"               value="0.5"/>
+    <!--<param name="odom_alpha4"               value="0.3"/>-->
 
     <!-- Publish scans from best pose at a max of 10 Hz -->
     <param name="gui_publish_rate"          value="15.0"/>
+    <!--<param name="gui_publish_rate"          value="10.0"/>-->
 
     <!-- How many evenly-spaced beams in each scan to be used when updating the filter.     -->
     <param name="laser_max_beams"           value="60"/>
@@ -52,12 +57,15 @@
     <param name="laser_max_range"           value="12.0"/>
     <param name="min_particles"             value="100"/>
     <param name="max_particles"             value="300"/>
+    <!--<param name="max_particles"             value="1000"/>-->
     <param name="kld_err"                   value="0.01"/>
     <param name="kld_z"                     value="0.99"/>
     
     <!--The beam model uses all 4: z_hit, z_short, z_max, and z_rand. The likelihood_field model uses only 2: z_hit and z_rand-->
     <param name="laser_z_hit"               value="0.96"/>
-    <param name="laser_z_short"             value="0.1"/>
+    <!--<param name="laser_z_hit"               value="0.5"/>-->
+    <!--<param name="laser_z_short"             value="0.1"/>-->
+    <param name="laser_z_short"             value="0.05"/>
     <param name="laser_z_max"               value="0.05"/>
     <param name="laser_z_rand"              value="0.05"/>
     <param name="laser_sigma_hit"           value="0.2"/>
