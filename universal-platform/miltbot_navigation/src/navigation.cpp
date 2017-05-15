@@ -59,6 +59,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->isSystemRecoveryNavigation = false;
     this->isDoneGoal = true;
     this->isLiftNavigation = false;
+    this->isRetry = false;
     this->done_goal_number = -1;
     this->fail_goal_count = 0;
     this->lift_navigation_step = 0;
@@ -395,9 +396,11 @@ void Navigation::runLiftNavigation() {
             // this->isDoneGoal = true;
             // this->lift_navigation_step++;
             // break;
-            miltbot_common::Waypoint data = this->lifts.back();
-            data.task = "USINGLIFT";
-            this->target_queue.insert(this->target_queue.begin(), data);
+            if(!this->isRetry) {
+                miltbot_common::Waypoint data = this->lifts.back();
+                data.task = "USINGLIFT";
+                this->target_queue.insert(this->target_queue.begin(), data);
+            }
             this->setRobotTarget(this->target_queue[0]);
             this->sendStateRequest(this->target_queue[0].task);
             this->setRobotGoal(this->base_frame_id);
@@ -408,14 +411,16 @@ void Navigation::runLiftNavigation() {
         case 1: {
             ROS_INFO("Lift Navigation: Step 1");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
-            this->target_number = waitForIncomingLift();
-            // ROS_INFO("Target Number")
-            //this->isDoneGoal = true;
-            //this->lift_navigation_step++;
-            //break;
-            miltbot_common::Waypoint data = this->lifts[this->target_number];
-            data.task = "USINGLIFT";
-            this->target_queue.insert(this->target_queue.begin(), data);
+            if(!this->isRetry) {
+                this->target_number = waitForIncomingLift();
+                // ROS_INFO("Target Number")
+                //this->isDoneGoal = true;
+                //this->lift_navigation_step++;
+                //break;
+                miltbot_common::Waypoint data = this->lifts[this->target_number];
+                data.task = "USINGLIFT";
+                this->target_queue.insert(this->target_queue.begin(), data);
+            }
             this->setRobotTarget(this->target_queue[0]);
             this->setRobotGoal(this->base_frame_id);
             this->sendStateRequest(this->target_queue[0].task);
@@ -426,6 +431,7 @@ void Navigation::runLiftNavigation() {
         case 2: {
             ROS_INFO("Lift Navigation: Step 2");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
+            // this->target_number = 1;
             //this->isDoneGoal = true;
 	        //this->lift_navigation_step++;
 	        //break;
@@ -435,14 +441,28 @@ void Navigation::runLiftNavigation() {
                     miltbot_navigation::GetMiddleRange srv;
                     if(get_middle_range_client_.call(srv)) {
                         this->mid_range = srv.response.mid_range;
+                        this->fail_goal_count = 0;
+                        this->isRetry = false;
+                        if(this->mid_range < 100.0) {
+                            ROS_INFO("Range OK");
+                            break;
+                        }
                     }
                     else {
                         ROS_ERROR("Fail to call Service get_depth_distance");
-                    }
-                    if(this->mid_range < 100.0) {
-                        ROS_INFO("Range OK");
-                        break;
-                    }
+                        if(this->fail_goal_count >= this->fail_goal_value_) {
+                            ROS_INFO("Change Task");
+                            this->addFailingQueue(this->target_queue[0]);
+                            this->deleteTargetQueue(this->target_queue[0].id);
+                            this->fail_goal_count = 0;
+                            this->isRetry = false;
+                        }
+                        else {
+                            ROS_INFO("Still Do Task");
+                            this->isRetry = true;
+                            this->fail_goal_count++;
+                        }
+                    }  
                 }
                 this->lift_navigation_step++;
             }
@@ -484,26 +504,25 @@ void Navigation::runLiftNavigation() {
                 break;
             }
             if(flag) {
-                ROS_INFO("Finish run Gmapping");
-                // this->isDoneGoal = true;
-                // this->lift_navigation_step++;
-                // break;
-                this->initializeLiftForwardMoveBase();
+                this->lift_navigation_step++;
             }
+            this->isDoneGoal = true;
             break;
         }
         case 4: {
             ROS_INFO("Lift Navigation: Step 4");
-            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
-            // this->waitUserInputLift();
-            // this->isDoneGoal = true;
-            // this->lift_navigation_step++;
-            // break;
-            this->initializeLiftRotateMoveBase();
+            ROS_INFO("Finish run Gmapping");
+            this->initializeLiftForwardMoveBase();
             break;
         }
         case 5: {
             ROS_INFO("Lift Navigation: Step 5");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
+            this->initializeLiftRotateMoveBase();
+            break;
+        }
+        case 6: {
+            ROS_INFO("Lift Navigation: Step 6");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             while(ros::ok()) {
                 miltbot_navigation::GetMiddleRange srv;
@@ -538,21 +557,24 @@ void Navigation::runLiftNavigation() {
                 break;
             }
             if(flag) {
-                // this->isDoneGoal = true;
-                // this->lift_navigation_step++;
-                // break;
-                this->initializeLiftForwardOutMoveBase();
+                this->lift_navigation_step++;
             }
-            break;
-        }
-        case 6: {
-            ROS_INFO("Lift Navigation: Step 6");
-            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
-            this->initializeLiftRotateMoveBase();
+            this->isDoneGoal = true;
             break;
         }
         case 7: {
             ROS_INFO("Lift Navigation: Step 7");
+            this->initializeLiftForwardOutMoveBase();
+            break;
+        }
+        case 8: {
+            ROS_INFO("Lift Navigation: Step 8");
+            ROS_INFO("isDonegoal: %d",this->isDoneGoal);
+            this->initializeLiftRotateMoveBase();
+            break;
+        }
+        case 9: {
+            ROS_INFO("Lift Navigation: Step 9");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             bool flag = false;
             icreate_navigation::RunGmappingService srv;
@@ -565,12 +587,12 @@ void Navigation::runLiftNavigation() {
             }
             if(flag) {
                 this->lift_navigation_step++;
-                this->isDoneGoal = true;
             }
+            this->isDoneGoal = true;
             break;
         }
-        case 8: {
-            ROS_INFO("Lift Navigation: Step 8");
+        case 10: {
+            ROS_INFO("Lift Navigation: Step 10");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             // this->target_number = 2;
             this->navigation_case = 0;
@@ -587,6 +609,7 @@ void Navigation::runLiftNavigation() {
                 this->lift_navigation_step = 0;
                 this->isDoneGoal = true;
                 this->setCurrentPosition("Current Position");
+                this->sendWaypointRequest(this->building, this->building_floor + " Lift");
             }
             else {
                ROS_WARN("Failed to run set map");
@@ -612,7 +635,7 @@ void Navigation::clearCostmap() {
 }
 
 void Navigation::timerCallback(const ros::TimerEvent &event) {
-    ROS_INFO("[TimerCallback] clear costmap");
+    // ROS_INFO("[TimerCallback] clear costmap");
 	this->clearCostmap();
 }
 
@@ -689,10 +712,24 @@ bool Navigation::verifyFrontDoor() {
     // return true;
     miltbot_vision::IsFrontLift srv;
     if(this->is_front_lift_client_.call(srv)) {
+        this->fail_goal_count = 0;
+        this->isRetry = false;
         return srv.response.is_front_lift;
     }
     else {
         ROS_ERROR("Fail to call Service is_front_lift");
+        if(this->fail_goal_count >= this->fail_goal_value_) {
+            ROS_INFO("Change Task");
+            this->addFailingQueue(this->target_queue[0]);
+            this->deleteTargetQueue(this->target_queue[0].id);
+            this->fail_goal_count = 0;
+            this->isRetry = false;
+        }
+        else {
+            ROS_INFO("Still Do Task");
+            this->isRetry = true;
+            this->fail_goal_count++;
+        }
         return false;
     }
 }
@@ -743,32 +780,34 @@ bool Navigation::waitUserInputLift() {
 
 void Navigation::initializeLiftForwardMoveBase() {
     ROS_INFO("Start Run Forward");
-    while(ros::ok()) {
-        miltbot_navigation::GetMiddleRange srv;
-        if(get_middle_range_client_.call(srv)) {
-            this->mid_range = srv.response.mid_range;
+    if(!this->isRetry) {
+        while(ros::ok()) {
+            miltbot_navigation::GetMiddleRange srv;
+            if(get_middle_range_client_.call(srv)) {
+                this->mid_range = srv.response.mid_range;
+            }
+            else {
+                ROS_ERROR("Fail to call Service get_depth_distance");
+            }
+            if(this->mid_range < 100.0) {
+                ROS_INFO("Range OK");
+                break;
+            }
         }
-        else {
-            ROS_ERROR("Fail to call Service get_depth_distance");
-        }
-        if(this->mid_range < 100.0) {
-            ROS_INFO("Range OK");
-            break;
-        }
+        ROS_INFO("Get Mid Range data: %f",mid_range);
+        this->mid_range -= 0.5;
+        move_base_msgs::MoveBaseGoal new_point;
+        new_point.target_pose.pose.position.x = mid_range;
+        new_point.target_pose.pose.orientation.w = 1;
+        miltbot_common::Waypoint data;
+        data.name = "Going To Lift";
+        data.building = this->building;
+        data.building_floor = this->building_floor_lift;
+        data.goal = new_point;
+        data.task = "USINGLIFT";
+        this->target_queue.insert(this->target_queue.begin(),data);
+        ROS_INFO("In Forward Target Size: %ld",this->target_queue.size());
     }
-    ROS_INFO("Get Mid Range data: %f",mid_range);
-    this->mid_range -= 0.5;
-    move_base_msgs::MoveBaseGoal new_point;
-    new_point.target_pose.pose.position.x = mid_range;
-    new_point.target_pose.pose.orientation.w = 1;
-    miltbot_common::Waypoint data;
-    data.name = "Going To Lift";
-    data.building = this->building;
-    data.building_floor = this->building_floor_lift;
-    data.goal = new_point;
-    data.task = "USINGLIFT";
-    this->target_queue.insert(this->target_queue.begin(),data);
-    ROS_INFO("In Forward Target Size: %ld",this->target_queue.size());
     this->setRobotTarget(this->target_queue[0]);
     this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
@@ -778,16 +817,18 @@ void Navigation::initializeLiftForwardMoveBase() {
 }
 
 void Navigation::initializeLiftRotateMoveBase() {
-    move_base_msgs::MoveBaseGoal new_point;
-    new_point.target_pose.pose.orientation.z = -1.0;
-    new_point.target_pose.pose.orientation.w = 0.0;
-    miltbot_common::Waypoint data;
-    data.name = "Rotate In Lift";
-    data.building = this->building;
-    data.building_floor = this->building_floor_lift;
-    data.goal = new_point;
-    data.task = "USINGLIFT";
-    this->target_queue.insert(this->target_queue.begin(), data);
+    if(!this->isRetry) {
+        move_base_msgs::MoveBaseGoal new_point;
+        new_point.target_pose.pose.orientation.z = -1.0;
+        new_point.target_pose.pose.orientation.w = 0.0;
+        miltbot_common::Waypoint data;
+        data.name = "Rotate In Lift";
+        data.building = this->building;
+        data.building_floor = this->building_floor_lift;
+        data.goal = new_point;
+        data.task = "USINGLIFT";
+        this->target_queue.insert(this->target_queue.begin(), data);
+    }
     this->setRobotTarget(this->target_queue[0]);
     this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
@@ -798,18 +839,20 @@ void Navigation::initializeLiftRotateMoveBase() {
 }
 
 void Navigation::initializeLiftForwardOutMoveBase() {
-    this->mid_range += 1.0;
-    // this->mid_range -= 0.5;
-    move_base_msgs::MoveBaseGoal new_point;
-    new_point.target_pose.pose.position.x = this->mid_range;
-    new_point.target_pose.pose.orientation.w = 1;
-    miltbot_common::Waypoint data;
-    data.name = "Going Out Lift";
-    data.building = this->building;
-    data.building_floor = this->building_floor_lift;
-    data.goal = new_point;
-    data.task = "USINGLIFT";
-    this->target_queue.insert(this->target_queue.begin(),data);
+    if(!this->isRetry) {
+        this->mid_range += 1.0;
+        // this->mid_range -= 0.5;
+        move_base_msgs::MoveBaseGoal new_point;
+        new_point.target_pose.pose.position.x = this->mid_range;
+        new_point.target_pose.pose.orientation.w = 1;
+        miltbot_common::Waypoint data;
+        data.name = "Going Out Lift";
+        data.building = this->building;
+        data.building_floor = this->building_floor_lift;
+        data.goal = new_point;
+        data.task = "USINGLIFT";
+        this->target_queue.insert(this->target_queue.begin(),data);
+    }
     this->setRobotTarget(this->target_queue[0]);
     this->sendStateRequest(this->target_queue[0].task);
     this->setRobotGoal(this->robot_frame_id);
@@ -871,6 +914,7 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
         else {
 
         }
+        this->isRetry = false;
 	}
 	else if(state.state_ == actionlib::SimpleClientGoalState::REJECTED) {
 		ROS_INFO("REJECTED");
@@ -890,12 +934,14 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
                 this->addFailingQueue(this->target_queue[0]);
                 this->deleteTargetQueue(this->target_queue[0].id);
                 this->fail_goal_count = 0;
+                this->isRetry = false;
             }
             else {
                 ROS_INFO("Still Do Task");
                 // if(this->current_state != "USINGLIFT") {
                     this->setCurrentPosition("Current Position");
                 // }
+                this->isRetry = true;
                 this->fail_goal_count++;
             }
         }

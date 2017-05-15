@@ -166,6 +166,7 @@ class Navigation {
         bool isSystemRecoveryNavigation;
         bool isDoneGoal;
         bool isLiftNavigation;
+        bool isRetry;
 
         std::vector<miltbot_common::Waypoint> default_queue;
         std::vector<miltbot_common::Waypoint> target_queue;

@@ -94,8 +94,10 @@ std::string robotState::convertToStateName(int state) {
             break;
         case 7:
             stateName = "USINGLIFT";
+            break;
         case 8:
             stateName = "BACKTOCHARGE";
+            break;
     }
     return stateName;
 }
