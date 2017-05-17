@@ -30,15 +30,17 @@
       
       var building;
       var building_floor;
+      var status;
       var building2;
       var building_floor2;
       var robot_list;
 
-      function showNavigationState(building, building_floor,idx) {
+      function showNavigationState(message, idx) {
         var x = "";
         x = x + "<p>";
-        x = x + "Current Building: " + building + "<br>";
-        x = x + "Current Floor: " + building_floor + "<br>";
+        x = x + "Current Building: " + message.building + "<br>";
+        x = x + "Current Floor: " + message.building_floor + "<br>";
+        x = x + "Current Status: " + message.status + "<br>";
         x = x + "</p>";
         if(idx == 0) {
           document.getElementById("navigation_state").innerHTML = x;
@@ -67,7 +69,7 @@
         building = message.building;
         building_floor = message.building_floor;
         // console.log(target_queue);
-        showNavigationState(building, building_floor,0)
+        showNavigationState(message, 0)
         // target_queue_sub.unsubscribe();
       });
 
@@ -82,7 +84,7 @@
         building2 = message.building;
         building_floor2 = message.building_floor;
         // console.log(target_queue);
-        showNavigationState(building2, building_floor2,1)
+        showNavigationState(message, 1)
         // target_queue_sub.unsubscribe();
       });
 

@@ -181,6 +181,7 @@ class Navigation {
         std::string building;
         std::string building_floor;
         std::string building_floor_lift;
+        std::string status;
 
         int navigation_case;
         int lift_navigation_step;

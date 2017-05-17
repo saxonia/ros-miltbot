@@ -28,8 +28,8 @@
 
     <!-- ~odom_alpha1 (double, default: 0.2)
     Specifies the expected noise in odometry's rotation estimate from the rotational component of the robot's motion. -->
-    <param name="odom_alpha1"               value="2.0"/>
-    <!--<param name="odom_alpha1"               value="1.0"/>-->
+    <!--<param name="odom_alpha1"               value="2.0"/>-->
+    <param name="odom_alpha1"               value="1.0"/>
 
     <!-- ~odom_alpha2 (double, default: 0.2)
     Specifies the expected noise in odometry's rotation estimate from translational component of the robot's motion. -->
@@ -51,19 +51,20 @@
     <!--<param name="gui_publish_rate"          value="10.0"/>-->
 
     <!-- How many evenly-spaced beams in each scan to be used when updating the filter.     -->
-    <param name="laser_max_beams"           value="60"/>
+    <param name="laser_max_beams"           value="90"/>
 
     <!-- Maximum scan range to be considered; -1.0 will cause the laser's reported maximum range to be used. -->
     <param name="laser_max_range"           value="12.0"/>
-    <param name="min_particles"             value="100"/>
-    <param name="max_particles"             value="300"/>
-    <!--<param name="max_particles"             value="1000"/>-->
+    <!--<param name="min_particles"             value="100"/>-->
+    <param name="min_particles"             value="300"/>
+    <!--<param name="max_particles"             value="300"/>-->
+    <param name="max_particles"             value="1000"/>
     <param name="kld_err"                   value="0.01"/>
     <param name="kld_z"                     value="0.99"/>
     
     <!--The beam model uses all 4: z_hit, z_short, z_max, and z_rand. The likelihood_field model uses only 2: z_hit and z_rand-->
-    <param name="laser_z_hit"               value="0.96"/>
-    <!--<param name="laser_z_hit"               value="0.5"/>-->
+    <!--<param name="laser_z_hit"               value="0.96"/>-->
+    <param name="laser_z_hit"               value="0.5"/>
     <!--<param name="laser_z_short"             value="0.1"/>-->
     <param name="laser_z_short"             value="0.05"/>
     <param name="laser_z_max"               value="0.05"/>
@@ -78,7 +79,8 @@
     <param name="odom_frame_id"             value="$(arg odom_frame_id)"/>
     <param name="base_frame_id"             value="$(arg base_frame_id)"/>
     <param name="global_frame_id"           value="$(arg global_frame_id)"/>
-    <param name="resample_interval"         value="2"/>
+    <!--<param name="resample_interval"         value="2"/>-->
+    <param name="resample_interval"         value="1"/>
 
     <!-- Increase tolerance because the computer can get quite busy -->
     <param name="transform_tolerance"       value="0.1"/>

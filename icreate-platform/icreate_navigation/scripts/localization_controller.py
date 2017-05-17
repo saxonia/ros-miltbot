@@ -65,7 +65,8 @@ def gmapping_start():
     #Set Dynamic Reconfigure for Move Base
     client = dynamic_reconfigure.client.Client("move_base/DWAPlannerROS")
     params = {'max_vel_x' : 0.7,
-              'min_vel_x' : 0.4,
+            #   'min_vel_x' : 0.4,
+              'min_vel_x' : 0.15,
               'max_trans_vel' : 1.0,
               'min_trans_vel' : 0.1
              }

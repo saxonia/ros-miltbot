@@ -179,8 +179,10 @@ bool MonoCamera::verifyLiftDoor() {
 		// 	putText(res,color,Point(x-20,y-30),1,1,Scalar(255,255,255));
 		// 	putText(src,color,Point(x-20,y-30),1,1,Scalar(0,0,0));
 		// }
+		ROS_INFO("Verify True");
         return true;
 	}
+	ROS_INFO("Verify False");
     return false;
 }
 
@@ -190,8 +192,8 @@ void on_trackbar( int, void* ) {
 
 bool MonoCamera::isFrontLiftService(miltbot_vision::IsFrontLift::Request &req,
                         miltbot_vision::IsFrontLift::Response &res) {
-	res.is_front_lift = true;
-    // res.is_front_lift = detectColorTape(this->color_view);
+	// res.is_front_lift = true;
+    res.is_front_lift = detectColorTape(this->color_view);
     return true;
 }
 
