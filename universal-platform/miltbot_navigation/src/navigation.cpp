@@ -910,7 +910,7 @@ void Navigation::goalDoneCallback(const actionlib::SimpleClientGoalState &state,
 
         }
         this->isRetry = false;
-        this->status = "Normal"
+        this->status = "Normal";
 	}
 	else if(state.state_ == actionlib::SimpleClientGoalState::REJECTED) {
 		ROS_INFO("REJECTED");
