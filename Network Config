@@ -1,0 +1,12 @@
+export ROS_MASTER_URI=http://localhost:11312
+export ROS_MASTER_URI=http://localhost:11313
+export ROS_MASTER_URI=http://localhost:11314
+
+ZyXEL
+B0:B2:DC:DD:D0:8C
+
+LoopComm
+00:1A:EF:36:9B:C8
+
+ASUS
+70:4D:7B:5A:E5:58
