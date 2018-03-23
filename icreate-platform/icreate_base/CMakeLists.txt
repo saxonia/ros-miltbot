@@ -10,6 +10,10 @@ find_package(catkin REQUIRED COMPONENTS
   miltbot_system
   serial
   actionlib
+  create_node
+  miltbot_common
+  miltbot_map
+  miltbot_navigation
 )
 
 ## System dependencies are found with CMake's conventions

@@ -2,7 +2,7 @@
 // #include "miltbot_navigation/RunMoveBase.h"
 
 #include "miltbot_navigation/GetMiddleRange.h"
-#include "icreate_navigation/RunGmappingService.h"
+#include "miltbot_navigation/RunGmappingService.h"
 
 ros::ServiceClient get_middle_range_client_;
 ros::ServiceClient run_gmapping_client_;
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     
     std::string run_gmapping_service_name_("run_gmapping");
     std::string get_middle_range_service_name_("get_middle_range");
-    this->run_gmapping_client_ = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
+    this->run_gmapping_client_ = nh_.serviceClient<miltbot_navigation::RunGmappingService>(run_gmapping_service_name_);
     this->get_middle_range_client_ = nh_.serviceClient<miltbot_navigation::GetMiddleRange>(get_middle_range_service_name_);
 
     lift_navigation_step = 2;
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
                         continue;
                     }
                     ROS_INFO("Verify Door Open OK");
-                    icreate_navigation::RunGmappingService srv;
+                    miltbot_navigation::RunGmappingService srv;
                     srv.request.task = "open";
                     if(run_gmapping_client_.call(srv)) {
                         flag = srv.response.success;
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
                         continue;
                     }
                     ROS_INFO("Verify Door Open OK");
-                    icreate_navigation::RunGmappingService srv;
+                    miltbot_navigation::RunGmappingService srv;
                     srv.request.task = "restart";
                     if(run_gmapping_client_.call(srv)) {
                         flag = srv.response.success;
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
                 ROS_INFO("isDonegoal: %d",this->isDoneGoal);
                 // this->waitUserInputLift();
                 bool flag = false;
-                icreate_navigation::RunGmappingService srv;
+                miltbot_navigation::RunGmappingService srv;
                 srv.request.task = "close";
                 if(run_gmapping_client_.call(srv)) {
                     flag = srv.response.success;

@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
     miltbot_state
     miltbot_map
     message_generation
+    miltbot_navigation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -127,6 +128,7 @@ add_definitions(-std=c++11)
 include_directories(
     include 
     ${catkin_INCLUDE_DIRS}
+    
 )
 
 ## Declare a C++ library
@@ -139,6 +141,7 @@ add_library(robot src/robot.cpp src/single_navigation.cpp src/multi_navigation.c
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(icreate_navigation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(robot ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 # add_executable(icreate_navigation_node src/icreate_navigation_node.cpp)
@@ -155,7 +158,12 @@ add_executable(multi_navigation_test test/multi_navigation_test.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(icreate_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# add_dependencies(two_point_navigation_pubsub std_msgs_generate_messages_cpp)
+add_dependencies(waypoint_navigation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(multifloor_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(multifloor_navigation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(multifloor_test_new ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(single_navigation_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(multi_navigation_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(icreate_navigation_node

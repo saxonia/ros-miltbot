@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
     move_base_msgs
     actionlib_msgs
     geometry_msgs
-    miltbot_navigation
     miltbot_common
 )
 
@@ -91,7 +90,6 @@ generate_messages(
     DEPENDENCIES
     std_msgs
     move_base_msgs
-    miltbot_map
     miltbot_common
 )
 
@@ -127,7 +125,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES miltbot_map
-#  CATKIN_DEPENDS other_catkin_pkg
+ CATKIN_DEPENDS miltbot_common
 #  DEPENDS system_lib
 # CATKIN_DEPENDS message_runtime   
 )
@@ -155,6 +153,7 @@ add_library(map src/map.cpp)
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(miltbot_map ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(map ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 # add_executable(miltbot_map_node src/miltbot_map_node.cpp)
@@ -167,13 +166,17 @@ add_executable(maps_server_test test/maps_server_test.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(miltbot_map_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(waypoint_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(get_path_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(map_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(maps_server_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(miltbot_map_node
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(waypoint_server ${catkin_LIBRARIES} map)
-target_link_libraries(map_server ${catkin_LIBRARIES} navigation)
+target_link_libraries(map_server ${catkin_LIBRARIES})
 target_link_libraries(get_path_test ${catkin_LIBRARIES})
 
 target_link_libraries(maps_server_test ${catkin_LIBRARIES})

@@ -12,7 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   move_base_msgs
   actionlib_msgs
   geometry_msgs
-  miltbot_navigation
+  miltbot_common
+  miltbot_map
   message_generation
 )
 
@@ -162,6 +163,8 @@ add_executable(robot_server src/robot_server.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(miltbot_system_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(simple_fleet_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(robot_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(miltbot_system_node

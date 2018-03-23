@@ -83,7 +83,7 @@ Navigation::Navigation(std::string base_frame_id, std::string robot_frame_id, st
     this->run_charging_navigation_service_server = nh_.advertiseService(this->run_charging_navigation_service_name_, &Navigation::runChargingNavigationService, this);
     this->clear_costmap_client_ = nh_.serviceClient<std_srvs::Empty>(clear_costmap_service_name_);
     this->set_robot_state_client_ = nh_.serviceClient<miltbot_state::SetRobotState>(set_robot_state_service_name_);
-    this->run_gmapping_client_ = nh_.serviceClient<icreate_navigation::RunGmappingService>(run_gmapping_service_name_);
+    this->run_gmapping_client_ = nh_.serviceClient<miltbot_navigation::RunGmappingService>(run_gmapping_service_name_);
     this->get_middle_range_client_ = nh_.serviceClient<miltbot_navigation::GetMiddleRange>(get_middle_range_service_name_);
     this->set_map_service_client_ = nh_.serviceClient<miltbot_map::SetMap>(set_map_service_name_);
     this->run_transportation_client_ = nh_.serviceClient<miltbot_transportation::RunTransportation>(run_transportation_service_name_);
@@ -495,7 +495,7 @@ void Navigation::runLiftNavigation() {
                     continue;
                 }
                 ROS_INFO("Verify Door Open OK");
-                icreate_navigation::RunGmappingService srv;
+                miltbot_navigation::RunGmappingService srv;
                 srv.request.task = "open";
                 if(run_gmapping_client_.call(srv)) {
                     flag = srv.response.success;
@@ -549,7 +549,7 @@ void Navigation::runLiftNavigation() {
                     continue;
                 }
                 ROS_INFO("Verify Door Open OK");
-                icreate_navigation::RunGmappingService srv;
+                miltbot_navigation::RunGmappingService srv;
                 srv.request.task = "restart";
                 if(run_gmapping_client_.call(srv)) {
                     flag = srv.response.success;
@@ -581,7 +581,7 @@ void Navigation::runLiftNavigation() {
             ROS_INFO("Lift Navigation: Step 9");
             ROS_INFO("isDonegoal: %d",this->isDoneGoal);
             bool flag = false;
-            icreate_navigation::RunGmappingService srv;
+            miltbot_navigation::RunGmappingService srv;
             srv.request.task = "close";
             if(run_gmapping_client_.call(srv)) {
                 flag = srv.response.success;

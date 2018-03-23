@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   icreate_navigation
   miltbot_state
+  miltbot_map
+  miltbot_navigation
 )
 
 
@@ -107,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES icreate_lift_navigation
-LIBRARIES robot
+# LIBRARIES robot
 #  CATKIN_DEPENDS roscpp rospy std_msgs icreate_navigation
 #  DEPENDS system_lib
 )
@@ -138,18 +140,19 @@ add_definitions(-std=c++11)
 
 ## Declare a C++ executable
 # add_executable(icreate_lift_navigation_node src/icreate_lift_navigation_node.cpp)
-add_executable(lift_test src/lift_test.cpp)
+# add_executable(lift_test src/lift_test.cpp)
 
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(icreate_lift_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(lift_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(icreate_lift_navigation_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(lift_test ${catkin_LIBRARIES} robot)
+# target_link_libraries(lift_test ${catkin_LIBRARIES} robot)
 
 
 #############

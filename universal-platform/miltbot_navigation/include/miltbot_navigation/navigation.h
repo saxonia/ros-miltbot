@@ -6,7 +6,7 @@
 
 // #include "miltbot_navigation/move_base_data.h"
 
-#include "icreate_navigation/RunGmappingService.h"
+#include "miltbot_navigation/RunGmappingService.h"
 #include "miltbot_common/WaypointList.h"
 #include "miltbot_map/GetWaypointList.h"
 #include "miltbot_map/SetMap.h"

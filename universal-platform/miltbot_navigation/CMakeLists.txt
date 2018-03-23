@@ -12,6 +12,12 @@ find_package(catkin REQUIRED COMPONENTS
   move_base_msgs
   geometry_msgs
   tf
+  miltbot_common
+  miltbot_map
+  miltbot_state
+  miltbot_system
+  miltbot_transportation
+  miltbot_vision
   message_generation
 )
 
@@ -70,6 +76,7 @@ add_service_files(
   RunGmapping.srv
   GetMiddleRange.srv
   IsLiftOpen.srv
+  RunGmappingService.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -151,6 +158,7 @@ add_library(navigation src/move_base_data.cpp src/navigation.cpp)
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(miltbot_navigation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(navigation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 # add_executable(miltbot_navigation_node src/miltbot_navigation_node.cpp)
@@ -160,6 +168,8 @@ add_executable(laser_node src/laser_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(miltbot_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(laser_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(miltbot_navigation_node
